@@ -1,0 +1,90 @@
+{ 
+  // Window settings
+  "window.customMenuBarAltFocus": false,        // Disable alt focus
+  "window.enableMenuBarMnemonics": false,       // Disable menu bar mnemonics
+  "window.menuBarVisibility": "",         // Hide menu bar
+  "workbench.colorTheme": "Navy Flat",          // Set color theme
+  "workbench.activityBar.location": "hidden",   // Hide activity bar
+  "editor.minimap.enabled": false,              // Disable minimap
+  "chat.commandCenter.enabled": true,           // Enable command center
+  "window.titleBarStyle": "custom",             // Set title bar style
+  "editor.lightbulb.enabled": "off",            // Disable lightbulb
+  
+  // Custom CSS settings
+  "vscode_custom_css.imports": [
+        "file:///home/franco/.config/Code/User/custom-vscode.css"
+    ],
+
+  // Vim extension settings
+  "vim.statusBarColorControl": true,
+  "vim.statusBarColors.normal": ["#141F34", "#C4C4C4"],
+  "vim.statusBarColors.insert": ["#BF616A", "#000000"],
+  "vim.statusBarColors.visual": ["#B0E57C", "#000000"],
+  "vim.statusBarColors.visualline": ["#B48EAD", "#000000"],
+  "vim.statusBarColors.visualblock": ["#D8BFD8", "#000000"],
+  "vim.statusBarColors.replace": "#D08770",
+  "vim.statusBarColors.commandlineinprogress": ["#007ACC", "#000000"],
+  "vim.statusBarColors.searchinprogressmode": ["#007ACC", "#000000"],
+  "vim.statusBarColors.easymotionmode": ["#007ACC", "#000000"],
+  "vim.statusBarColors.easymotioninputmode": ["#007ACC", "#000000"],
+  "vim.statusBarColors.surroundinputmode": ["#007ACC", "#000000"],
+  "vim.easymotion": true,               // Enable easymotion
+  "vim.easymotionKeys": "arstneiodhlp", // Set the keys to use for easymotion
+  "vim.incsearch": true,                // Enable incremental search
+  "vim.useSystemClipboard": true,       // Use the system clipboard
+  "vim.useCtrlKeys": true,              // Use ctrl keys
+  "vim.hlsearch": true,                 // Highlight search
+
+  // Vim keybindings
+  "vim.normalModeKeyBindingsNonRecursive":[ 
+    {
+      "before": ["<C-n>"],
+      "commands": [":nohl"]
+    },
+    {
+      "before": ["K"],
+      "commands": ["lineBreakInsert"],
+      "silent": true
+    },
+    {
+      // Easymotion keybinding (start of word)
+      "before": ["<leader>", "s"],
+      "after": ["<leader>", "<leader>", "<leader>", "b", "d", "w"]
+    }
+  ],
+  "vim.leader": "<space>", // Set leader key
+  "vim.handleKeys": {
+    "<C-a>": false, // Disable ctrl-a
+    "<C-f>": false  // Disable ctrl-f
+  },
+
+  // Editor settings
+  "editor.lineNumbers": "relative",                   // Set line numbers to relative
+  "editor.fontFamily": "Consolas ligaturized v3",     // Set font family
+  "editor.fontLigatures": true,                       // Enable font ligatures
+  "security.workspace.trust.untrustedFiles": "open",  // Open untrusted files
+  "files.autoSave": "afterDelay",                     // Autosave files after delay
+  
+  // Copilot settings
+  "github.copilot.enable": {
+    "*": true,            // Enable copilot for all languages
+    "plaintext": true,    // Enable copilot for plaintext
+    "markdown": true,     // Enable copilot for markdown
+    "scminput": true      // Enable copilot for scm input
+  },
+
+  // Home Assistant settings
+  "vscode-home-assistant.hostUrl": "http://192.168.0.5:8123",
+  "vscode-home-assistant.ignoreCertificates": true,
+  "vscode-home-assistant.longLivedAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlZTQ3NzA1ZDc4NzM0MGViYjlhMjg5NzVmZTk3ZjJkYSIsImlhdCI6MTczMzA3NDczNCwiZXhwIjoyMDQ4NDM0NzM0fQ.dfj2PyGFQCTZ-1k9CePHgv1necxR0yGAiFbX5RpBEF8",
+  "window.commandCenter": false,
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#141F34",
+    "statusBar.noFolderBackground": "#141F34",
+    "statusBar.debuggingBackground": "#141F34",
+    "statusBar.foreground": "#C4C4C4",
+    "statusBar.debuggingForeground": "#C4C4C4"
+  },
+  "editor.overviewRulerBorder": false,
+  "git.openRepositoryInParentFolders": "always",
+}
