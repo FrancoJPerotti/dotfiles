@@ -16,7 +16,7 @@
         "when": "inlineChatHasProvider && !editorReadonly"
     },
     {
-        "key": "meta+capslock shift+meta+t",
+        "key": "meta+shift+t",
         "command": "workbench.action.showCommands"
     },
     {
@@ -26,10 +26,6 @@
     {
         "key": "ctrl+alt+o",
         "command": "-workbench.action.remote.showMenu"
-    },
-    {
-        "key": "meta+capslock meta+t",
-        "command": "workbench.action.quickOpen"
     },
     {
         "key": "ctrl+p",
@@ -92,7 +88,7 @@
         "command": "-workbench.action.files.save"
     },
     {
-        "key": "ctrl+s e",
+        "key": "meta+tab down",
         "command": "workbench.action.splitEditorDown"
     },
     {
@@ -100,7 +96,7 @@
         "command": "-workbench.action.splitEditorDown"
     },
     {
-        "key": "ctrl+s n",
+        "key": "meta+tab left",
         "command": "workbench.action.splitEditorLeft"
     },
     {
@@ -108,7 +104,7 @@
         "command": "-workbench.action.splitEditorLeft"
     },
     {
-        "key": "ctrl+s o",
+        "key": "meta+tab right",
         "command": "workbench.action.splitEditorRight"
     },
     {
@@ -116,7 +112,7 @@
         "command": "-workbench.action.splitEditorRight"
     },
     {
-        "key": "ctrl+s i",
+        "key": "meta+tab up",
         "command": "workbench.action.splitEditorUp"
     },
     {
@@ -185,7 +181,7 @@
         "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
     },
     {
-        "key": "meta+capslock l",
+        "key": "meta+tab l",
         "command": "workbench.action.previousEditorInGroup"
     },
     {
@@ -193,7 +189,7 @@
         "command": "-workbench.action.previousEditorInGroup"
     },
     {
-        "key": "meta+capslock [BracketLeft]",
+        "key": "meta+tab [BracketLeft]",
         "command": "workbench.action.nextEditorInGroup"
     },
     {
@@ -201,19 +197,19 @@
         "command": "-workbench.action.nextEditorInGroup"
     },
     {
-        "key": "meta+capslock n",
+        "key": "meta+tab n",
         "command": "workbench.action.navigateLeft"
     },
     {
-        "key": "meta+capslock o",
+        "key": "meta+tab o",
         "command": "workbench.action.navigateRight"
     },
     {
-        "key": "meta+capslock i",
+        "key": "meta+tab i",
         "command": "workbench.action.navigateUp"
     },
     {
-        "key": "meta+capslock e",
+        "key": "meta+tab e",
         "command": "workbench.action.navigateDown"
     },
     {
@@ -313,9 +309,9 @@
         "command": "workbench.action.chat.history"
     },
     {
-        "key": "meta+capslock i",
+        "key": "meta+tab i",
         "command": "chat.action.focus",
-        "when": "inChatInput && isLinux && !quickChatHasFocus || inChatInput && isWindows && !quickChatHasFocus"
+        "when": "inChatInput && !quickChatHasFocus"
     },
     {
         "key": "ctrl+up",
@@ -323,7 +319,7 @@
         "when": "inChatInput && isLinux && !quickChatHasFocus || inChatInput && isWindows && !quickChatHasFocus"
     },
     {
-        "key": "meta+capslock e",
+        "key": "meta+tab e",
         "command": "workbench.panel.chat.view.copilot.focus",
         "when": "auxiliaryBarFocus"
     },
