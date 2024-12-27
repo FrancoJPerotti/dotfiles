@@ -11,7 +11,7 @@
     "dock": "left"
   },
   "outline_panel": {
-    "dock": "right"
+    "dock": "left"
   },
   "vim_mode": true,
   "relative_line_numbers": true,
@@ -27,7 +27,7 @@
   "buffer_font_family": "Consolas ligaturized v3",
   "theme": {
     "mode": "system",
-    "light": "One Light",
+    "light": "Tokyo Night Storm",
     "dark": "Tokyo Night Storm"
   },
   "autosave": "on_focus_change",

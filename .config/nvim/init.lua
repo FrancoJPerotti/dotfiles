@@ -1,22 +1,22 @@
 -- Synchronize the color of nvim with terminal
 vim.api.nvim_create_autocmd({ "UIEnter", "ColorScheme" }, {
-  callback = function()
-    local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
-    if not normal.bg then return end
-    io.write(string.format("\027]11;#%06x\027\\", normal.bg))
-  end,
+    callback = function()
+        local normal = vim.api.nvim_get_hl(0, { name = "Normal" })
+        if not normal.bg then return end
+        io.write(string.format("\027]11;#%06x\027\\", normal.bg))
+    end,
 })
 
 vim.api.nvim_create_autocmd("UILeave", {
-  callback = function() io.write("\027]111\027\\") end,
+    callback = function() io.write("\027]111\027\\") end,
 })
 
 -- Basic Neovim configuration in Lua
-vim.o.number = true              -- Show line numbers
-vim.o.relativenumber = true      -- Show relative line numbers
-vim.o.tabstop = 4               -- Set tab width
-vim.o.shiftwidth = 4            -- Set shift width
-vim.o.expandtab = true          -- Use spaces instead of tabs
+vim.o.number = true         -- Show line numbers
+vim.o.relativenumber = true -- Show relative line numbers
+vim.o.tabstop = 4           -- Set tab width
+vim.o.shiftwidth = 4        -- Set shift width
+vim.o.expandtab = true      -- Use spaces instead of tabs
 
 -- Enable line wrapping
 vim.o.wrap = true
