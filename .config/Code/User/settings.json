@@ -50,8 +50,28 @@
       // Easymotion keybinding (start of word)
       "before": ["<leader>", "s"],
       "after": ["<leader>", "<leader>", "<leader>", "b", "d", "w"]
+    },
+    {
+      // Go to start of file
+      "before": ["g", "<Home>"],
+      "after": ["g", "g"]
+    },
+    {
+      // Go to end of file
+      "before": ["g", "<End>"],
+      "after": ["G"]
+    },
+    {
+      // Go to next paragraph
+      "before": ["g", "<Down>"],
+      "after": ["}"]
+    },
+    {
+      // Go to previous paragraph
+      "before": ["g", "<Up>"],
+      "after": ["{"]
     }
-  ],
+],
   "vim.leader": "<space>", // Set leader key
   "vim.handleKeys": {
     "<C-a>": false, // Disable ctrl-a
@@ -87,4 +107,17 @@
   },
   "editor.overviewRulerBorder": false,
   "git.openRepositoryInParentFolders": "always",
+  "[yaml]": {
+
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "keep",
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.defaultColorDecorators": "never",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    }
+  },
 }

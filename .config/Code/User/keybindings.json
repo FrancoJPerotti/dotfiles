@@ -443,5 +443,13 @@
     {
         "key": "ctrl+backspace",
         "command": "deleteWordEndLeft"
+    },
+    {
+        "key": "ctrl+shift+z",
+        "command": "redo"
+    },
+    {
+        "key": "ctrl+y",
+        "command": "-redo"
     }
 ]

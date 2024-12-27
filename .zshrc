@@ -90,3 +90,8 @@ alias mkdir='mkdir -p'
 
 # Created by `pipx` on 2024-11-29 04:44:50
 export PATH="$PATH:/home/franco/.local/bin"
+
+export PATH=$HOME/.cargo/bin:$PATH
+
+# Custom Aliases
+alias scarlet='alsamixer -c 0' # Focusrite Scarlet Mixer
