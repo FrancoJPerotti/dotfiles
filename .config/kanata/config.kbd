@@ -36,9 +36,9 @@
   pw C-left ;; Move to previous word
   nw C-right ;; Move to next word
   dw C-bks ;; Delete word
-  undo C-z ;; Undo
-  cut C-x ;; Cut
-  cpy C-c ;; Copy
+  undo C-< ;; Undo
+  cut C-z ;; Cut
+  cpy C-x ;; Copy
   pst C-v ;; Paste
 
   fsh  (layer-while-held function_shift) ;; Function_shift layer
