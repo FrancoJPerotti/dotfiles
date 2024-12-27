@@ -1,0 +1,210 @@
+
+;; Comments are prefixed by double-semicolon. A single semicolon is parsed as the
+;; keyboard key. Comments are ignored for the configuration file.
+;;
+;; Only one defsrc is allowed.
+;;
+;; defsrc defines the keys that will be intercepted by kanata. The order of the
+;; keys matches with deflayer declarations and all deflayer declarations must
+;; have the same number of keys as defsrc. Any keys not listed in defsrc will
+;; be passed straight to the operating system.
+(defsrc
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    ret
+  caps a    s    d    f    g    h    j    k    l    ;    '    \
+  lsft <    z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl     lmet lalt           spc            ralt rctl
+)
+
+;; Colemak layer aliases
+(defalias
+  fun  (layer-while-held function) ;; Function layer
+  sym (tap-hold-press 200 200 (one-shot 500 (layer-while-held meta_tab)) (multi lalt (layer-while-held sym))) ;; Meta_tab layer if tap, Symbols layer if hold
+  lmet (multi lmet (layer-while-held meta)) ;; Meta layer
+  caps caps ;; Caps lock
+  num (layer-while-held num) ;; Num layer
+)
+
+;; Symbols layer aliases
+(defalias 
+  mscl (layer-while-held mouse_scroll) ;; Mouse scroll layer
+)
+
+;; function layer aliases
+(defalias
+  dwt C-w ;; Delete word in terminal
+  pw C-left ;; Move to previous word
+  nw C-right ;; Move to next word
+  dw C-bks ;; Delete word
+  undo C-z ;; Undo
+  cut C-x ;; Cut
+  cpy C-c ;; Copy
+  pst C-v ;; Paste
+
+  fsh  (layer-while-held function_shift) ;; Function_shift layer
+  mcon (layer-while-held media_control) ;; Media control layer
+)
+
+;; function_shift layer aliases
+(defalias
+  shm S-home ;; Select to beginning of line
+  send S-end ;; Select to end of line
+  spw  C-S-left ;; Select previous word
+  snw  C-S-right ;; Select next word
+  slft S-left ;; Select left
+  sdwn S-down ;; Select down 
+  sup  S-up ;; Select up
+  srgt S-right ;; Select right
+  cpyt C-S-x ;; Copy terminal
+  pstt C-S-v ;; Paste terminal
+  redo C-S-< ;; Redo
+  dline (macro S-home bspc)
+)
+
+;; meta_tab layer aliases
+(defalias
+  mtq (macro M-tab q)
+  mtw (macro M-tab w)
+  mte (macro M-tab e)
+  mtr (macro M-tab r)
+  mtt (macro M-tab t) 
+  mty (macro M-tab y)
+  mtu (macro M-tab u)
+  mti (macro M-tab i)
+  mto (macro M-tab o)
+  mtp (macro M-tab p)
+  mtlb (macro M-tab [)
+  mtrb (macro M-tab ])   
+  mta (macro M-tab a)
+  mts (macro M-tab s)
+  mtd (macro M-tab d)
+  mtf (macro M-tab f)
+  mtg (macro M-tab g)
+  mth (macro M-tab h)
+  mtj (macro M-tab j)
+  mtk (macro M-tab k)
+  mtl (macro M-tab l)
+  mt; (macro M-tab ;)
+  mt' (macro M-tab ')
+  mt\ (macro M-tab \)
+  mt< (macro M-tab <)
+  mtz (macro M-tab z) 
+  mtx (macro M-tab x)
+  mtc (macro M-tab c)
+  mtv (macro M-tab v)
+  mtb (macro M-tab b)
+  mtn (macro M-tab n)
+  mtm (macro M-tab m) 
+  mt, (macro M-tab ,) 
+  mt. (macro M-tab .)
+  mt/ (macro M-tab /)
+
+  funt(one-shot 500 (layer-while-held function_meta_tab)) ;; Function_meta_tab layer if tap 
+)
+
+;; function_meta_tab layer aliases
+(defalias
+  mtesc (macro M-tab esc)
+  mttab (macro M-tab tab)
+  mtbks (macro M-tab bks)
+  mtret (macro M-tab ret)
+  mtlft (macro M-tab left)
+  mtdwn (macro M-tab down) 
+  mtup  (macro M-tab up)
+  mtrgt (macro M-tab right)
+  mthom (macro M-tab home)
+  mtend (macro M-tab end)
+)
+
+
+;; The first layer defined is the layer that will be active by default when kanata starts up.
+;; Set colemak as keyboard layer in hyprland (kb_layout = custom)
+(deflayer colemak
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  @num   _      _      _      _      _      _      _      _      _      _      _      _      _
+  @lmet  _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _             @caps  @sym                 _                           @fun   _
+)
+
+;; Symbols layer (Uses the symbols of the colemak layout)
+(deflayer sym
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  @mscl  _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _             _      _                    _                           _      _
+)
+
+;; Num layer
+(deflayer num
+  XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX
+  XX     XX     XX     XX     XX     XX     XX     XX     7      8      9      XX     XX     XX
+  XX     XX     XX     XX     XX     XX     XX     XX     4      5      6      XX     XX
+  XX     XX     XX     XX     XX     XX     XX     XX     XX     1      2      3      XX     
+  XX            XX     XX                   0                           _      XX
+)
+
+;; Function layer
+(deflayer function
+  _      _      _      _      _      _      _      _      _      _      _       _      _      _
+  _      esc    @dwt   _      _      _      _      _      home   @pw    @nw     end    _      _
+  @mcon  tab    _      @dw    bks    _      _      _      left   down   up      right  _
+  @fsh   @undo  @cut   @cpy   _      @pst   _      _      _      mlft   mrgt    _      @fsh
+  _             _      _                    ret                         _       _
+)
+
+;; Function_shift layer
+(deflayer function_shift
+  _      _        _        _        _        _        _      _      _       _        _      _        _      _
+  _      _        _        _        _        _        _      _      @shm    @spw     @snw   @send    _      _
+  _      _        _        @dline   _        _        _      _      @slft   @sdwn    @sup   @srgt    _
+  _      @redo    _        @cpyt    _        @pstt    _      _      _       _        _      _        _
+  _               _        _                         S-ret                           _      _
+)
+
+;; Meta layer (To be able to resize windows in hyprland)
+(deflayer meta
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _             _      lalt                    _                        _      _
+)
+
+;; Meta_tab layer (lalt <key> = M-tab <key>)
+(deflayer meta_tab
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      @mtq   @mtw   @mte   @mtr   @mtt   @mty   @mtu   @mti   @mto   @mtp   @mtlb  @mtrb  _
+  _      @mta   @mts   @mtd   @mtf   @mtg   @mth   @mtj   @mtk   @mtl   @mt;   @mt'   @mt\
+  _      @mt<   @mtz   @mtx   @mtc   @mtv   @mtb   @mtn   @mtm   @mt,   @mt.   @mt/   _
+  _      _      _                           _                           @funt  _
+)
+
+;; Function_meta_tab layer (lalt ralt <key> = M-tab ralt+<key>)
+(deflayer function_meta_tab
+  _      _      _      _      _      _      _      _      _      _      _      _       _      _
+  _      @mtesc _      _      _      _      _      _      @mthom _      _      @mtend  _      _
+  _      @mttab _      _      @mtbks _      _      _      @mtlft @mtdwn @mtup  @mtrgt  _
+  _      _      _      _      _      _      _      _      _      _      _      _       _
+  _             _      _                    @mtret                      _      _
+)
+
+
+;; Media control layer
+(deflayer media_control
+  _      _      _      _      _      _      _      _      _       _      _      _      _      _
+  _      _      _      _      _      _      _      _      vold    mute   volu   _      _      _
+  _      _      _      _      _      _      _      _      prev    pp     next   _      _
+  _      _      _      _      _      _      _      _      _       _      _      _      _
+  _             _      _                    _                            _      _
+)
+
+;; Mouse scroll layer
+(deflayer mouse_scroll
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      mwl    mwd    mwu    mwr    _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _             _      _                    _                           _      _
+)
