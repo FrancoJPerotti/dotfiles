@@ -130,8 +130,8 @@
 ;; Symbols layer (Uses the symbols of the colemak layout)
 (deflayer sym
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
-  _      _      _      _      _      _      _      _      _      _      _      _      _      _
-  @mscl  _      _      _      _      _      _      _      _      _      _      _      _
+  @mscl  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
   _      _      _      _      _      _      _      _      _      _      _      _      _
   _             _      _                    _                           _      _
 )
@@ -148,8 +148,8 @@
 ;; Function layer
 (deflayer function
   _      _      _      _      _      _      _      _      _      _      _       _      _      _
-  _      esc    @dwt   _      _      _      _      _      home   @pw    @nw     end    _      _
-  @mcon  tab    _      @dw    bks    _      _      _      left   down   up      right  _
+  @mcon  esc    @dwt   _      _      _      _      _      home   @pw    @nw     end    _      _
+  _      tab    _      @dw    bks    _      _      _      left   down   up      right  _
   @fsh   @undo  @cut   @cpy   _      @pst   _      _      _      mlft   mrgt    _      @fsh
   _             _      _                    ret                         _       _
 )
