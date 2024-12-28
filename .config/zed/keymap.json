@@ -1356,5 +1356,12 @@
     "bindings": {
       "ctrl-i i": "assistant::InlineAssist"
     }
+  },
+  {
+    "context": "VimControl && !menu",
+    "bindings": {
+      ". .": "vim::ChangeListNewer",
+      ", ,": "vim::ChangeListOlder"
+    }
   }
 ]
