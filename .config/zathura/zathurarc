@@ -1,0 +1,18 @@
+# Options
+set recolor true
+set selection-clipboard clipboard
+set statusbar-home-tilde true
+
+# Normal mode
+map [normal] <Right> navigate next
+map [normal] <Left> navigate previous
+map [normal] i toggle_index 
+map <C-f> focus_inputbar "/"
+unmap [normal] q 
+
+# Index mode
+map [index] e navigate_index expand
+map [index] E navigate_index expand-all
+map [index] c navigate_index collapse
+map [index] C navigate_index collapse-all
+
