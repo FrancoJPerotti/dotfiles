@@ -599,8 +599,6 @@
       "] /": "vim::NextComment",
       // Word motions
       "w": "vim::NextWordStart",
-      "e": "vim::NextWordEnd",
-      "b": "vim::PreviousWordStart",
       "g e": "vim::PreviousWordEnd",
       // Subword motions
       // "w": "vim::NextSubwordStart",
@@ -1360,6 +1358,8 @@
   {
     "context": "VimControl && !menu",
     "bindings": {
+      "ctrl-right": "vim::NextWordEnd",
+      "ctrl-left": "vim::PreviousWordStart",
       ". .": "vim::ChangeListNewer",
       ", ,": "vim::ChangeListOlder"
     }
