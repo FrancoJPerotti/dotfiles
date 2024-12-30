@@ -28,7 +28,7 @@
   "theme": {
     "mode": "system",
     "light": "Tokyo Night Storm",
-    "dark": "Tokyo Night Storm"
+    "dark": "Tokyo Night"
   },
   "autosave": "on_focus_change",
   "base_keymap": "None",
@@ -37,5 +37,10 @@
     "magnification": 1.0,
     "border_size": 2.0,
     "inactive_opacity": 0.5
+  },
+
+  "telemetry": {
+    "diagnostics": false,
+    "metrics": false
   }
 }

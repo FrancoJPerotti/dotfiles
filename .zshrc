@@ -95,3 +95,5 @@ export PATH=$HOME/.cargo/bin:$PATH
 
 # Custom Aliases
 alias scarlet='alsamixer -c 0' # Focusrite Scarlet Mixer
+alias zed='zeditor' # Zed Editor
+

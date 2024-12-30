@@ -26,7 +26,7 @@
 )
 
 ;; Symbols layer aliases
-(defalias 
+(defalias
   mscl (layer-while-held mouse_scroll) ;; Mouse scroll layer
 )
 
@@ -52,7 +52,7 @@
   spw  C-S-left ;; Select previous word
   snw  C-S-right ;; Select next word
   slft S-left ;; Select left
-  sdwn S-down ;; Select down 
+  sdwn S-down ;; Select down
   sup  S-up ;; Select up
   srgt S-right ;; Select right
   cpyt C-S-x ;; Copy terminal
@@ -67,14 +67,14 @@
   mtw (macro M-tab w)
   mte (macro M-tab e)
   mtr (macro M-tab r)
-  mtt (macro M-tab t) 
+  mtt (macro M-tab t)
   mty (macro M-tab y)
   mtu (macro M-tab u)
   mti (macro M-tab i)
   mto (macro M-tab o)
   mtp (macro M-tab p)
   mtlb (macro M-tab [)
-  mtrb (macro M-tab ])   
+  mtrb (macro M-tab ])
   mta (macro M-tab a)
   mts (macro M-tab s)
   mtd (macro M-tab d)
@@ -88,18 +88,18 @@
   mt' (macro M-tab ')
   mt\ (macro M-tab \)
   mt< (macro M-tab <)
-  mtz (macro M-tab z) 
+  mtz (macro M-tab z)
   mtx (macro M-tab x)
   mtc (macro M-tab c)
   mtv (macro M-tab v)
   mtb (macro M-tab b)
   mtn (macro M-tab n)
-  mtm (macro M-tab m) 
-  mt, (macro M-tab ,) 
+  mtm (macro M-tab m)
+  mt, (macro M-tab ,)
   mt. (macro M-tab .)
   mt/ (macro M-tab /)
 
-  funt(one-shot 500 (layer-while-held function_meta_tab)) ;; Function_meta_tab layer if tap 
+  funt(one-shot 500 (layer-while-held function_meta_tab)) ;; Function_meta_tab layer if tap
 )
 
 ;; function_meta_tab layer aliases
@@ -109,7 +109,7 @@
   mtbks (macro M-tab bks)
   mtret (macro M-tab ret)
   mtlft (macro M-tab left)
-  mtdwn (macro M-tab down) 
+  mtdwn (macro M-tab down)
   mtup  (macro M-tab up)
   mtrgt (macro M-tab right)
   mthom (macro M-tab home)
@@ -141,7 +141,7 @@
   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX
   XX     XX     XX     XX     XX     XX     XX     XX     7      8      9      XX     XX     XX
   XX     XX     XX     XX     XX     XX     XX     XX     4      5      6      XX     XX
-  XX     XX     XX     XX     XX     XX     XX     XX     XX     1      2      3      XX     
+  XX     XX     XX     XX     XX     XX     XX     XX     XX     1      2      3      XX
   XX            XX     XX                   0                           _      XX
 )
 
@@ -195,7 +195,7 @@
 (deflayer media_control
   _      _      _      _      _      _      _      _      _       _      _      _      _      _
   _      _      _      _      _      _      _      _      vold    mute   volu   _      _      _
-  _      _      _      _      _      _      _      _      prev    pp     next   _      _
+  _      _      _      _      _      _      _      _      prev    pp     next   C-m    _
   _      _      _      _      _      _      _      _      _       _      _      _      _
   _             _      _                    _                            _      _
 )
