@@ -435,21 +435,16 @@
     "bindings": {
       "left": "project_panel::CollapseSelectedEntry",
       "right": "project_panel::ExpandSelectedEntry",
-      "ctrl-n": "project_panel::NewFile",
-      "alt-ctrl-n": "project_panel::NewDirectory",
       "ctrl-insert": "project_panel::Copy",
       "shift-insert": "project_panel::Paste",
       "ctrl-alt-c": "project_panel::CopyPath",
       "alt-ctrl-shift-c": "project_panel::CopyRelativePath",
-      "enter": "project_panel::Rename",
       "backspace": ["project_panel::Trash", { "skip_prompt": false }],
-      "shift-delete": ["project_panel::Delete", { "skip_prompt": false }],
       "ctrl-backspace": ["project_panel::Delete", { "skip_prompt": false }],
       "ctrl-delete": ["project_panel::Delete", { "skip_prompt": false }],
       "alt-ctrl-r": "project_panel::RevealInFileManager",
       "ctrl-shift-enter": "project_panel::OpenWithSystem",
       "ctrl-shift-e": "project_panel::ToggleFocus",
-      "ctrl-shift-f": "project_panel::NewSearchInDirectory",
       "shift-down": "menu::SelectNext",
       "shift-up": "menu::SelectPrev",
       "escape": "menu::Cancel"
@@ -464,12 +459,6 @@
       "ctrl-x": "project_panel::Cut",
       "ctrl-v": "project_panel::Paste",
       "delete": ["project_panel::Trash", { "skip_prompt": false }]
-    }
-  },
-  {
-    "context": "ProjectPanel && not_editing",
-    "bindings": {
-      "space": "project_panel::Open"
     }
   },
   {
@@ -1218,16 +1207,6 @@
       // File explorer keybindings
       "super-t": "file_finder::Toggle",
 
-      // Focus tabs keybindings
-      "super-tab ñ": "pane::ActivateNextItem",
-      "super-tab l": "pane::ActivatePrevItem",
-
-      // Focus panes keybindings
-      "super-tab o": ["workspace::ActivatePaneInDirection", "Right"],
-      "super-tab n": ["workspace::ActivatePaneInDirection", "Left"],
-      "super-tab e": ["workspace::ActivatePaneInDirection", "Down"],
-      "super-tab i": ["workspace::ActivatePaneInDirection", "Up"],
-
       // New
       "ctrl-n t": "workspace::NewTerminal",
       "ctrl-n f": "workspace::NewFile",
@@ -1285,13 +1264,7 @@
       "ctrl-shift-q": "pane::CloseActiveItem",
 
       // Search keys
-      "shift-enter": "search::SelectAllMatches",
-
-      // Split panes
-      "super-tab up": "pane::SplitUp",
-      "super-tab down": "pane::SplitDown",
-      "super-tab left": "pane::SplitLeft",
-      "super-tab right": "pane::SplitRight"
+      "shift-enter": "search::SelectAllMatches"
     }
   },
   {
@@ -1356,12 +1329,52 @@
     }
   },
   {
+    "context": "ProjectPanel",
+    "bindings": {
+      "n f": "project_panel::NewFile",
+      "n d": "project_panel::NewDirectory",
+      "r": "project_panel::Rename",
+      "d d": ["project_panel::Delete", { "skip_prompt": false }],
+      "/": "project_panel::NewSearchInDirectory"
+    }
+  },
+  {
+    "context": "ProjectPanel && not_editing",
+    "bindings": {
+      "space o": ["workspace::ActivatePaneInDirection", "Right"]
+    }
+  },
+  {
     "context": "VimControl && !menu",
     "bindings": {
       "ctrl-right": "vim::NextWordEnd",
       "ctrl-left": "vim::PreviousWordStart",
       ". .": "vim::ChangeListNewer",
       ", ,": "vim::ChangeListOlder"
+    }
+  },
+  {
+    "context": "vim_mode == normal",
+    "bindings": {
+      // Focus tabs keybindings
+      "space ñ": "pane::ActivateNextItem",
+      "space l": "pane::ActivatePrevItem",
+
+      // Focus panes keybindings
+      "space o": ["workspace::ActivatePaneInDirection", "Right"],
+      "space n": ["workspace::ActivatePaneInDirection", "Left"],
+      "space e": ["workspace::ActivatePaneInDirection", "Down"],
+      "space i": ["workspace::ActivatePaneInDirection", "Up"],
+
+      // Split panes
+      "space up": "pane::SplitUp",
+      "space down": "pane::SplitDown",
+      "space left": "pane::SplitLeft",
+      "space right": "pane::SplitRight",
+
+      // Close tabs
+      "space q": "pane::CloseActiveItem",
+      "space shift q": "pane::CloseAllItems"
     }
   }
 ]

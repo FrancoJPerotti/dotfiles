@@ -36,6 +36,7 @@
   "vim.useSystemClipboard": true,       // Use the system clipboard
   "vim.useCtrlKeys": true,              // Use ctrl keys
   "vim.hlsearch": true,                 // Highlight search
+  "vim.surround": true,
 
   // Vim keybindings
   "vim.normalModeKeyBindingsNonRecursive":[ 
@@ -89,10 +90,10 @@
   
   // Copilot settings
   "github.copilot.enable": {
-    "*": true,            // Enable copilot for all languages
-    "plaintext": true,    // Enable copilot for plaintext
-    "markdown": true,     // Enable copilot for markdown
-    "scminput": true      // Enable copilot for scm input
+    "*": false,
+    "plaintext": true,
+    "markdown": true,
+    "scminput": true
   },
 
   // Home Assistant settings

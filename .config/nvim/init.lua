@@ -34,18 +34,34 @@ vim.g.mapleader = " "
 vim.keymap.set('n', '<Up>', 'k', { noremap = true, silent = true })
 vim.keymap.set('v', '<Up>', 'k', { noremap = true, silent = true })
 vim.keymap.set('x', '<Up>', 'k', { noremap = true, silent = true })
+vim.keymap.set('n', 'k', '<nop>', { silent = true })
+vim.keymap.set('v', 'k', '<nop>', { silent = true })
+vim.keymap.set('x', 'k', '<nop>', { silent = true })
+
 -- Move down
 vim.keymap.set('n', '<Down>', 'j', { noremap = true, silent = true })
 vim.keymap.set('v', '<Down>', 'j', { noremap = true, silent = true })
 vim.keymap.set('x', '<Down>', 'j', { noremap = true, silent = true })
+vim.keymap.set('n', 'j', '<nop>', { silent = true })
+vim.keymap.set('v', 'j', '<nop>', { silent = true })
+vim.keymap.set('x', 'j', '<nop>', { silent = true })
+
 -- Move left
 vim.keymap.set('n', '<Left>', 'h', { noremap = true, silent = true })
 vim.keymap.set('v', '<Left>', 'h', { noremap = true, silent = true })
 vim.keymap.set('x', '<Left>', 'h', { noremap = true, silent = true })
+vim.keymap.set('n', 'h', '<nop>', { silent = true })
+vim.keymap.set('v', 'h', '<nop>', { silent = true })
+vim.keymap.set('x', 'h', '<nop>', { silent = true })
+
 -- Move right
 vim.keymap.set('n', '<Right>', 'l', { noremap = true, silent = true })
 vim.keymap.set('v', '<Right>', 'l', { noremap = true, silent = true })
 vim.keymap.set('x', '<Right>', 'l', { noremap = true, silent = true })
+vim.keymap.set('n', 'l', '<nop>', { silent = true })
+vim.keymap.set('v', 'l', '<nop>', { silent = true })
+vim.keymap.set('x', 'l', '<nop>', { silent = true })
+
 
 -- Go to the end of the line
 vim.keymap.set('n', '<End>', 'g_', { noremap = true, silent = true })
@@ -81,10 +97,22 @@ vim.keymap.set('x', 'g<Down>', '}', { noremap = true, silent = true })
 -- Go to the previous paragraph
 vim.keymap.set('n', 'g<Up>', '{', { noremap = true, silent = true })
 vim.keymap.set('v', 'g<Up>', '{', { noremap = true, silent = true })
-vim.keymap.set('x', 'g<Up>', '{', { noremap = true, silent = true })
+vim.keymap.set('x', 'g<Up>', '{', { noremap = true, silent = true })    
+
+
+vim.keymap.set('n', '<leader>l', ':bprevious<CR>', { silent = true })
+vim.keymap.set('n', '<leader>ñ', ':bnext<CR>', { silent = true })
+-- Remap split navigation with leader key
+vim.keymap.set('n', '<leader>n', '<C-w>h', { silent = true })
+vim.keymap.set('n', '<leader>e', '<C-w>j', { silent = true })
+vim.keymap.set('n', '<leader>i', '<C-w>k', { silent = true })
+vim.keymap.set('n', '<leader>o', '<C-w>l', { silent = true })
 
 
 -- Hot Reload Config
 vim.api.nvim_set_keymap('n', '<leader>r', ':luafile ~/.config/nvim/init.lua<CR>', { noremap = true, silent = true })
 
 require("config.lazy")
+
+vim.opt.termguicolors = true
+require("bufferline").setup{}
