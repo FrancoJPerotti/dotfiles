@@ -123,4 +123,5 @@
       "strings": true
     }
   },
+  "github.copilot.selectedCompletionModel": "gpt-4o-copilot",
 }
