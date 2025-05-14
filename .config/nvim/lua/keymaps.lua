@@ -117,3 +117,5 @@ keymap.set(
 )
 
 keymap.set("n", "?", "<cmd>:lua vim.diagnostic.open_float()<CR>", { desc = "Open diagnostics" })
+
+keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })
