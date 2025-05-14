@@ -82,16 +82,22 @@ return {
 			},
 		})
 
-		-- `/` cmdline setup.
 		cmp.setup.cmdline("/", {
-			mapping = cmp.mapping.preset.cmdline(),
+			mapping = cmp.mapping.preset.cmdline({
+				["<Right>"] = cmp.mapping.confirm({ select = true }),
+			}),
 			sources = {
 				{ name = "buffer" },
 			},
-		}) -- `:` cmdline setup.
+		})
 
 		cmp.setup.cmdline(":", {
-			mapping = cmp.mapping.preset.cmdline(),
+			mapping = cmp.mapping.preset.cmdline({
+				["<C-n>"] = cmp.mapping.select_next_item(),
+				["<C-p>"] = cmp.mapping.select_prev_item(),
+				["<Tab>"] = cmp.mapping.confirm({ select = true }),
+				["<Right>"] = cmp.mapping.confirm({ select = true }), -- ✅ Add this line
+			}),
 			sources = cmp.config.sources({
 				{ name = "path" },
 			}, {

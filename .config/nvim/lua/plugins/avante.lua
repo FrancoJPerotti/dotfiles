@@ -6,6 +6,9 @@ return {
 	opts = {
 		-- add any opts here
 		provider = "copilot",
+		behavior = {
+			enable_cursor_planning_mode = true,
+		},
 	},
 	-- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
 	build = "make",

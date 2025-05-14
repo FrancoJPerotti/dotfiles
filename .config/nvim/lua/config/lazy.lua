@@ -35,3 +35,12 @@ require("lazy").setup({
 		notify = false,
 	},
 })
+
+vim.api.nvim_create_autocmd("FileType", {
+	pattern = "lazy",
+	callback = function()
+		vim.keymap.set("n", "<Esc>", "<cmd>q<CR>", { buffer = true, desc = "Close Lazy with <Esc>" })
+		-- Optional: disable q if you don't want it
+		-- vim.keymap.del("n", "q", { buffer = true })
+	end,
+})

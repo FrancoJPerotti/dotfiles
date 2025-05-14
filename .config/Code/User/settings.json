@@ -74,54 +74,87 @@
       "before": ["g", "<Up>"],
       "after": ["{"]
     }
-],
-  "vim.leader": "<space>", // Set leader key
-  "vim.handleKeys": {
-    "<C-a>": false, // Disable ctrl-a
-    "<C-f>": false  // Disable ctrl-f
-  },
+  ],
 
-  // Editor settings
-  "editor.lineNumbers": "relative",                   // Set line numbers to relative
-  "editor.fontFamily": "Consolas ligaturized v3",     // Set font family
-  "editor.fontLigatures": true,                       // Enable font ligatures
-  "security.workspace.trust.untrustedFiles": "open",  // Open untrusted files
-  "files.autoSave": "afterDelay",                     // Autosave files after delay
-  
-  // Copilot settings
-  "github.copilot.enable": {
-    "*": false,
-    "plaintext": true,
-    "markdown": true,
-    "scminput": true
-  },
+"vim.leader": "<space>", // Set leader key
+"vim.handleKeys": {
+  "<C-a>": false, // Disable ctrl-a
+  "<C-f>": false  // Disable ctrl-f
+},
 
-  // Home Assistant settings
-  "vscode-home-assistant.hostUrl": "http://192.168.0.5:8123",
-  "vscode-home-assistant.ignoreCertificates": true,
-  "vscode-home-assistant.longLivedAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlZTQ3NzA1ZDc4NzM0MGViYjlhMjg5NzVmZTk3ZjJkYSIsImlhdCI6MTczMzA3NDczNCwiZXhwIjoyMDQ4NDM0NzM0fQ.dfj2PyGFQCTZ-1k9CePHgv1necxR0yGAiFbX5RpBEF8",
-  "window.commandCenter": false,
-  "workbench.colorCustomizations": {
-    "statusBar.background": "#141F34",
-    "statusBar.noFolderBackground": "#141F34",
-    "statusBar.debuggingBackground": "#141F34",
-    "statusBar.foreground": "#C4C4C4",
-    "statusBar.debuggingForeground": "#C4C4C4"
-  },
-  "editor.overviewRulerBorder": false,
-  "git.openRepositoryInParentFolders": "always",
-  "[yaml]": {
+// Editor settings
+"editor.lineNumbers": "relative",                   // Set line numbers to relative
+"editor.fontFamily": "Consolas ligaturized v3",     // Set font family
+"editor.fontLigatures": true,                       // Enable font ligatures
+"security.workspace.trust.untrustedFiles": "open",  // Open untrusted files
+"files.autoSave": "afterDelay",                     // Autosave files after delay
 
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "editor.autoIndent": "keep",
-    "diffEditor.ignoreTrimWhitespace": false,
-    "editor.defaultColorDecorators": "never",
-    "editor.quickSuggestions": {
-      "other": true,
-      "comments": false,
-      "strings": true
-    }
+// Copilot settings
+"github.copilot.enable": {
+  "*": true,
+  "plaintext": true,
+  "markdown": true,
+  "scminput": true
+},
+
+// Home Assistant settings
+"vscode-home-assistant.hostUrl": "http://192.168.0.5:8123",
+"vscode-home-assistant.ignoreCertificates": true,
+"vscode-home-assistant.longLivedAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlZTQ3NzA1ZDc4NzM0MGViYjlhMjg5NzVmZTk3ZjJkYSIsImlhdCI6MTczMzA3NDczNCwiZXhwIjoyMDQ4NDM0NzM0fQ.dfj2PyGFQCTZ-1k9CePHgv1necxR0yGAiFbX5RpBEF8",
+"window.commandCenter": false,
+"workbench.colorCustomizations": {
+  "statusBar.background": "#141F34",
+  "statusBar.noFolderBackground": "#141F34",
+  "statusBar.debuggingBackground": "#141F34",
+  "statusBar.foreground": "#C4C4C4",
+  "statusBar.debuggingForeground": "#C4C4C4"
+},
+"editor.overviewRulerBorder": false,
+"git.openRepositoryInParentFolders": "always",
+"[yaml]": {
+
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.autoIndent": "keep",
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.defaultColorDecorators": "never",
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": false,
+    "strings": true
+  }
+},
+"github.copilot.selectedCompletionModel": "gpt-4o-copilot",
+"cSpell.language": "en,es-ES",
+"[markdown]": {
+
+  "editor.unicodeHighlight.ambiguousCharacters": false,
+  "editor.unicodeHighlight.invisibleCharacters": false,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.wordWrap": "on",
+  "editor.quickSuggestions": {
+    "comments": "off",
+    "strings": "off",
+    "other": "off"
+    },
+    "cSpell.fixSpellingWithRenameProvider": true,
+    "cSpell.advanced.feature.useReferenceProviderWithRename": true,
+    "cSpell.advanced.feature.useReferenceProviderRemove": "/^#+\\s/",
+    "editor.defaultFormatter": "tehnix.vscode-tidymarkdown"
   },
-  "github.copilot.selectedCompletionModel": "gpt-4o-copilot",
+  "cSpell.userWords": [
+    "AWGN",
+    "colocándolos",
+    "conversor",
+    "demodulación",
+    "demodulados",
+    "equiespaciadas",
+    "IDFT",
+    "IFFT",
+    "multiportadora",
+    "OFDM",
+    "ortogonalidad",
+    "subportadora",
+    "subportadoras"
+  ],
 }

@@ -93,7 +93,59 @@ export PATH="$PATH:/home/franco/.local/bin"
 
 export PATH=$HOME/.cargo/bin:$PATH
 
+# Custom Functions
+# Refresh monitor rate
+monitor_refresh_update() {
+  if [[ -z "$1" ]]; then
+    echo "Usage: monitor_refresh_update <refresh_rate>"
+    return 1
+  fi
+
+  local refresh_rate="$1"
+  hyprctl keyword monitor "HDMI-A-1,1920x1080@${refresh_rate},840x1760,1.0,transform,1"
+}
+
+
+nvd() {
+  neovide "$@" & disown
+  sleep 0.5
+  kill $PPID
+}
+
+# Cycles monitor refresh rates indefinitely.
+# Usage:
+#   monitor_refresh_loop <interval-sec> [rate1 rate2 rate3 …]
+# Examples:
+#   monitor_refresh_loop 5           # uses default rates (50→60→70→50) every 5 s
+#   monitor_refresh_loop 2 75 85 75  # cycles 75→85→75 every 2 s
+monitor_refresh_loop() {
+  # 1) first arg is interval in seconds (default 5)
+  local interval=${1:-5}
+  shift
+
+  # 2) remaining args (if any) are the rate sequence; otherwise use default
+  local rates=("$@")
+  if (( ${#rates[@]} == 0 )); then
+    rates=(50 60 70 50)
+  fi
+
+  # Clean exit on Ctrl+C
+  trap 'echo; echo "Interrupted—stopping."; return 0' SIGINT SIGTERM
+
+  while true; do
+    for rate in "${rates[@]}"; do
+      monitor_refresh_update "$rate"
+      sleep "$interval"
+    done
+  done
+}
+
+
 # Custom Aliases
 alias scarlet='alsamixer -c 0' # Focusrite Scarlet Mixer
 alias zed='zeditor' # Zed Editor
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+export PATH="/opt/sonar-scanner/bin:$PATH"

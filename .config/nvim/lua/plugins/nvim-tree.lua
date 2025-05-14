@@ -1,7 +1,7 @@
 return {
 	"nvim-tree/nvim-tree.lua",
 	keys = {
-		{ "<leader>t", "<cmd>NvimTreeToggle<CR>", desc = "Toggle the Nvim-Tree explorer" },
+		{ "<leader>e", "<cmd>NvimTreeToggle<CR>", desc = "Toggle the Nvim-Tree explorer" },
 		-- Not very relevant, considering my floating nvim tree
 		-- { "<leader>ee", ":NvimTreeFocus<CR>", desc = "Focus on the explorer" },
 	},
@@ -18,6 +18,12 @@ return {
 
 			-- override a default. Set l to open the file in the current window
 			vim.keymap.set("n", "l", api.node.open.edit, opts("Open"))
+
+			-- add Esc to close the nvim-tree
+			vim.keymap.set("n", "<Esc>", api.tree.close, opts("Close NvimTree with <Esc>"))
+
+			-- add <leader>cd to change the current working directory to the selected node
+			vim.keymap.set("n", "<leader>cd", api.tree.change_root_to_node, opts("Change CWD to Node"))
 		end
 
 		local icons = {

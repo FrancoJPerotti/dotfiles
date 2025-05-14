@@ -29,7 +29,7 @@
   "theme": {
     "mode": "system",
     "light": "Tokyo Night Storm",
-    "dark": "Tokyo Night"
+    "dark": "One Dark"
   },
   "autosave": "on_focus_change",
   "base_keymap": "None",

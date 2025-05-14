@@ -11,8 +11,8 @@ return {
 			typescriptreact = { "eslint_d" },
 			svelte = { "eslint_d" },
 			python = { "pylint" },
-			c = { "cpplint" },
-			cpp = { "cpplint" },
+			-- c = { "cpplint" },
+			-- cpp = { "cpplint" },
 			java = { "checkstyle" },
 			bash = { "bash" },
 		}

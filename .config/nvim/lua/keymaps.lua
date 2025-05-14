@@ -59,53 +59,54 @@ keymap.set("n", "<C-Left>", "b", { noremap = true, silent = true })
 keymap.set("v", "<C-Left>", "b", { noremap = true, silent = true })
 keymap.set("x", "<C-Left>", "b", { noremap = true, silent = true })
 
--- Go to the end of the document
-keymap.set("n", "g<End>", "G", { noremap = true, silent = true })
-keymap.set("v", "g<End>", "G", { noremap = true, silent = true })
-keymap.set("x", "g<End>", "G", { noremap = true, silent = true })
--- Go to the beginning of the document
-keymap.set("n", "g<Home>", "gg", { noremap = true, silent = true })
-keymap.set("v", "g<Home>", "gg", { noremap = true, silent = true })
-keymap.set("x", "g<Home>", "gg", { noremap = true, silent = true })
-
 -- Go to the next paragraph
-keymap.set("n", "g<Down>", "}", { noremap = true, silent = true })
-keymap.set("v", "g<Down>", "}", { noremap = true, silent = true })
-keymap.set("x", "g<Down>", "}", { noremap = true, silent = true })
+keymap.set("n", "<S-Down>", "}", { noremap = true, silent = true })
+keymap.set("v", "<S-Down>", "}", { noremap = true, silent = true })
+keymap.set("x", "<S-Down>", "}", { noremap = true, silent = true })
 
 -- Go to the previous paragraph
-keymap.set("n", "g<Up>", "{", { noremap = true, silent = true })
-keymap.set("v", "g<Up>", "{", { noremap = true, silent = true })
-keymap.set("x", "g<Up>", "{", { noremap = true, silent = true })
+keymap.set("n", "<S-Up>", "{", { noremap = true, silent = true })
+keymap.set("v", "<S-Up>", "{", { noremap = true, silent = true })
+keymap.set("x", "<S-Up>", "{", { noremap = true, silent = true })
 
 -- Move through buffers
-keymap.set("n", "<leader>l", "<cmd>bprevious<CR>", { desc = "Previous buffer", silent = true })
-keymap.set("n", "<leader>ñ", "<cmd>bnext<CR>", { desc = "Next buffer", silent = true })
+keymap.set("n", "<C-l>", "<cmd>bprevious<CR>", { desc = "Previous buffer", silent = true })
+keymap.set("n", "<C-ñ>", "<cmd>bnext<CR>", { desc = "Next buffer", silent = true })
 
 -- Remap split navigation with leader key
-keymap.set("n", "<leader>n", "<C-w>h", { desc = "Focus left", silent = true })
-keymap.set("n", "<leader>e", "<C-w>j", { desc = "Focus down", silent = true })
-keymap.set("n", "<leader>i", "<C-w>k", { desc = "Focus up", silent = true })
-keymap.set("n", "<leader>o", "<C-w>l", { desc = "Focus right", silent = true })
+keymap.set("n", "<C-n>", "<C-w>h", { desc = "Focus left", silent = true })
+keymap.set("n", "<C-e>", "<C-w>j", { desc = "Focus down", silent = true })
+keymap.set("n", "<C-i>", "<C-w>k", { desc = "Focus up", silent = true })
+keymap.set("n", "<C-o>", "<C-w>l", { desc = "Focus right", silent = true })
 
 -- Move one page up/down
-keymap.set("n", "<C-i>", "<C-b>", { silent = true })
-keymap.set("n", "<C-e>", "<C-f>", { silent = true })
+keymap.set("n", "<M-i>", "<C-b>", { silent = true })
+keymap.set("n", "<M-e>", "<C-f>", { silent = true })
 
 -- Navigate wildmenu with arrow keys in command-line mode
 keymap.set("c", "<Down>", "<C-n>", { noremap = true })
 keymap.set("c", "<Up>", "<C-p>", { noremap = true })
+
 -- Use <Right> to select a recommendation without executing it
 keymap.set("c", "<Right>", 'pumvisible() ? "\\<C-y>" : "\\<Right>"', { noremap = true, expr = true, silent = true })
 
 -- Close
-keymap.set("n", "<leader>qq", "<cmd>bd<CR>", { desc = "Close Buffer" })
-keymap.set("n", "<leader>qw", "<cmd>q<CR>", { desc = "Close Window" })
-keymap.set("n", "<leader>qa", "<cmd>qa<CR>", { desc = "Close All Buffers" })
+keymap.set("n", "<C-q><C-q>", "<cmd>bd<CR>", { noremap = true, silent = true, desc = "Close Buffer" })
+keymap.set("n", "<C-q><C-w>", "<cmd>q<CR>", { noremap = true, silent = true, desc = "Close Window" })
+keymap.set("n", "<C-q><C-a>", "<cmd>qa<CR>", { noremap = true, silent = true, desc = "Close All Buffers" })
 
 -- Save buffer
-keymap.set("n", "<leader>ww", "<cmd>w<CR>", { desc = "Save Buffer" })
-keymap.set("n", "<leader>wa", "<cmd>wa<CR>", { desc = "Save All Buffers" })
+keymap.set("n", "<C-w><C-w>", "<cmd>w<CR>", { desc = "Save Buffer" })
+keymap.set("n", "<C-w><C-a>", "<cmd>wa<CR>", { desc = "Save All Buffers" })
+
+-- Switch Source/Header
+keymap.set("n", "<leader>o", "<cmd>LspClangdSwitchSourceHeader<CR>", { desc = "Switch source/header" })
+
+-- LLM Context to Clipboard
+keymap.set("n", "<leader>ac", "<cmd>CtxIngest<CR>", { desc = "Copy LLM context to clipboard" })
+
+-- Delete word backward
+keymap.set("i", "<C-BS>", "<C-W>", { noremap = true, silent = true })
 
 -- Hot Reload Config
 keymap.set(
@@ -114,3 +115,5 @@ keymap.set(
 	"<cmd>luafile ~/.config/nvim/init.lua<CR>",
 	{ desc = "Reload config", noremap = true, silent = true }
 )
+
+keymap.set("n", "?", "<cmd>:lua vim.diagnostic.open_float()<CR>", { desc = "Open diagnostics" })

@@ -2,11 +2,6 @@
 [    
     {
         
-        "key": "space t", 
-        "command": "workbench.view.explorer", 
-        "when": "!editorIsOpen && !explorerViewletVisible" 
-    },
-    { 
         "key": "ctrl+q", 
         "command": "workbench.action.closeActiveEditor", 
     },
@@ -88,38 +83,6 @@
         "command": "-workbench.action.files.save"
     },
     {
-        "key": "meta+tab down",
-        "command": "workbench.action.splitEditorDown"
-    },
-    {
-        "key": "ctrl+k ctrl+shift+[KeyY]",
-        "command": "-workbench.action.splitEditorDown"
-    },
-    {
-        "key": "meta+tab left",
-        "command": "workbench.action.splitEditorLeft"
-    },
-    {
-        "key": "ctrl+k ctrl+shift+[KeyY]",
-        "command": "-workbench.action.splitEditorLeft"
-    },
-    {
-        "key": "meta+tab right",
-        "command": "workbench.action.splitEditorRight"
-    },
-    {
-        "key": "ctrl+k ctrl+shift+[KeyY]",
-        "command": "-workbench.action.splitEditorRight"
-    },
-    {
-        "key": "meta+tab up",
-        "command": "workbench.action.splitEditorUp"
-    },
-    {
-        "key": "ctrl+k ctrl+shift+[KeyY]",
-        "command": "-workbench.action.splitEditorUp"
-    },
-    {
         "key": "ctrl+o k",
         "command": "workbench.action.openGlobalKeybindings"
     },
@@ -179,38 +142,6 @@
         "key": "ctrl+x",
         "command": "-filesExplorer.cut",
         "when": "filesExplorerFocus && foldersViewVisible && !explorerResourceIsRoot && !explorerResourceReadonly && !inputFocus"
-    },
-    {
-        "key": "meta+tab l",
-        "command": "workbench.action.previousEditorInGroup"
-    },
-    {
-        "key": "ctrl+k ctrl+pageup",
-        "command": "-workbench.action.previousEditorInGroup"
-    },
-    {
-        "key": "meta+tab [BracketLeft]",
-        "command": "workbench.action.nextEditorInGroup"
-    },
-    {
-        "key": "ctrl+k ctrl+pagedown",
-        "command": "-workbench.action.nextEditorInGroup"
-    },
-    {
-        "key": "meta+tab n",
-        "command": "workbench.action.navigateLeft"
-    },
-    {
-        "key": "meta+tab o",
-        "command": "workbench.action.navigateRight"
-    },
-    {
-        "key": "meta+tab i",
-        "command": "workbench.action.navigateUp"
-    },
-    {
-        "key": "meta+tab e",
-        "command": "workbench.action.navigateDown"
     },
     {
         "key": "ctrl+backspace",
@@ -309,11 +240,6 @@
         "command": "workbench.action.chat.history"
     },
     {
-        "key": "meta+tab i",
-        "command": "chat.action.focus",
-        "when": "inChatInput && !quickChatHasFocus"
-    },
-    {
         "key": "ctrl+up",
         "command": "-chat.action.focus",
         "when": "inChatInput && isLinux && !quickChatHasFocus || inChatInput && isWindows && !quickChatHasFocus"
@@ -403,7 +329,7 @@
         "when": "editorTextFocus"
     },
     {
-        "key": "ctrl+shift+[BracketRight]",
+        "key": "ctrl+shift+=",
         "command": "workbench.action.zoomIn"
     },
     {
@@ -435,10 +361,6 @@
         "key": "ctrl+k v",
         "command": "-markdown.showPreviewToSide",
         "when": "!notebookEditorFocused && editorLangId == 'markdown'"
-    },
-    {
-        "key": "ctrl+backspace",
-        "command": "deleteWordEndLeft"
     },
     {
         "key": "ctrl+shift+z",
@@ -479,5 +401,66 @@
     {
         "key": "ctrl+e",
         "command": "-workbench.action.quickOpen"
+    },
+    {
+        "key": "alt+n",
+        "command": "workbench.action.nextEditorInGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+pagedown",
+        "command": "-workbench.action.nextEditorInGroup"
+    },
+    {
+        "key": "alt+l",
+        "command": "workbench.action.previousEditorInGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+pageup",
+        "command": "-workbench.action.previousEditorInGroup"
+    },
+    {
+        "key": "alt+i",
+        "command": "workbench.action.focusAboveGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+up",
+        "command": "-workbench.action.focusAboveGroup"
+    },
+    {
+        "key": "alt+e",
+        "command": "workbench.action.focusBelowGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+down",
+        "command": "-workbench.action.focusBelowGroup"
+    },
+    {
+        "key": "alt+n",
+        "command": "workbench.action.focusLeftGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+left",
+        "command": "-workbench.action.focusLeftGroup"
+    },
+    {
+        "key": "alt+o",
+        "command": "workbench.action.focusRightGroup"
+    },
+    {
+        "key": "ctrl+k ctrl+right",
+        "command": "-workbench.action.focusRightGroup"
+    },
+    {
+        "key": "ctrl+delete",
+        "command": "-deleteWordRight",
+        "when": "textInputFocus && !editorReadonly"
+    },
+    {
+        "key": "ctrl+backspace",
+        "command": "deleteWordLeft"
+    },
+    {
+        "key": "ctrl+numpad_subtract",
+        "command": "-workbench.action.zoomOut"
     }
 ]

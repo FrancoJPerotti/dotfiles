@@ -3,6 +3,14 @@ return {
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	config = function()
 		local lualine = require("lualine")
+
+		local function neovide_scale()
+			if vim.g.neovide then
+				return string.format(" %.2f", vim.g.neovide_scale_factor or 1.0)
+			end
+			return ""
+		end
+
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
 
 		local colors = {
@@ -64,6 +72,7 @@ return {
 					{ "encoding" },
 					{ "fileformat" },
 					{ "filetype" },
+					{ neovide_scale }, -- ✅ zoom indicator
 				},
 			},
 		})
