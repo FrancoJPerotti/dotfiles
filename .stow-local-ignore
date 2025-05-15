@@ -1,0 +1,4 @@
+^custom(/|$)
+^README\.md$
+^pkglist\.txt$
+^aurlist\.txt$
