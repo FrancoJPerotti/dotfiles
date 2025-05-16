@@ -42,26 +42,5 @@ local sunglasses_options = {
 
 require("sunglasses").setup(sunglasses_options)
 
-vim.lsp.config("clangd", {
-	root_markers = { ".clang-format", "compile_commands.json" },
-	capabilities = {
-		textDocument = {
-			completion = {
-				completionItem = {
-					snippetSupport = true,
-				},
-			},
-		},
-	},
-})
-
-vim.lsp.config.clangd = {
-	cmd = {
-		"clangd",
-		"--clang-tidy",
-		"--background-index",
-		"--offset-encoding=utf-8",
-	},
-	root_markers = { ".clangd", "compile_commands.json" },
-	filetypes = { "c", "cpp" },
-}
+-- Enable LSP servers
+vim.lsp.enable({ "clangd", "lua_ls", "pyright", "rust_analyzer" })
