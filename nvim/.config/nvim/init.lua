@@ -43,4 +43,4 @@ local sunglasses_options = {
 require("sunglasses").setup(sunglasses_options)
 
 -- Enable LSP servers
-vim.lsp.enable({ "clangd", "lua_ls", "pyright", "rust_analyzer" })
+vim.lsp.enable({ "clangd", "lua_ls", "pyright", "rust_analyzer", "bash-language-server" })
