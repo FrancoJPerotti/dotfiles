@@ -8,6 +8,7 @@ keymap.set("c", "<Up>", [[wildmenumode() ? "\<left>" : "\<up>"]], { expr = true,
 keymap.set("c", "<Down>", [[wildmenumode() ? "\<right>" : "\<down>"]], { expr = true, noremap = true })
 keymap.set("c", "<Left>", [[wildmenumode() ? "\<up>" : "\<left>"]], { expr = true, noremap = true })
 keymap.set("c", "<Right>", [[wildmenumode() ? " \<bs>\<C-Z>" : "\<right>"]], { expr = true, noremap = true })
+keymap.set("c", "<C-BS>", "<C-w>", { noremap = true })
 
 -- Move up
 keymap.set("n", "<Up>", "k", { noremap = true, silent = true })
@@ -116,6 +117,11 @@ keymap.set(
 	{ desc = "Reload config", noremap = true, silent = true }
 )
 
-keymap.set("n", "?", "<cmd>:lua vim.diagnostic.open_float()<CR>", { desc = "Open diagnostics" })
+vim.keymap.set("n", "?", function()
+	local float_buf, float_win = vim.diagnostic.open_float(nil, { focus = true })
+	if float_buf and float_win then
+		vim.api.nvim_buf_set_keymap(float_buf, "n", "<Esc>", "<Cmd>close<CR>", { noremap = true, silent = true })
+	end
+end, { desc = "Open diagnostics float" })
 
 keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })

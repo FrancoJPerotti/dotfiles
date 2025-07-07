@@ -16,24 +16,22 @@ vim.api.nvim_create_autocmd("UILeave", {
 })
 
 -- Options
-require("options")
+require("config.options")
 
 -- Keymaps
-require("keymaps")
+require("config.keymaps")
 
 -- Custom Commands
-require("custom-commands")
+require("config.custom-commands")
 
 -- Neovide
-require("neovide")
-
--- Todo
-require("custom.todo_panel").setup()
+require("config.neovide")
 
 -- Lazy
-require("config.lazy")
+require("core.lazy")
 
-require("bufferline").setup({})
+-- LSP
+require("core.lsp")
 
 -- Dim inactive buffers
 local sunglasses_options = {
@@ -41,6 +39,3 @@ local sunglasses_options = {
 }
 
 require("sunglasses").setup(sunglasses_options)
-
--- Enable LSP servers
-vim.lsp.enable({ "clangd", "lua_ls", "pyright", "rust_analyzer", "bash-language-server" })

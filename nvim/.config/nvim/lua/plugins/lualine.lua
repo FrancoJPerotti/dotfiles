@@ -4,13 +4,6 @@ return {
 	config = function()
 		local lualine = require("lualine")
 
-		local function neovide_scale()
-			if vim.g.neovide then
-				return string.format(" %.2f", vim.g.neovide_scale_factor or 1.0)
-			end
-			return ""
-		end
-
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
 
 		local colors = {
@@ -57,23 +50,41 @@ return {
 			},
 		}
 
+		local function buffer_count()
+			-- only count *listed* buffers, so help-pages etc. don’t inflate the number
+			local listed = vim.fn.getbufinfo({ buflisted = 1 })
+			return " " .. #listed -- prepend a neat icon; rip it out if you don’t like it
+		end
+
 		-- configure lualine with modified theme
 		lualine.setup({
 			options = {
 				theme = my_lualine_theme,
 			},
 			sections = {
+				lualine_b = { "branch", "diff", buffer_count },
+				lualine_c = {
+					{
+						"filename",
+						file_status = true,
+						symbols = {
+							modified = "●",
+							readonly = "",
+							unnamed = "[No Name]",
+							newfile = "",
+						},
+					},
+				},
 				lualine_x = {
 					{
 						lazy_status.updates,
 						cond = lazy_status.has_updates,
 						color = { fg = "#ff9e64" },
 					},
-					{ "encoding" },
-					{ "fileformat" },
 					{ "filetype" },
-					{ neovide_scale }, -- ✅ zoom indicator
 				},
+				lualine_y = { "diagnostics" },
+				lualine_z = {},
 			},
 		})
 	end,

@@ -94,6 +94,8 @@ export PATH="$PATH:/home/franco/.local/bin"
 
 export PATH=$HOME/.cargo/bin:$PATH
 
+export EDITOR='nvim' # Set default editor to Neovim
+
 # Custom Functions
 # Refresh monitor rate
 monitor_refresh_update() {
@@ -141,6 +143,14 @@ monitor_refresh_loop() {
   done
 }
 
+# Yazi Setup
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
 
 # Custom Aliases
 alias scarlet='alsamixer -c 0' # Focusrite Scarlet Mixer

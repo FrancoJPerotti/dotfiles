@@ -2,7 +2,7 @@ if not vim.g.neovide then
 	return
 end
 
-vim.g.neovide_scale_factor = 0.75
+vim.g.neovide_scale_factor = 0.85
 vim.g.neovide_position_animation_length = 0
 vim.g.neovide_cursor_animation_length = 0.0
 vim.g.neovide_cursor_trail_size = 0
