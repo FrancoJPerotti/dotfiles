@@ -10,7 +10,7 @@
 #   DOTFILES_DIR  Override the dotfiles directory. Defaults to the directory
 #                 this script lives in.
 #
-# Exit codes: 0 = success, 1 = bad args or unrecoverable failure.
+# Exit codes: 0 = success, 1 = bad args.
 
 set -euo pipefail
 
@@ -18,7 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 DOTFILES_DIR="${DOTFILES_DIR:-$SCRIPT_DIR}"
 
-# Packages whose directories should be skipped entirely (typically metadata)
+# Packages whose directories should be skipped entirely (metadata, helper files)
 EXCLUDED=(custom README.md pkglist.txt aurlist.txt .git .github .stow-local-ignore)
 
 # ── Flags ────────────────────────────────────────────────────────────────────
@@ -62,6 +62,7 @@ echo "📦 Using dotfiles directory: $DOTFILES_DIR"
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 info() { printf "ℹ️  %s\n" "$*"; }
+warn() { printf "⚠️  %s\n" "$*"; }
 
 # cleanup_conflicts <package-path>
 cleanup_conflicts() {
@@ -69,29 +70,34 @@ cleanup_conflicts() {
     local -a conflicts=()
 
     # Run stow simulation; capture output even when it exits 2 due to conflicts.
-    local output
-    if ! output=$( (cd "$pkg_path" && stow -nv -t "$HOME" .) 2>&1); then
+    local sim_out
+    if ! sim_out=$( (cd "$pkg_path" && stow -nv -t "$HOME" .) 2>&1); then
         :
     fi
 
     # ── Extract conflicting target paths ────────────────────────────────────
     while IFS= read -r line; do
-        # Pattern 1: "existing target is not owned by stow: <path>"
+        # 1. "existing target is not owned by stow: <path>"
         if [[ $line =~ existing[[:space:]]target.*:[[:space:]](.+)$ ]]; then
             conflicts+=("$HOME/${BASH_REMATCH[1]}")
             continue
         fi
-        # Pattern 2: "CONFLICT: <path>"
+        # 2. "existing target is a directory: <path>"
+        if [[ $line =~ existing[[:space:]]target[[:space:]]is[[:space:]]a[[:space:]]directory:[[:space:]](.+)$ ]]; then
+            conflicts+=("$HOME/${BASH_REMATCH[1]}")
+            continue
+        fi
+        # 3. "CONFLICT: <path>"
         if [[ $line =~ CONFLICT:[[:space:]](.+)$ ]]; then
             conflicts+=("$HOME/${BASH_REMATCH[1]}")
             continue
         fi
-        # Pattern 3: "cannot stow X over existing target <path> since …"
+        # 4. "cannot stow X over existing target <path> since …"
         if [[ $line =~ .*cannot[[:space:]]stow[[:space:]].*over[[:space:]]existing[[:space:]]target[[:space:]]([^[:space:]]+) ]]; then
             conflicts+=("$HOME/${BASH_REMATCH[1]}")
             continue
         fi
-    done <<<"$output"
+    done <<<"$sim_out"
 
     # ── Report / remove conflicts ───────────────────────────────────────────
     for f in "${conflicts[@]}"; do
@@ -105,7 +111,7 @@ cleanup_conflicts() {
         fi
     done
 
-    $DRY_RUN && echo "$output"
+    $DRY_RUN && echo "$sim_out"
 }
 
 # ── Main loop ───────────────────────────────────────────────────────────────
@@ -126,7 +132,18 @@ for pkg_path in "$DOTFILES_DIR"/*; do
         cleanup_conflicts "$pkg_path"
     else
         cleanup_conflicts "$pkg_path"
-        (cd "$pkg_path" && stow -t "$HOME" .)
+        # The real stow step — accept exit code 2 (conflicts) as non‑fatal because
+        # we’ve already cleaned what we could. Anything else means a real error.
+        if (cd "$pkg_path" && stow -t "$HOME" .); then
+            :
+        else
+            status=$?
+            if [[ $status -eq 2 ]]; then
+                warn "Stow reported remaining conflicts in $pkg_name — skipping package."
+            else
+                warn "Stow failed for $pkg_name (exit $status) — skipping package."
+            fi
+        fi
     fi
 
 done
