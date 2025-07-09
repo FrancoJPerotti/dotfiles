@@ -1,4 +1,6 @@
+conan
 kanata
 selectdefaultapplication-git
 unity-test
+vial-appimage
 wl-kbptr

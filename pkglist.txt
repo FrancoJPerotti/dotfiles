@@ -1,7 +1,6 @@
 act
 boost
 btop
-conan
 cppcheck
 docker
 docker-compose
@@ -28,7 +27,6 @@ tmux
 tokei
 tree
 valgrind
-vial-appimage
 vivaldi
 wlsunset
 yazi
