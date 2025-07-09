@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # stow_dotfiles.sh — safely stow your dotfiles, optionally removing
-# pre-existing conflicting files first (with preview support).
+# pre‑existing conflicting files first (with preview support).
 #
 # Usage:
 #   ./stow_dotfiles.sh          # normal run – delete conflicts then stow
@@ -37,7 +37,7 @@ Environment:
 EOF
 }
 
-# ── CLI parsing ───────────────────────────────────────────────────────────────
+# ── CLI parsing ─────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
     case "$1" in
     -n | --dry-run)
@@ -60,30 +60,40 @@ $DRY_RUN && echo "🧪 Dry‑run mode – no changes will be made."
 
 echo "📦 Using dotfiles directory: $DOTFILES_DIR"
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Helpers ────────────────────────────────────────────────────────────────
 info() { printf "ℹ️  %s\n" "$*"; }
 
-# cleanup_conflicts <package‑path>
+# cleanup_conflicts <package-path>
 cleanup_conflicts() {
     local pkg_path="$1"
     local -a conflicts=()
 
-    # Capture stow's simulated actions (exit status 2 is fine for conflicts).
+    # Run stow simulation; capture output even when it exits 2 due to conflicts.
     local output
     if ! output=$( (cd "$pkg_path" && stow -nv -t "$HOME" .) 2>&1); then
         :
     fi
 
-    # Parse conflict lines for nicer "Would remove" hints.
+    # ── Extract conflicting target paths ────────────────────────────────────
     while IFS= read -r line; do
-        if [[ $line =~ existing\ target.*:\ (.*)$ ]]; then
+        # Pattern 1: "existing target is not owned by stow: <path>"
+        if [[ $line =~ existing[[:space:]]target.*:[[:space:]](.+)$ ]]; then
             conflicts+=("$HOME/${BASH_REMATCH[1]}")
-        elif [[ $line =~ CONFLICT:\ (.*)$ ]]; then
+            continue
+        fi
+        # Pattern 2: "CONFLICT: <path>"
+        if [[ $line =~ CONFLICT:[[:space:]](.+)$ ]]; then
             conflicts+=("$HOME/${BASH_REMATCH[1]}")
+            continue
+        fi
+        # Pattern 3: "cannot stow X over existing target <path> since …"
+        if [[ $line =~ .*cannot[[:space:]]stow[[:space:]].*over[[:space:]]existing[[:space:]]target[[:space:]]([^[:space:]]+) ]]; then
+            conflicts+=("$HOME/${BASH_REMATCH[1]}")
+            continue
         fi
     done <<<"$output"
 
-    # Show or delete conflicts.
+    # ── Report / remove conflicts ───────────────────────────────────────────
     for f in "${conflicts[@]}"; do
         if $DRY_RUN; then
             echo "🗑️  Would remove: $f"
@@ -95,11 +105,10 @@ cleanup_conflicts() {
         fi
     done
 
-    # In dry‑run mode, also show stow's own planned actions once.
     $DRY_RUN && echo "$output"
 }
 
-# ── Main loop ────────────────────────────────────────────────────────────────
+# ── Main loop ───────────────────────────────────────────────────────────────
 for pkg_path in "$DOTFILES_DIR"/*; do
     pkg_name="$(basename "$pkg_path")"
 
@@ -114,10 +123,8 @@ for pkg_path in "$DOTFILES_DIR"/*; do
     echo -e "\n🔗 Processing package: $pkg_name"
 
     if $DRY_RUN; then
-        # One call is enough: parse + display in cleanup_conflicts.
         cleanup_conflicts "$pkg_path"
     else
-        # 1) Delete conflicts, 2) stow for real.
         cleanup_conflicts "$pkg_path"
         (cd "$pkg_path" && stow -t "$HOME" .)
     fi
