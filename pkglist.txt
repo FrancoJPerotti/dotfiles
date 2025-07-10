@@ -1,4 +1,5 @@
 act
+alsautils
 boost
 btop
 cppcheck
@@ -26,6 +27,7 @@ stow
 tmux
 tokei
 tree
+usbutils
 valgrind
 vivaldi
 wlsunset
