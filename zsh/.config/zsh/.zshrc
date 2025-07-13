@@ -154,3 +154,34 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 export PATH="/opt/sonar-scanner/bin:$PATH"
+
+function nvim() {
+    # ── Pick a directory for the title & working-dir ──────────────────
+    local dest_dir=$PWD                # default: current dir
+    if (( $# )); then
+        for arg in "$@"; do
+            [[ "$arg" == [+-]* ]] && continue     # skip +42, -u, etc.
+            local abs=${arg:A}                    # absolute version
+            if [[ -d $abs ]]; then
+                dest_dir=$abs                    # argument IS a dir
+            else
+                dest_dir=${abs:h}                # parent dir of file
+            fi
+            break                                # we got our dir
+        done
+    fi
+    local short=${dest_dir/#$HOME/~}             # /home/you → ~/
+
+    # ── Build the Kitty command safely (array → no quoting woes) ──────
+    local -a cmd=(
+        kitty --single-instance
+        --class nvim
+        --title "nvim:${short}"
+        --working-directory "${dest_dir}"
+        nvim "$@"
+    )
+
+    # ── Launch through Hyprland ───────────────────────────────────────
+    hyprctl dispatch exec -- "$(printf '%q ' "${cmd[@]}")"
+}
+

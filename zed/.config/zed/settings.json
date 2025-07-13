@@ -32,7 +32,7 @@
     "dark": "One Dark"
   },
   "autosave": "on_focus_change",
-  "base_keymap": "None",
+  "base_keymap": "VSCode",
 
   "active_pane_modifiers": {
     "magnification": 1.0,
