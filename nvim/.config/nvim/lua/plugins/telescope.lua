@@ -163,11 +163,6 @@ return {
 		keymap.set("n", "gr", "<cmd>Telescope lsp_references theme=dropdown<cr>", { desc = "Find references" })
 
 		-- Fuzzy find buffers
-		keymap.set(
-			{ "n", "i" },
-			"<leader>t",
-			"<cmd>Telescope buffers theme=dropdown<cr>",
-			{ desc = "Show buffer list" }
-		)
+		keymap.set("n", "<leader>t", "<cmd>Telescope buffers theme=dropdown<cr>", { desc = "Show buffer list" })
 	end,
 }

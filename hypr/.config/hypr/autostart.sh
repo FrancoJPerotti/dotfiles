@@ -52,8 +52,8 @@ launch_pwa chatgpt cadlkienfkclaiaibeoongdcgmdikeeg
 ###############################################################################
 
 hyprctl dispatch exec "kitty --class nvim --title nvim nvim" &
-hyprctl dispatch exec kitty &
+hyprctl dispatch exec "kitty --class term" &
 hyprctl dispatch exec "kitty --class yazi --title yazi yazi" &
-sleep 1  # give windows time to launch and move to their assigned workspaces
+sleep 1 # give windows time to launch and move to their assigned workspaces
 hyprctl dispatch workspace 1
 hyprctl dispatch exec vivaldi &

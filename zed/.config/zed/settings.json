@@ -7,6 +7,9 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "project_panel": {
+    "dock": "left"
+  },
   "show_inline_completions": false,
   "chat_panel": {
     "dock": "left"
@@ -29,7 +32,7 @@
   "theme": {
     "mode": "system",
     "light": "Tokyo Night Storm",
-    "dark": "One Dark"
+    "dark": "Tokyo Night Storm"
   },
   "autosave": "on_focus_change",
   "base_keymap": "VSCode",
