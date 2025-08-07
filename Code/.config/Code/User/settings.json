@@ -39,40 +39,36 @@
   "vim.surround": true,
 
   // Vim keybindings
-  "vim.normalModeKeyBindingsNonRecursive":[ 
-    {
-      "before": ["<C-n>"],
-      "commands": [":nohl"]
-    },
-    {
-      "before": ["K"],
-      "commands": ["lineBreakInsert"],
-      "silent": true
-    },
+  "vim.normalModeKeyBindings":[ 
     {
       // Easymotion keybinding (start of word)
       "before": ["<leader>", "s"],
-      "after": ["<leader>", "<leader>", "<leader>", "b", "d", "w"]
+      "after": ["<leader>", "<leader>", "s"]
     },
     {
-      // Go to start of file
-      "before": ["g", "<Home>"],
-      "after": ["g", "g"]
+      // Close active editor with Ctrl+Q Ctrl+Q
+      "before": ["<C-q>", "<C-q>"],
+      "commands": ["workbench.action.closeActiveEditor"]
     },
     {
-      // Go to end of file
-      "before": ["g", "<End>"],
-      "after": ["G"]
+      // Close all editors with Ctrl+Q Ctrl+A
+      "before": ["<C-q>", "<C-a>"],
+      "commands": ["workbench.action.closeAllEditors"]
     },
     {
-      // Go to next paragraph
-      "before": ["g", "<Down>"],
-      "after": ["}"]
-    },
+      // Save current file with Ctrl+W Ctrl+W
+      "before": ["<C-w>", "<C-w>"],
+      "commands": ["workbench.action.files.save"]
+    }
+
+  ],
+
+  "vim.visualModeKeyBindings": [
     {
-      // Go to previous paragraph
-      "before": ["g", "<Up>"],
-      "after": ["{"]
+      // Inline chat keybinding
+      "before": ["<leader>", "a", "e"],
+      "commands": ["inlineChat.start"],
+      "silent": true
     }
   ],
 
@@ -96,18 +92,14 @@
   "markdown": true,
   "scminput": true
 },
-
-// Home Assistant settings
-"vscode-home-assistant.hostUrl": "http://192.168.0.5:8123",
 "vscode-home-assistant.ignoreCertificates": true,
-"vscode-home-assistant.longLivedAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJlZTQ3NzA1ZDc4NzM0MGViYjlhMjg5NzVmZTk3ZjJkYSIsImlhdCI6MTczMzA3NDczNCwiZXhwIjoyMDQ4NDM0NzM0fQ.dfj2PyGFQCTZ-1k9CePHgv1necxR0yGAiFbX5RpBEF8",
 "window.commandCenter": false,
 "workbench.colorCustomizations": {
-  "statusBar.background": "#141F34",
-  "statusBar.noFolderBackground": "#141F34",
-  "statusBar.debuggingBackground": "#141F34",
-  "statusBar.foreground": "#C4C4C4",
-  "statusBar.debuggingForeground": "#C4C4C4"
+  "statusBar.background": "#007ACC",
+  "statusBar.noFolderBackground": "#007ACC",
+  "statusBar.debuggingBackground": "#007ACC",
+  "statusBar.foreground": "#000000",
+  "statusBar.debuggingForeground": "#000000"
 },
 "editor.overviewRulerBorder": false,
 "git.openRepositoryInParentFolders": "always",
@@ -157,4 +149,5 @@
     "subportadora",
     "subportadoras"
   ],
+  "github.copilot.nextEditSuggestions.enabled": true,
 }

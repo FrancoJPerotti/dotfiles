@@ -1,22 +1,8 @@
 // Place your key bindings in this file to override the defaults
 [    
     {
-        
-        "key": "ctrl+q", 
-        "command": "workbench.action.closeActiveEditor", 
-    },
-    {
-        "key": "ctrl+i i",
-        "command": "inlineChat.start",
-        "when": "inlineChatHasProvider && !editorReadonly"
-    },
-    {
-        "key": "meta+shift+t",
-        "command": "workbench.action.showCommands"
-    },
-    {
         "key": "ctrl+shift+p",
-        "command": "-workbench.action.showCommands"
+        "command": "workbench.action.showCommands"
     },
     {
         "key": "ctrl+alt+o",
@@ -91,9 +77,14 @@
         "command": "-workbench.action.openGlobalKeybindings"
     },
     {
-        "key": "ctrl+i a",
+        "key": "ctrl+a",
         "command": "inlineChat.acceptChanges",
         "when": "inlineChatHasProvider && inlineChatVisible && !inlineChatDocumentChanged || inlineChatHasProvider && inlineChatVisible && config.inlineChat.mode != 'preview'"
+    },
+    {
+        "key": "ctrl+r",
+        "command": "inlineChat.regenerate",
+        "when": "inlineChatHasProvider && inlineChatVisible"
     },
     {
         "key": "ctrl+enter",
@@ -367,10 +358,6 @@
         "command": "redo"
     },
     {
-        "key": "ctrl+y",
-        "command": "-redo"
-    },
-    {
         "key": "ctrl+shift+r",
         "command": "editor.action.startFindReplaceAction",
         "when": "editorFocus || editorIsOpen"
@@ -399,61 +386,28 @@
         "command": "workbench.action.quickOpen"
     },
     {
-        "key": "ctrl+e",
-        "command": "-workbench.action.quickOpen"
-    },
-    {
-        "key": "alt+n",
+        "key": "ctrl+y",
         "command": "workbench.action.nextEditorInGroup"
     },
     {
-        "key": "ctrl+k ctrl+pagedown",
-        "command": "-workbench.action.nextEditorInGroup"
-    },
-    {
-        "key": "alt+l",
+        "key": "ctrl+u",
         "command": "workbench.action.previousEditorInGroup"
     },
     {
-        "key": "ctrl+k ctrl+pageup",
-        "command": "-workbench.action.previousEditorInGroup"
-    },
-    {
-        "key": "alt+i",
+        "key": "ctrl+i",
         "command": "workbench.action.focusAboveGroup"
     },
     {
-        "key": "ctrl+k ctrl+up",
-        "command": "-workbench.action.focusAboveGroup"
-    },
-    {
-        "key": "alt+e",
+        "key": "ctrl+e",
         "command": "workbench.action.focusBelowGroup"
     },
     {
-        "key": "ctrl+k ctrl+down",
-        "command": "-workbench.action.focusBelowGroup"
-    },
-    {
-        "key": "alt+n",
+        "key": "ctrl+n",
         "command": "workbench.action.focusLeftGroup"
     },
     {
-        "key": "ctrl+k ctrl+left",
-        "command": "-workbench.action.focusLeftGroup"
-    },
-    {
-        "key": "alt+o",
+        "key": "ctrl+o",
         "command": "workbench.action.focusRightGroup"
-    },
-    {
-        "key": "ctrl+k ctrl+right",
-        "command": "-workbench.action.focusRightGroup"
-    },
-    {
-        "key": "ctrl+delete",
-        "command": "-deleteWordRight",
-        "when": "textInputFocus && !editorReadonly"
     },
     {
         "key": "ctrl+backspace",
