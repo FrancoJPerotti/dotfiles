@@ -46,6 +46,7 @@ launch_pwa whatsapp hnpfjngllnobngcgfapefoaidbinmjnm
 launch_pwa discord mfhpbolkhgobaabcbabdlnhidbjpoogc
 launch_pwa ticktick cfammbeebmjdpoppachopcohfchgjapd
 launch_pwa chatgpt cadlkienfkclaiaibeoongdcgmdikeeg
+hyprctl dispatch exec obsidian
 
 ###############################################################################
 # Regular workspaces
