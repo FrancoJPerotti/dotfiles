@@ -95,11 +95,11 @@
 "vscode-home-assistant.ignoreCertificates": true,
 "window.commandCenter": false,
 "workbench.colorCustomizations": {
-  "statusBar.background": "#007ACC",
-  "statusBar.noFolderBackground": "#007ACC",
-  "statusBar.debuggingBackground": "#007ACC",
-  "statusBar.foreground": "#000000",
-  "statusBar.debuggingForeground": "#000000"
+  "statusBar.background": "#141F34",
+  "statusBar.noFolderBackground": "#141F34",
+  "statusBar.debuggingBackground": "#141F34",
+  "statusBar.foreground": "#C4C4C4",
+  "statusBar.debuggingForeground": "#C4C4C4"
 },
 "editor.overviewRulerBorder": false,
 "git.openRepositoryInParentFolders": "always",

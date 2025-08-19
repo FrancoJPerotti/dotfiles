@@ -6,4 +6,5 @@ prepend_keymap = [
   { on = ["<C-q>", "<C-q>"], run = "tab_close", desc = "Close tab" },
   { on = ["<C-q>", "<C-a>"], run = "quit", desc = "Exit process" },
   { on = "V", run = "visual_mode", desc = "Visual mode" },
+  { on = "h", run = "cd ~", desc = "Go Home"}
 ]
