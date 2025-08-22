@@ -185,3 +185,36 @@ function nvim() {
     hyprctl dispatch exec -- "$(printf '%q ' "${cmd[@]}")"
 }
 
+function meet() {
+    if [ $# -lt 2 ]; then
+        echo "Usage: meet <college|work> <link|code>"
+        return 1
+    fi
+
+    profile="$1"
+    link="$2"
+
+    # if user passed a full link, extract the code part
+    case "$link" in
+        https://meet.google.com/*)
+            code="${link##*/}"   # keep part after last /
+            code="${code%%\?*}"  # strip query params if present
+            ;;
+        *)
+            code="$link"
+            ;;
+    esac
+
+    case "$profile" in
+        college)
+            /opt/vivaldi/vivaldi --app="https://meet.google.com/$code?authuser=1" &
+            ;;
+        work)
+            /opt/vivaldi/vivaldi --app="https://meet.google.com/$code?authuser=2" &
+            ;;
+        *)
+            echo "Invalid profile. Use 'college' or 'work'."
+            return 1
+            ;;
+    esac
+}

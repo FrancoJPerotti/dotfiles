@@ -1,0 +1,7 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=AdGuard
+Exec=/opt/vivaldi/vivaldi --app=http://192.168.0.184/login.html
+Icon=~/.local/share/applications/web_app_icons/adguard.svg
+

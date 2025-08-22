@@ -1,0 +1,7 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=Flow
+Exec=/opt/vivaldi/vivaldi --app=https://www.flow.com.ar
+Icon=flow
+

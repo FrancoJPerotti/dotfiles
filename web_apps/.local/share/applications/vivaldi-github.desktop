@@ -1,0 +1,7 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=GitHub
+Exec=/opt/vivaldi/vivaldi --app=https://github.com
+Icon=~/.local/share/applications/web_app_icons/github.svg
+

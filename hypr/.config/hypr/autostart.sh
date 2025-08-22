@@ -15,14 +15,14 @@ count_windows() {
 }
 
 launch_pwa() {
-    local tag="$1" appid="$2" ws="special:$1"
+    local tag="$1" app="$2" ws="special:$1"
     echo "→ Starting $tag…"
 
     local before
     before=$(count_windows "$ws")
 
     hyprctl dispatch exec "[workspace ${ws} silent] \
-      /opt/vivaldi/vivaldi --profile-directory=Default --app-id=${appid}" &
+      /opt/vivaldi/vivaldi --app=${app}" &
 
     # Wait until the number of windows on that workspace increases
     for _ in {1..50}; do
@@ -41,11 +41,11 @@ launch_pwa() {
 # PWAs
 ###############################################################################
 
-launch_pwa spotify pjibgclleladliembfgfagdaldikeohf
-launch_pwa whatsapp hnpfjngllnobngcgfapefoaidbinmjnm
-launch_pwa discord mfhpbolkhgobaabcbabdlnhidbjpoogc
-launch_pwa ticktick cfammbeebmjdpoppachopcohfchgjapd
-launch_pwa chatgpt cadlkienfkclaiaibeoongdcgmdikeeg
+launch_pwa spotify https://spotify.com
+launch_pwa whatsapp https://web.whatsapp.com
+launch_pwa discord https://discord.com/app
+launch_pwa ticktick https://ticktick.com
+launch_pwa chatgpt https://chatgpt.com
 hyprctl dispatch exec obsidian
 
 ###############################################################################

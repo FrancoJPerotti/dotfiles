@@ -1,0 +1,7 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=Google Meet
+Exec=/opt/vivaldi/vivaldi --app=https://meet.google.com/landing?authuser=1
+Icon=~/.local/share/applications/web_app_icons/google_meet.svg
+

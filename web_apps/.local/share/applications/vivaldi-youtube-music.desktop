@@ -1,0 +1,7 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=YouTube Music
+Exec=/opt/vivaldi/vivaldi --app=https://music.youtube.com
+Icon=~/.local/share/applications/web_app_icons/youtube_music.svg
+
