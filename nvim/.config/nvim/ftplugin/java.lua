@@ -50,9 +50,9 @@ local config = {
 	},
 }
 
-config.on_init = function(client, _)
-	vim.notify("JDTLS initialized with capabilities:\n" .. vim.inspect(client.server_capabilities), vim.log.levels.INFO)
-end
+-- config.on_init = function(client, _)
+-- 	vim.notify("JDTLS initialized with capabilities:\n" .. vim.inspect(client.server_capabilities), vim.log.levels.INFO)
+-- end
 
 local ok, err = pcall(jdtls.start_or_attach, config)
 if not ok then
