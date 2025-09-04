@@ -1,5 +1,10 @@
 [mgr]
 show_hidden = true
 show_symlink = true
-ratio = [2, 4, 3]
+ratio = [1, 2, 4]
 linemode = "permissions"
+
+[opener]
+edit = [
+	{ run = 'nvim "$@"', block = true, for = "unix" },
+]
