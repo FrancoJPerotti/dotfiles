@@ -2,20 +2,13 @@
   // Window settings
   "window.customMenuBarAltFocus": false,        // Disable alt focus
   "window.enableMenuBarMnemonics": false,       // Disable menu bar mnemonics
-  "window.menuBarVisibility": "",         // Hide menu bar
-  "workbench.colorTheme": "Navy Flat",          // Set color theme
+  "window.menuBarVisibility": "visible", // Set color theme
   "workbench.activityBar.location": "hidden",   // Hide activity bar
-  "editor.minimap.enabled": false,              // Disable minimap
-  "chat.commandCenter.enabled": true,           // Enable command center
+  "editor.minimap.enabled": false, // Enable command center
   "window.titleBarStyle": "custom",             // Set title bar style
   "editor.lightbulb.enabled": "off",            // Disable lightbulb
   "accessibility.dimUnfocused.enabled": true,  // Enable dim unfocused
   "accessibility.dimUnfocused.opacity": 0.65,   // Set dim unfocused opacity
-  
-  // Custom CSS settings
-  "vscode_custom_css.imports": [
-        "file:///home/franco/.config/Code/User/custom-vscode.css"
-    ],
 
   // Vim extension settings
   "vim.statusBarColorControl": true,
@@ -44,6 +37,26 @@
       // Easymotion keybinding (start of word)
       "before": ["<leader>", "s"],
       "after": ["<leader>", "<leader>", "s"]
+    },
+    {
+      // Command palette keybinding
+      "before": [":"],
+      "commands": ["workbench.action.showCommands"]
+    },
+    {
+      // Open floating file selector (Quick Open)
+      "before": ["<leader>", "<leader>"],
+      "commands": ["workbench.action.quickOpen"]
+    },
+    {
+      // Select Opened buffers
+      "before": ["<leader>", "t"],
+      "commands": ["workbench.action.showAllEditors"]
+    },
+    {
+      // Close active editor with Ctrl+Q Ctrl+Q
+      "before": ["<C-q>", "<C-q>"],
+      "commands": ["workbench.action.closeActiveEditor"]
     },
     {
       // Close active editor with Ctrl+Q Ctrl+Q
@@ -75,7 +88,9 @@
 "vim.leader": "<space>", // Set leader key
 "vim.handleKeys": {
   "<C-a>": false, // Disable ctrl-a
-  "<C-f>": false  // Disable ctrl-f
+  "<C-f>": false, // Disable ctrl-f
+  "<space>e": false,
+  "<space>g": false
 },
 
 // Editor settings
@@ -87,13 +102,12 @@
 
 // Copilot settings
 "github.copilot.enable": {
-  "*": false,
+  "*": true,
   "plaintext": true,
   "markdown": true,
   "scminput": true
 },
 "vscode-home-assistant.ignoreCertificates": true,
-"window.commandCenter": false,
 "workbench.colorCustomizations": {
   "statusBar.background": "#141F34",
   "statusBar.noFolderBackground": "#141F34",
@@ -150,4 +164,6 @@
     "subportadoras"
   ],
   "github.copilot.nextEditSuggestions.enabled": true,
+  "workbench.colorTheme": "GitHub Dark Dimmed",
+  "window.commandCenter": false,
 }

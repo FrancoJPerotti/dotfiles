@@ -9,56 +9,21 @@
         "command": "-workbench.action.remote.showMenu"
     },
     {
+        "key": "space space",
+        "command": "workbench.action.quickOpen",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
         "key": "ctrl+p",
         "command": "-workbench.action.quickOpen"
     },
     {
-        "key": "ctrl+n f",
-        "command": "workbench.action.files.newUntitledFile"
+        "key": "ctrl+o",
+        "command": "-workbench.action.files.openFile"
     },
     {
         "key": "ctrl+n",
         "command": "-workbench.action.files.newUntitledFile"
-    },
-    {
-        "key": "ctrl+o f",
-        "command": "workbench.action.files.openFile",
-        "when": "true"
-    },
-    {
-        "key": "ctrl+o",
-        "command": "-workbench.action.files.openFile",
-        "when": "true"
-    },
-    {
-        "key": "ctrl+o d",
-        "command": "workbench.action.files.openFolder",
-        "when": "openFolderWorkspaceSupport"
-    },
-    {
-        "key": "ctrl+k ctrl+o",
-        "command": "-workbench.action.files.openFolder",
-        "when": "openFolderWorkspaceSupport"
-    },
-    {
-        "key": "ctrl+o",
-        "command": "-workbench.action.files.openFolderViaWorkspace",
-        "when": "!openFolderWorkspaceSupport && workbenchState == 'workspace'"
-    },
-    {
-        "key": "ctrl+o",
-        "command": "-workbench.action.files.openFileFolder",
-        "when": "isMacNative && openFolderWorkspaceSupport"
-    },
-    {
-        "key": "ctrl+o",
-        "command": "-workbench.action.files.openLocalFile",
-        "when": "remoteFileDialogVisible"
-    },
-    {
-        "key": "ctrl+o",
-        "command": "-extension.vim_ctrl+o",
-        "when": "editorTextFocus && vim.active && vim.use<C-o> && !inDebugRepl"
     },
     {
         "key": "ctrl+s f",
@@ -67,10 +32,6 @@
     {
         "key": "ctrl+s",
         "command": "-workbench.action.files.save"
-    },
-    {
-        "key": "ctrl+o k",
-        "command": "workbench.action.openGlobalKeybindings"
     },
     {
         "key": "ctrl+k ctrl+s",
@@ -261,16 +222,6 @@
         "when": "inChatInput && chatLocation == 'editing-session' || inChatInput && chatLocation == 'editor' || inChatInput && chatLocation == 'notebook' || inChatInput && chatLocation == 'panel' || inChatInput && chatLocation == 'terminal'"
     },
     {
-        "key": "ctrl+n f",
-        "command": "explorer.newFile",
-        "when": "filesExplorerFocus"
-    },
-    {
-        "key": "ctrl+n d",
-        "command": "explorer.newFolder",
-        "when": "filesExplorerFocus"
-    },
-    {
         "key": "ctrl+i s",
         "command": "github.copilot.toggleStatusMenu"
     },
@@ -382,8 +333,37 @@
         "command": "-workbench.action.showAllEditors"
     },
     {
+        "key": "space e",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "explorerViewletVisible && explorerViewletFocus && !inputFocus"
+    },
+    {
+        "key": "space e",
+        "command": "workbench.view.explorer",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
         "key": "meta+t",
         "command": "workbench.action.quickOpen"
+    },
+    {
+        "key": "space a c",
+        "command": "workbench.panel.chat.view.copilot.focus",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
+        "key": "space a c",
+        "command": "workbench.action.closeAuxiliaryBar",
+        "when": "(auxiliaryBarFocus || auxiliaryBarVisible) && !inChatInput && !inputFocus"
+    },
+    {
+        "key": "space t",
+        "command": "workbench.action.showAllEditors",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
+        "key": "ctrl+alt+n",
+        "command": "-code-runner.run" 
     },
     {
         "key": "ctrl+y",
@@ -393,21 +373,88 @@
         "key": "ctrl+u",
         "command": "workbench.action.previousEditorInGroup"
     },
+    // Tabs within the current editor group
     {
-        "key": "ctrl+i",
-        "command": "workbench.action.focusAboveGroup"
+        "key": "ctrl+l",
+    "command": "workbench.action.previousEditorInGroup",
+        "when": "editorTextFocus"
     },
+    // Next tab on English International layout
+    {
+    "key": "ctrl+alt+n",
+    "command": "workbench.action.nextEditorInGroup",
+    "when": "editorTextFocus || editorFocus"
+    },
+    {       
+        "key": "ctrl+i",
+        "command": "workbench.action.focusAboveGroup",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    // Focus panel (down) only if visible; otherwise do nothing
     {
         "key": "ctrl+e",
-        "command": "workbench.action.focusBelowGroup"
+        "command": "workbench.action.focusPanel",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && panelVisible && !panelFocus && !inputFocus"
+    },
+    {
+        "key": "space e",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "explorerViewletVisible && explorerViewletFocus && !inputFocus"
+    },
+    {
+        "key": "space e",
+        "command": "workbench.view.explorer",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
+        "key": "space a c",
+        "command": "workbench.action.chat.openInNewWindow",
+         "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    {
+        "key": "space a c",
+        "command": "workbench.action.closeAuxiliaryBar",
+        "when": "(auxiliaryBarFocus || auxiliaryBarVisible) && !inChatInput && !inputFocus"
+    },
+    {
+        "key": "ctrl+d",
+        "command": "workbench.actions.view.problems",
+    },
+    // In chat input: Ctrl+N returns to the active editor group
+    {
+        "key": "ctrl+n",
+        "command": "workbench.action.focusActiveEditorGroup",
+        "when": "inChatInput"
+    },
+    // Ctrl+N (left): If sidebar visible, focus it; else move left group (Normal mode)
+    {
+        "key": "ctrl+n",
+        "command": "workbench.action.focusSideBar",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && sideBarVisible && !sideBarFocus && !inputFocus"
     },
     {
         "key": "ctrl+n",
-        "command": "workbench.action.focusLeftGroup"
+        "command": "workbench.action.focusLeftGroup",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !sideBarVisible"
     },
+    // Ctrl+O (right): In editor, always try to move to the right group (Normal mode)
     {
         "key": "ctrl+o",
-        "command": "workbench.action.focusRightGroup"
+        "command": "workbench.action.focusRightGroup",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal'"
+    },
+    // Swallow Ctrl+O in the auxiliary bar to avoid opening the file dialog
+    {
+        "key": "ctrl+o",
+        "command": "workbench.action.focusAuxiliaryBar",
+        "when": "auxiliaryBarFocus && !inChatInput && !inputFocus"
+    },
+    // (fallback) If aux bar has focus, keep it from opening file dialog
+    // Ctrl+I (up): From panel/terminal, return to editor
+    {
+        "key": "ctrl+i",
+        "command": "workbench.action.focusActiveEditorGroup",
+        "when": "panelFocus || terminalFocus"
     },
     {
         "key": "ctrl+backspace",
@@ -416,5 +463,19 @@
     {
         "key": "ctrl+numpad_subtract",
         "command": "-workbench.action.zoomOut"
+    },
+    {
+        "key": "ctrl+g",
+        "command": "-workbench.action.gotoLine"
+    },
+    {
+        "key": "ctrl+g",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "sideBarVisible && activeViewlet == 'workbench.view.scm'"
+    },
+    {
+        "key": "ctrl+g",
+        "command": "workbench.view.scm",
+        "when": "editorTextFocus && !(sideBarVisible && activeViewlet == 'workbench.view.scm')"
     }
 ]
