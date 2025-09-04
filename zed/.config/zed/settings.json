@@ -7,6 +7,24 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
+  "show_edit_predictions": true,
+  "languages": {
+    "C++": {
+      "show_edit_predictions": true
+    }
+  },
+  "edit_predictions": {
+    "mode": "eager",
+    "copilot": {
+      "proxy": null,
+      "proxy_no_verify": null,
+      "enterprise_uri": null
+    },
+    "enabled_in_text_threads": false
+  },
+  "features": {
+    "edit_prediction_provider": "copilot"
+  },
   "project_panel": {
     "dock": "left"
   },
@@ -20,14 +38,18 @@
   "vim_mode": true,
   "relative_line_numbers": true,
   "assistant": {
+    "inline_assistant_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-5"
+    },
     "default_model": {
       "provider": "copilot_chat",
-      "model": "gpt-4o"
+      "model": "gpt-5"
     },
     "version": "2"
   },
-  "ui_font_size": 16,
-  "buffer_font_size": 16,
+  "ui_font_size": 18,
+  "buffer_font_size": 18,
   "buffer_font_family": "Consolas ligaturized v3",
   "theme": {
     "mode": "system",
