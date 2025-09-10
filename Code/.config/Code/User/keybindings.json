@@ -477,5 +477,9 @@
         "key": "ctrl+g",
         "command": "workbench.view.scm",
         "when": "editorTextFocus && !(sideBarVisible && activeViewlet == 'workbench.view.scm')"
+    },
+    {
+        "key": "ctrl+q",
+        "command": "-workbench.action.quit"
     }
 ]
