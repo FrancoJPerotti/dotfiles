@@ -1,6 +1,5 @@
 local jdtls = require("jdtls")
 local base_capabilities = vim.lsp.protocol.make_client_capabilities()
-local capabilities = require("cmp_nvim_lsp").default_capabilities(base_capabilities)
 
 local home = os.getenv("HOME")
 local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
