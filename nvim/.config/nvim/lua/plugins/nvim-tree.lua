@@ -2,8 +2,6 @@ return {
 	"nvim-tree/nvim-tree.lua",
 	keys = {
 		{ "<leader>e", "<cmd>NvimTreeToggle<CR>", desc = "Toggle the Nvim-Tree explorer" },
-		-- Not very relevant, considering my floating nvim tree
-		-- { "<leader>ee", ":NvimTreeFocus<CR>", desc = "Focus on the explorer" },
 	},
 	config = function()
 		local function my_on_attach(bufnr)
