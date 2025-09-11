@@ -104,7 +104,7 @@ keymap.set("n", "<C-w><C-a>", "<cmd>wa<CR>", { desc = "Save All Buffers" })
 keymap.set("n", "<leader>o", "<cmd>LspClangdSwitchSourceHeader<CR>", { desc = "Switch source/header" })
 
 -- LLM Context to Clipboard
-keymap.set("n", "<leader>ac", "<cmd>CtxIngest<CR>", { desc = "Copy LLM context to clipboard" })
+keymap.set("n", "<leader>ai", "<cmd>CtxIngest<CR>", { desc = "Copy LLM context to clipboard" })
 
 -- Delete word backward
 keymap.set("i", "<C-BS>", "<C-W>", { noremap = true, silent = true })
@@ -125,3 +125,8 @@ vim.keymap.set("n", "?", function()
 end, { desc = "Open diagnostics float" })
 
 keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })
+
+-- Move to next diagnostic
+vim.keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+-- Move to previous diagnostic
+vim.keymap.set("n", "<leader>dN", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
