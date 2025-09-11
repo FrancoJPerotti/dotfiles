@@ -8,7 +8,7 @@ return {
 	keys = {
 		{ "<leader>xw", "<cmd>Trouble diagnostics toggle<CR>", desc = "Open trouble workspace diagnostics" },
 		{
-			"<leader>xd",
+			"<leader>dd",
 			"<cmd>Trouble diagnostics toggle filter.buf=0<CR>",
 			desc = "Open trouble document diagnostics",
 		},
