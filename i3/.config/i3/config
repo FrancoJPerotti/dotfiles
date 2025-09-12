@@ -1,0 +1,175 @@
+# --- basics ---
+set $mod Mod4            # $mainMod = Super  
+font pango:Sans 11
+floating_modifier Mod1   # Alt+LMB drag / Alt+RMB resize (matches your Alt+mouse binds)
+
+# --- terminal / launcher (from keybindings) ---
+set $term kitty           # $term = kitty  
+bindsym $mod+space exec $term
+# bindsym $mod+Return exec pkill -x rofi || ~/.config/hypr/rofilaunch.sh d      # 
+# bindsym $mod+Shift+Return exec pkill -x rofi || ~/.config/hypr/rofilaunch.sh f # 
+# bindsym $mod+Shift+e exec pkill -x rofi || ~/.config/hypr/emoji-picker.sh      # 
+# bindsym $mod+Shift+a exec pkill -x rofi || ~/.config/hypr/rofiselect.sh        # 
+# bindsym $mod+Shift+l exec pkill -x rofi || ~/.config/hypr/hyprlock.sh --select # 
+
+# --- session/window actions ---
+bindsym F12 kill                             # , F12, killactive  
+bindsym $mod+Delete exit
+bindsym $mod+Shift+f floating toggle         # togglefloating     
+
+# Use tabbed/stacked container layouts (toggle cycle) + marks for ad-hoc groups.
+bindsym $mod+Shift+g layout toggle tabbed stacking split  # :contentReference[oaicite:15]{index=15}
+
+# --- screenshots & utilities ---
+# bindsym $mod+p exec ~/.config/hypr/screenshot.sh s        # 
+# bindsym Print  exec ~/.config/hypr/screenshot.sh p        # 
+
+# --- audio / media / brightness ---
+# bindsym XF86AudioMute exec ~/.config/hypr/volumecontrol.sh -o m             # 
+# bindsym $mod+j       exec ~/.config/hypr/volumecontrol.sh -i m              # 
+# bindsym XF86AudioLowerVolume exec ~/.config/hypr/volumecontrol.sh -o d      # 
+# bindsym XF86AudioRaiseVolume exec ~/.config/hypr/volumecontrol.sh -o i      # 
+
+bindsym XF86AudioPlay  exec playerctl play-pause                            # 
+bindsym XF86AudioPause exec playerctl play-pause                            # 
+bindsym XF86AudioNext  exec playerctl next                                  # 
+bindsym XF86AudioPrev  exec playerctl previous                              # 
+
+# bindsym XF86MonBrightnessUp   exec ~/.config/hypr/brightnesscontrol.sh i    # 
+# bindsym XF86MonBrightnessDown exec ~/.config/hypr/brightnesscontrol.sh d    # 
+
+# --- focus / movement ---
+bindsym $mod+n focus left       
+bindsym $mod+o focus right      
+bindsym $mod+i focus up         
+bindsym $mod+e focus down       
+
+# within “groups” (tabbed/stacked containers), cycle members
+bindsym $mod+u focus prev
+bindsym $mod+y focus next
+
+# move containers (arrow keys)
+bindsym $mod+Left  move left
+bindsym $mod+Right move right
+bindsym $mod+Up    move up
+bindsym $mod+Down  move down
+
+# --- resize (Alt held like your ALT_L) ---
+mode "resize" {
+  bindsym n resize shrink width 20 px or 20 ppt
+  bindsym o resize grow   width 20 px or 20 ppt
+  bindsym i resize shrink height 20 px or 20 ppt
+  bindsym e resize grow   height 20 px or 20 ppt
+  bindsym Escape mode "default"
+}
+bindsym $mod+Mod1+r mode "resize"     # enter resize mode 
+
+# --- workspaces (numbered) ---
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+
+# Relative navigation 
+bindsym $mod+ñ workspace next
+bindsym $mod+l   workspace prev
+bindsym $mod+End  move container to workspace next
+bindsym $mod+Home move container to workspace prev
+
+# --- “groups” analogues ---
+# 1) Tabbed/stacked layouts
+bindsym $mod+t layout tabbed
+bindsym $mod+s layout stacking
+bindsym $mod+e layout toggle split
+# Default layout for new containers if you want: (uncomment)
+# workspace_layout tabbed   # :contentReference[oaicite:35]{index=35}
+
+# 2) Marks for ad-hoc sets (label windows and jump/move them)
+bindsym $mod+m mark code
+bindsym $mod+Shift+m unmark code
+bindsym $mod+g [con_mark="code"] focus      # jump to the “group”
+# (ref: i3 marks) :contentReference[oaicite:36]{index=36}:contentReference[oaicite:37]{index=37}
+
+# --- scratchpads (Hypr “special workspaces”) ---
+# i3 scratchpad: move to scratchpad, then toggle with "scratchpad show".  :contentReference[oaicite:38]{index=38}
+bindsym $mod+minus move scratchpad
+bindsym $mod+Shift+minus scratchpad show
+
+# Per-app scratchpads to mirror your special workspaces (spotify/discord/…):
+# pattern: on first launch, mark & move to scratchpad; the key toggles it.
+# Spotify
+for_window [class="vivaldi-spotify.com__-Default"] mark sp_spotify, move scratchpad
+bindsym $mod+s [con_mark="sp_spotify"] scratchpad show
+
+# Discord
+for_window [class="vivaldi-discord.com__-Default"] mark sp_discord, move scratchpad
+bindsym $mod+d [con_mark="sp_discord"] scratchpad show
+
+# WhatsApp
+for_window [class="vivaldi-web.whatsapp.com__-Default"] mark sp_whatsapp, move scratchpad
+bindsym $mod+w [con_mark="sp_whatsapp"] scratchpad show
+
+# TickTick
+for_window [class="vivaldi-ticktick.com__-Default"] mark sp_tick, move scratchpad
+bindsym $mod+t [con_mark="sp_tick"] scratchpad show
+
+# Obsidian
+for_window [class="obsidian"] mark sp_obsidian, move scratchpad
+bindsym $mod+k [con_mark="sp_obsidian"] scratchpad show
+
+# ChatGPT
+for_window [class="vivaldi-chatgpt.com__-Default"] mark sp_gpt, move scratchpad
+bindsym $mod+Tab [con_mark="sp_gpt"] scratchpad show
+
+# PDF (zathura)
+for_window [class="org.pwmt.zathura"] floating enable, mark sp_pdf, move scratchpad
+bindsym $mod+f [con_mark="sp_pdf"] scratchpad show
+
+# OBS
+for_window [class="com.obsproject.Studio"] mark sp_obs, move scratchpad
+bindsym $mod+r [con_mark="sp_obs"] scratchpad show
+
+# GitHub
+for_window [class="vivaldi-github.com__-Default"] mark sp_gh, move scratchpad
+bindsym $mod+g [con_mark="sp_gh"] scratchpad show
+
+# Meet
+for_window [class="vivaldi-meet.google.com__-Default"] mark sp_meet, move scratchpad
+bindsym $mod+minus [con_mark="sp_meet"] scratchpad show
+
+# Mail
+for_window [class="vivaldi-mail.google.com__-Default" class="vivaldi-outlook.live.com__-Default"] \
+  mark sp_mail, move scratchpad
+bindsym $mod+m [con_mark="sp_mail"] scratchpad show
+
+# --- app → workspace assignment (from userprefs) ---
+# Neovim / Neovide → WS 2
+assign [class="(?i)nvim"] 2            # 
+assign [class="(?i)neovide"] 2         # 
+
+# Kitty shells (your “term”) → WS 3
+assign [class="(?i)kitty"] 3           # 
+
+# Yazi → WS 4
+assign [class="(?i)yazi"] 4            # 
+
+# --- floating rules (common tools) ---
+for_window [class="org.pulseaudio.pavucontrol"] floating enable     # 
+for_window [class="blueman-manager"] floating enable                # 
+for_window [class="nm-connection-editor"] floating enable           # 
+for_window [class="org.kde.ark"] floating enable                    # 
+
+# --- optional: bars, gaps, compositor ---
+# i3 does not handle opacity/blur; if you want transparency like Hyprland’s windowrules, use picom.
+# Example:
+# exec --no-startup-id picom --config ~/.config/picom/picom.conf
