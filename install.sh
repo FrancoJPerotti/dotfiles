@@ -157,23 +157,28 @@ else
     log "Zed already installed"
 fi
 
-# ========== satty (GitHub release) ==========
+# ========== satty (GitHub release; robust) ==========
 if ! command -v satty >/dev/null; then
     log "Install satty from GitHub release"
 
-    # runtime deps per README (Ubuntu package names)
-    apt install -y libgtk-4-1 libadwaita-1-0 libgdk-pixbuf-2.0-0 libepoxy0 fontconfig
+    # Runtime deps (GTK4 + Libadwaita). Noble sometimes uses *t64* variants.
+    apt update
+    apt install -y \
+        libepoxy0 libgdk-pixbuf-2.0-0 fontconfig || true
+    apt install -y libgtk-4-1 || apt install -y libgtk-4-1t64 || true
+    apt install -y libadwaita-1-0 || apt install -y libadwaita-1-0t64 || true
 
     ARCH="$(uname -m)"
     case "$ARCH" in
-    x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*\.\(tar\.gz\|tar\.xz\)$' ;;
-    aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*\.\(tar\.gz\|tar\.xz\)$' ;;
-    *) ASSET_RX='linux.*(x86_64|amd64).*\.\(tar\.gz\|tar\.xz\)$' ;;
+    x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*\.(tar\.gz|tar\.xz)$' ;;
+    aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*\.(tar\.gz|tar\.xz)$' ;;
+    *) ASSET_RX='linux.*(x86_64|amd64).*\.(tar\.gz|tar\.xz)$' ;;
     esac
 
     TMP_DIR="$(mktemp -d)"
+    # Avoid abort on empty match: allow grep to fail, then test URL.
     URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
-        jq -r '.assets[]?.browser_download_url' | grep -E "$ASSET_RX" | head -n1)"
+        jq -r '.assets[]?.browser_download_url' | { grep -E "$ASSET_RX" || true; } | head -n1)"
 
     if [ -n "$URL" ]; then
         FILE="$TMP_DIR/$(basename "$URL")"
@@ -183,8 +188,6 @@ if ! command -v satty >/dev/null; then
         *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
         *) err "Unknown satty archive: $FILE" ;;
         esac
-
-        # install the binary
         SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
         if [ -n "$SATTY_BIN" ]; then
             install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
@@ -195,6 +198,7 @@ if ! command -v satty >/dev/null; then
     else
         err "Could not locate Satty release asset. See: https://github.com/gabm/Satty/releases"
     fi
+
     rm -rf "$TMP_DIR"
 else
     log "satty already installed"
