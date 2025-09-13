@@ -157,76 +157,45 @@ else
     log "Zed already installed"
 fi
 
-# ========== satty (Snap -> prebuilt release with deps) ==========
-if ! have satty; then
-    log "Install satty (prefer Snap, else prebuilt release)"
-    if have snap; then
-        if snap install satty; then
-            :
+# ========== satty (GitHub release) ==========
+if ! command -v satty >/dev/null; then
+    log "Install satty from GitHub release"
+
+    # runtime deps per README (Ubuntu package names)
+    apt install -y libgtk-4-1 libadwaita-1-0 libgdk-pixbuf-2.0-0 libepoxy0 fontconfig
+
+    ARCH="$(uname -m)"
+    case "$ARCH" in
+    x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*\.\(tar\.gz\|tar\.xz\)$' ;;
+    aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*\.\(tar\.gz\|tar\.xz\)$' ;;
+    *) ASSET_RX='linux.*(x86_64|amd64).*\.\(tar\.gz\|tar\.xz\)$' ;;
+    esac
+
+    TMP_DIR="$(mktemp -d)"
+    URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
+        jq -r '.assets[]?.browser_download_url' | grep -E "$ASSET_RX" | head -n1)"
+
+    if [ -n "$URL" ]; then
+        FILE="$TMP_DIR/$(basename "$URL")"
+        curl -fL "$URL" -o "$FILE"
+        case "$FILE" in
+        *.tar.gz) tar -xzf "$FILE" -C "$TMP_DIR" ;;
+        *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
+        *) err "Unknown satty archive: $FILE" ;;
+        esac
+
+        # install the binary
+        SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
+        if [ -n "$SATTY_BIN" ]; then
+            install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
+            log "satty installed at /usr/local/bin/satty"
         else
-            log "Snap failed; installing GTK4/libadwaita deps & fetching prebuilt binary"
-            apt install -y libgtk-4-1 libadwaita-1-0 libepoxy0 libgdk-pixbuf-2.0-0 fontconfig
-            ARCH="$(uname -m)"
-            case "$ARCH" in
-            x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
-            aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*(tar\.gz|tar\.xz)$' ;;
-            *) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
-            esac
-            TMP_DIR="$(mktemp -d)"
-            # Pull latest asset URL from GitHub API
-            URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
-                jq -r ".assets[]?.browser_download_url" | grep -E "$ASSET_RX" | head -n1)"
-            if [ -n "$URL" ]; then
-                FILE="$TMP_DIR/$(basename "$URL")"
-                curl -fL "$URL" -o "$FILE"
-                case "$FILE" in
-                *.tar.gz) tar -xzf "$FILE" -C "$TMP_DIR" ;;
-                *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
-                *) err "Unknown satty archive: $FILE" ;;
-                esac
-                # Try to find the binary named 'satty' and install
-                SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
-                if [ -n "$SATTY_BIN" ]; then
-                    install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
-                else
-                    err "Satty binary not found in archive."
-                fi
-            else
-                err "Could not locate Satty release asset. See https://github.com/gabm/Satty/releases"
-            fi
-            rm -rf "$TMP_DIR"
+            err "Satty binary not found in archive."
         fi
     else
-        log "Snap not present; installing deps & fetching prebuilt binary"
-        apt install -y libgtk-4-1 libadwaita-1-0 libepoxy0 libgdk-pixbuf-2.0-0 fontconfig
-        ARCH="$(uname -m)"
-        case "$ARCH" in
-        x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
-        aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*(tar\.gz|tar\.xz)$' ;;
-        *) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
-        esac
-        TMP_DIR="$(mktemp -d)"
-        URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
-            jq -r ".assets[]?.browser_download_url" | grep -E "$ASSET_RX" | head -n1)"
-        if [ -n "$URL" ]; then
-            FILE="$TMP_DIR/$(basename "$URL")"
-            curl -fL "$URL" -o "$FILE"
-            case "$FILE" in
-            *.tar.gz) tar -xzf "$FILE" -C "$TMP_DIR" ;;
-            *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
-            *) err "Unknown satty archive: $FILE" ;;
-            esac
-            SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
-            if [ -n "$SATTY_BIN" ]; then
-                install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
-            else
-                err "Satty binary not found in archive."
-            fi
-        else
-            err "Could not locate Satty release asset. See https://github.com/gabm/Satty/releases"
-        fi
-        rm -rf "$TMP_DIR"
+        err "Could not locate Satty release asset. See: https://github.com/gabm/Satty/releases"
     fi
+    rm -rf "$TMP_DIR"
 else
     log "satty already installed"
 fi
