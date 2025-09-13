@@ -174,7 +174,10 @@ ZSHRC="$USER_HOME/.zshrc"
 if [ -d "$ZSH_DIR" ]; then
     log "Ensuring Oh-My-Zsh plugins are installed"
     install_plugin() {
-        local name="$1" repo="$2" dest="$ZSH_CUSTOM/plugins/$name"
+        local name="$1"
+        local repo="$2"
+        local dest="$ZSH_CUSTOM/plugins/$name"
+
         if [ ! -d "$dest" ]; then
             log "Cloning $name"
             sudo -u "${SUDO_USER:-$USER}" mkdir -p "$ZSH_CUSTOM/plugins"
