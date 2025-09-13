@@ -165,6 +165,74 @@ else
     log "Oh-My-Zsh already present"
 fi
 
+# ========== Oh-My-Zsh plugins (autosuggestions + syntax-highlighting + 256color) ==========
+USER_HOME="/home/${SUDO_USER:-$USER}"
+ZSH_DIR="$USER_HOME/.oh-my-zsh"
+ZSH_CUSTOM="$ZSH_DIR/custom"
+ZSHRC="$USER_HOME/.zshrc"
+
+if [ -d "$ZSH_DIR" ]; then
+    log "Ensuring Oh-My-Zsh plugins are installed"
+    install_plugin() {
+        local name="$1" repo="$2" dest="$ZSH_CUSTOM/plugins/$name"
+        if [ ! -d "$dest" ]; then
+            log "Cloning $name"
+            sudo -u "${SUDO_USER:-$USER}" mkdir -p "$ZSH_CUSTOM/plugins"
+            sudo -u "${SUDO_USER:-$USER}" git clone --depth=1 "$repo" "$dest"
+        else
+            log "$name already installed"
+        fi
+    }
+    install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions"
+    install_plugin "zsh-syntax-highlighting" "https://github.com/zsh-users/zsh-syntax-highlighting"
+    install_plugin "zsh-256color" "https://github.com/chrissicool/zsh-256color"
+
+    # Ensure ZSH_CUSTOM is exported in the user's shell (only if missing)
+    if ! grep -q '^[[:space:]]*export[[:space:]]\+ZSH_CUSTOM=' "$ZSHRC" 2>/dev/null; then
+        log "Declaring ZSH_CUSTOM in ~/.zshrc"
+        echo 'export ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"' >>"$ZSHRC"
+        chown "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$ZSHRC"
+    fi
+
+    # Desired plugins line (highlighting must be last)
+    DESIRED_PLUGINS='plugins=(git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)'
+
+    # Backup once if not yet backed up
+    if [ -f "$ZSHRC" ] && ! grep -q "# backup by install script" "$ZSHRC"; then
+        cp -a "$ZSHRC" "$ZSHRC.bak" && echo "# backup by install script" >>"$ZSHRC.bak"
+        chown "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$ZSHRC.bak"
+        log "Backed up ~/.zshrc to ~/.zshrc.bak"
+    fi
+
+    if [ -f "$ZSHRC" ]; then
+        if grep -q '^[[:space:]]*plugins=(' "$ZSHRC"; then
+            log "Updating existing plugins= line in ~/.zshrc"
+            sed -i -E "s|^[[:space:]]*plugins=\(.*\)|$DESIRED_PLUGINS|" "$ZSHRC"
+        elif grep -q 'oh-my-zsh\.sh' "$ZSHRC"; then
+            log "Inserting plugins= before \"oh-my-zsh.sh\" in ~/.zshrc"
+            awk -v ins="$DESIRED_PLUGINS" '
+                BEGIN{done=0}
+                /oh-my-zsh\.sh/ && !done { print ins; done=1 }
+                { print }
+            ' "$ZSHRC" >"$ZSHRC.tmp" && mv "$ZSHRC.tmp" "$ZSHRC"
+        else
+            log "Appending managed plugin block to ~/.zshrc"
+            cat >>"$ZSHRC" <<'EOF'
+# >>> managed: oh-my-zsh plugins >>>
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+export ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"
+plugins=(git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
+# <<< managed: oh-my-zsh plugins <<<
+EOF
+        fi
+        chown "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$ZSHRC"
+    else
+        err "~/.zshrc not found; create one to load oh-my-zsh and plugins."
+    fi
+else
+    warn "Oh-My-Zsh directory not found at $ZSH_DIR; skipping plugin install step."
+fi
+
 # ========== Powerlevel10k theme ==========
 ZSH_CUSTOM="/home/${SUDO_USER:-$USER}/.oh-my-zsh/custom"
 if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
