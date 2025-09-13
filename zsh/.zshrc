@@ -1,220 +1,158 @@
-# List of plugins used
-plugins=( git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
-source $ZSH/oh-my-zsh.sh
+# --- Oh My Zsh ---
+export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+plugins=(git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
+source "$ZSH/oh-my-zsh.sh"
 
-# In case a command is not found, try to find the package that has it
-function command_not_found_handler {
+# --- Command-not-found (Ubuntu way) ---
+if [[ -r /etc/zsh_command_not_found ]]; then
+  source /etc/zsh_command_not_found
+else
+  function command_not_found_handler {
     local purple='\e[1;35m' bright='\e[0;1m' green='\e[1;32m' reset='\e[0m'
     printf 'zsh: command not found: %s\n' "$1"
-    local entries=( ${(f)"$(/usr/bin/pacman -F --machinereadable -- "/usr/bin/$1")"} )
-    if (( ${#entries[@]} )) ; then
-        printf "${bright}$1${reset} may be found in the following packages:\n"
-        local pkg
-        for entry in "${entries[@]}" ; do
-            local fields=( ${(0)entry} )
-            if [[ "$pkg" != "${fields[2]}" ]] ; then
-                printf "${purple}%s/${bright}%s ${green}%s${reset}\n" "${fields[1]}" "${fields[2]}" "${fields[3]}"
-            fi
-            printf '    /%s\n' "${fields[4]}"
-            pkg="${fields[2]}"
-        done
+    if command -v /usr/lib/command-not-found >/dev/null 2>&1; then
+      /usr/lib/command-not-found "$1"; return 127
+    elif command -v apt-file >/dev/null 2>&1; then
+      local hits
+      hits="$(apt-file search -x "(^|/)bin/${1}$" 2>/dev/null)"
+      if [[ -n "$hits" ]]; then
+        printf "${bright}%s${reset} may be found in the following packages:\n" "$1"
+        echo "$hits" | awk -F: -v p="$purple" -v b="$bright" -v g="$green" -v r="$reset" \
+          '{ pkg=$1; path=$2; printf "%s%s %s%s\n    %s\n", p, pkg, g, "(apt)", r, path }'
+      else
+        printf "Tip: install ${bright}apt-file${reset} and run ${green}sudo apt-file update${reset}.\n"
+      fi
+    else
+      printf "Install ${bright}command-not-found${reset} or ${bright}apt-file${reset} for suggestions.\n"
     fi
     return 127
-}
-
-# Detect the AUR wrapper
-if pacman -Qi yay &>/dev/null ; then
-   aurhelper="yay"
-elif pacman -Qi paru &>/dev/null ; then
-   aurhelper="paru"
+  }
 fi
 
+# --- Package install helper (Ubuntu) ---
 function in {
-    local -a inPkg=("$@")
-    local -a arch=()
-    local -a aur=()
-
-    for pkg in "${inPkg[@]}"; do
-        if pacman -Si "${pkg}" &>/dev/null ; then
-            arch+=("${pkg}")
-        else 
-            aur+=("${pkg}")
-        fi
-    done
-
-    if [[ ${#arch[@]} -gt 0 ]]; then
-        sudo pacman -S "${arch[@]}"
+  if [[ $# -eq 0 ]]; then echo "Usage: in <pkg> [pkg2 ...]"; return 1; fi
+  local -a apt_pkgs=() unknown=()
+  for pkg in "$@"; do
+    if apt-cache show "$pkg" >/dev/null 2>&1; then
+      apt_pkgs+=("$pkg")
+    else
+      unknown+=("$pkg")
     fi
-
-    if [[ ${#aur[@]} -gt 0 ]]; then
-        ${aurhelper} -S "${aur[@]}"
-    fi
+  done
+  if (( ${#apt_pkgs[@]} )); then
+    sudo apt update && sudo apt install -y "${apt_pkgs[@]}"
+  fi
+  if (( ${#unknown[@]} )); then
+    echo "Trying apt for: ${unknown[*]} (use snap/flatpak if needed)"
+    sudo apt install -y "${unknown[@]}" 2>/dev/null || true
+  fi
 }
 
-# Helpful aliases
-alias  c='clear' # clear terminal
-alias  l='eza -lh  --icons=auto' # long list
-alias ls='eza -1   --icons=auto' # short list
-alias ll='eza -lha --icons=auto --sort=name --group-directories-first' # long list all
-alias ld='eza -lhD --icons=auto' # long list dirs
-alias lt='eza --icons=auto --tree' # list folder as tree
-alias un='$aurhelper -Rns' # uninstall package
-alias up='$aurhelper -Syu' # update system/package/aur
-alias pl='$aurhelper -Qs' # list installed package
-alias pa='$aurhelper -Ss' # list available package
-alias pc='$aurhelper -Sc' # remove unused cache
-alias po='$aurhelper -Qtdq | $aurhelper -Rns -' # remove unused packages, also try > $aurhelper -Qqd | $aurhelper -Rsu --print -
-alias vc='code' # gui code editor
-alias h='cd ~' # home
+# --- Helpful aliases ---
+alias  c='clear'
+alias  l='eza -lh  --icons=auto'
+alias ls='eza -1   --icons=auto'
+alias ll='eza -lha --icons=auto --sort=name --group-directories-first'
+alias ld='eza -lhD --icons=auto'
+alias lt='eza --icons=auto --tree'
 
-# Handy change dir shortcuts
+alias un='sudo apt remove --purge'
+alias up='sudo apt update && sudo apt -y full-upgrade'
+alias pl='dpkg -l | grep -i'
+alias pa='apt search'
+alias pc='sudo apt -y autoremove --purge && sudo apt clean'
+alias po='sudo apt -y autoremove'
+
+alias vc='code'
+alias h='cd ~'
+
+# --- cd shortcuts ---
 alias ..='cd ..'
 alias ...='cd ../..'
 alias .3='cd ../../..'
 alias .4='cd ../../../..'
 alias .5='cd ../../../../..'
 
-# Always mkdir a path (this doesn't inhibit functionality to make a single dir)
 alias mkdir='mkdir -p'
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+# Powerlevel10k prompt
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-#Display Pokemon
-# pokemon-colorscripts --no-title -r 1,3,6
+# PATHs
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="$HOME/.cargo/bin:$PATH"
+export EDITOR='nvim'
 
-# Created by `pipx` on 2024-11-29 04:44:50
-export PATH="$PATH:/home/franco/.local/bin"
-
-export PATH=$HOME/.cargo/bin:$PATH
-
-export EDITOR='nvim' # Set default editor to Neovim
-
-# Custom Functions
-# Refresh monitor rate
-monitor_refresh_update() {
-  if [[ -z "$1" ]]; then
-    echo "Usage: monitor_refresh_update <refresh_rate>"
-    return 1
-  fi
-
-  local refresh_rate="$1"
-  hyprctl keyword monitor "HDMI-A-1,1920x1080@${refresh_rate},840x1760,1.0,transform,1"
-}
-
-
+# --- Neovide helper ---
 nvd() {
-  neovide "$@" & disown
-  sleep 0.5
-  kill $PPID
+  if command -v neovide >/dev/null 2>&1; then
+    neovide "$@" & disown
+    sleep 0.5
+    kill $PPID
+  else
+    echo "neovide not found; opening nvim"
+    nvim "$@"
+  fi
 }
 
-# Cycles monitor refresh rates indefinitely.
-# Usage:
-#   monitor_refresh_loop <interval-sec> [rate1 rate2 rate3 …]
-# Examples:
-#   monitor_refresh_loop 5           # uses default rates (50→60→70→50) every 5 s
-#   monitor_refresh_loop 2 75 85 75  # cycles 75→85→75 every 2 s
-monitor_refresh_loop() {
-  # 1) first arg is interval in seconds (default 5)
-  local interval=${1:-5}
-  shift
+# --- Yazi integration ---
+function y() {
+  local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+  yazi "$@" --cwd-file="$tmp"
+  IFS= read -r -d '' cwd < "$tmp"
+  [[ -n "$cwd" && "$cwd" != "$PWD" ]] && builtin cd -- "$cwd"
+  rm -f -- "$tmp"
+}
 
-  # 2) remaining args (if any) are the rate sequence; otherwise use default
-  local rates=("$@")
-  if (( ${#rates[@]} == 0 )); then
-    rates=(50 60 70 50)
+# --- NVM ---
+export NVM_DIR="$HOME/.nvm"
+[[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
+[[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
+
+# --- nvim launcher (Kitty-aware only) ---
+function nvim() {
+  local dest_dir=$PWD
+  if (( $# )); then
+    for arg in "$@"; do
+      [[ "$arg" == [+-]* ]] && continue
+      local abs=${arg:A}
+      if [[ -d $abs ]]; then dest_dir=$abs; else dest_dir=${abs:h}; fi
+      break
+    done
+  fi
+  local short=${dest_dir/#$HOME/~}
+  local -a cmd=(nvim "$@")
+
+  if command -v kitty >/dev/null 2>&1; then
+    cmd=(kitty --single-instance --class nvim --title "nvim:${short}" --working-directory "${dest_dir}" nvim "$@")
   fi
 
-  # Clean exit on Ctrl+C
-  trap 'echo; echo "Interrupted—stopping."; return 0' SIGINT SIGTERM
-
-  while true; do
-    for rate in "${rates[@]}"; do
-      monitor_refresh_update "$rate"
-      sleep "$interval"
-    done
-  done
+  "${cmd[@]}"
 }
 
-# Yazi Setup
-function y() {
-	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
-	yazi "$@" --cwd-file="$tmp"
-	IFS= read -r -d '' cwd < "$tmp"
-	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
-	rm -f -- "$tmp"
-}
-
-# Custom Aliases
-alias scarlet='alsamixer -c 0' # Focusrite Scarlet Mixer
-alias zed='zeditor' # Zed Editor
-
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export PATH="/opt/sonar-scanner/bin:$PATH"
-
-function nvim() {
-    # ── Pick a directory for the title & working-dir ──────────────────
-    local dest_dir=$PWD                # default: current dir
-    if (( $# )); then
-        for arg in "$@"; do
-            [[ "$arg" == [+-]* ]] && continue     # skip +42, -u, etc.
-            local abs=${arg:A}                    # absolute version
-            if [[ -d $abs ]]; then
-                dest_dir=$abs                    # argument IS a dir
-            else
-                dest_dir=${abs:h}                # parent dir of file
-            fi
-            break                                # we got our dir
-        done
-    fi
-    local short=${dest_dir/#$HOME/~}             # /home/you → ~/
-
-    # ── Build the Kitty command safely (array → no quoting woes) ──────
-    local -a cmd=(
-        kitty --single-instance
-        --class nvim
-        --title "nvim:${short}"
-        --working-directory "${dest_dir}"
-        nvim "$@"
-    )
-
-    # ── Launch through Hyprland ───────────────────────────────────────
-    hyprctl dispatch exec -- "$(printf '%q ' "${cmd[@]}")"
-}
-
+# --- Google Meet launcher ---
 function meet() {
-    if [ $# -lt 2 ]; then
-        echo "Usage: meet <college|work> <link|code>"
-        return 1
-    fi
+  if [ $# -lt 2 ]; then echo "Usage: meet <college|work> <link|code>"; return 1; fi
+  local profile="$1" link="$2" code
+  case "$link" in
+    https://meet.google.com/*) code="${link##*/}"; code="${code%%\?*}" ;;
+    *) code="$link" ;;
+  esac
+  local url="https://meet.google.com/$code"
+  case "$profile" in
+    college) url="$url?authuser=1" ;;
+    work)    url="$url?authuser=2" ;;
+    *) echo "Invalid profile. Use 'college' or 'work'."; return 1 ;;
+  esac
 
-    profile="$1"
-    link="$2"
-
-    # if user passed a full link, extract the code part
-    case "$link" in
-        https://meet.google.com/*)
-            code="${link##*/}"   # keep part after last /
-            code="${code%%\?*}"  # strip query params if present
-            ;;
-        *)
-            code="$link"
-            ;;
-    esac
-
-    case "$profile" in
-        college)
-            /opt/vivaldi/vivaldi --app="https://meet.google.com/$code?authuser=1" &
-            ;;
-        work)
-            /opt/vivaldi/vivaldi --app="https://meet.google.com/$code?authuser=2" &
-            ;;
-        *)
-            echo "Invalid profile. Use 'college' or 'work'."
-            return 1
-            ;;
-    esac
+  if command -v vivaldi-stable >/dev/null 2>&1; then
+    vivaldi-stable --app="$url" &
+  elif [[ -x /opt/vivaldi/vivaldi ]]; then
+    /opt/vivaldi/vivaldi --app="$url" &
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" >/dev/null 2>&1 &
+  else
+    echo "Open this URL: $url"
+  fi
 }
