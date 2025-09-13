@@ -106,20 +106,23 @@ else
 fi
 
 # ========== Docker Desktop (robust deb fetch) ==========
-if ! command -v com.docker.backend &>/dev/null; then
-    log "Fetching Docker Desktop .deb (stable documented URL)"
-    TMP_DEB="/tmp/docker-desktop.deb"
+DOCKER_DESKTOP_URL="https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb"
+TMP_DEB="/tmp/docker-desktop.deb"
+
+if dpkg-query -W -f='${Status}' docker-desktop 2>/dev/null | grep -q "install ok installed"; then
+    INST_VER="$(dpkg-query -W -f='${Version}\n' docker-desktop 2>/dev/null || true)"
+    log "Docker Desktop already installed (version: ${INST_VER})"
+else
+    log "Fetching Docker Desktop .deb"
     set +e
-    # Docker’s documented path; not always the *newest*, but stable for scripting.
-    curl -fL "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb" -o "$TMP_DEB"
+    # -z uses If-Modified-Since based on TMP_DEB mtime; avoids re-downloading if unchanged
+    curl -fL -z "$TMP_DEB" -o "$TMP_DEB" "$DOCKER_DESKTOP_URL"
     if [ -s "$TMP_DEB" ]; then
         apt install -y "$TMP_DEB" || apt -f install -y
     else
         err "Docker Desktop download failed. Manual install: https://docs.docker.com/desktop/setup/install/linux/ubuntu/"
     fi
     set -e
-else
-    log "Docker Desktop already appears installed"
 fi
 
 # ========== Yazi (Snap fallback) ==========
