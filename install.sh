@@ -39,7 +39,6 @@ APT_PKGS=(
     neovim
     npm
     rofi
-    starship
     stow
     tmux
     tree
@@ -47,7 +46,6 @@ APT_PKGS=(
     vim
     zathura
     zathura-pdf-poppler
-    zellij
     zsh
 )
 
@@ -111,8 +109,6 @@ else
 fi
 
 # ========== Docker Desktop (optional) ==========
-# NOTE: Docker Desktop is distributed as a .deb; no apt repo. This tries a generic "latest" URL.
-# If it fails, download the exact .deb from Docker's site and install manually.
 if ! command -v com.docker.backend &>/dev/null; then
     log "Attempting Docker Desktop install (.deb)"
     TMP_DEB="/tmp/docker-desktop.deb"
@@ -121,7 +117,7 @@ if ! command -v com.docker.backend &>/dev/null; then
     if [ -s "$TMP_DEB" ]; then
         apt install -y "$TMP_DEB" || apt -f install -y
     else
-        err "Could not fetch Docker Desktop .deb automatically. Please install manually from: https://docs.docker.com/desktop/install/linux/"
+        err "Could not fetch Docker Desktop .deb automatically. Install manually: https://docs.docker.com/desktop/install/linux/"
     fi
     set -e
 else
@@ -134,18 +130,16 @@ if ! have yazi; then
     if ! have snap; then
         apt install -y snapd
     fi
-    snap install yazi --classic || err "Snap install of yazi failed. Consider manual install from https://yazi-rs.github.io/docs/installation/"
+    snap install yazi --classic || err "Snap install of yazi failed. Consider manual: https://yazi-rs.github.io/docs/installation/"
 else
     log "Yazi already installed"
 fi
 
 # ========== Zed (download .deb) ==========
-# Zed provides a .deb; no official apt repo at the time of writing.
 if ! have zed; then
     log "Install Zed editor (.deb)"
     ZED_DEB="/tmp/zed.deb"
     set +e
-    # Try stable download link that redirects to the latest deb:
     wget -O "$ZED_DEB" "https://zed.dev/api/releases/latest/zed-linux-deb"
     if [ -s "$ZED_DEB" ]; then
         apt install -y "$ZED_DEB" || apt -f install -y
@@ -158,11 +152,10 @@ else
 fi
 
 # ========== satty ==========
-# satty is not in Ubuntu main repos universally; prefer snap if available, else advise manual
 if ! have satty; then
     log "Install satty (screenshot annotator) - trying snap first"
     if have snap; then
-        snap install satty || err "Snap install of satty failed. Install manually from: https://github.com/satty-io/satty/releases"
+        snap install satty || err "Snap install of satty failed. Install manually: https://github.com/satty-io/satty/releases"
     else
         err "Snap not present; either install snapd or install satty manually from releases."
     fi
@@ -170,12 +163,33 @@ else
     log "satty already installed"
 fi
 
+# ========== Starship (official installer) ==========
+if ! have starship; then
+    log "Install Starship prompt"
+    # -y to auto-confirm
+    sudo -u "${SUDO_USER:-$USER}" sh -c 'curl -sS https://starship.rs/install.sh | sh -s -- -y'
+else
+    log "Starship already installed"
+fi
+
+# ========== Zellij (release binary) ==========
+if ! have zellij; then
+    log "Install Zellij (release binary)"
+    curl -L "https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(uname -m)-unknown-linux-musl.tar.gz" |
+        tar xz -C /usr/local/bin || {
+        # fallback to x86_64 filename if arch mapping differs
+        curl -L "https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz" |
+            tar xz -C /usr/local/bin || err "Zellij install failed. See: https://github.com/zellij-org/zellij/releases"
+    }
+else
+    log "Zellij already installed"
+fi
+
 # ========== Oh-My-Zsh ==========
 if [ ! -d "/home/${SUDO_USER:-$USER}/.oh-my-zsh" ]; then
     log "Install Oh-My-Zsh (unattended)"
     sudo -u "${SUDO_USER:-$USER}" sh -c \
-        'RUNZSH=no CHSH=no KEEP_ZSHRC=yes \
-   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+        'RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
 else
     log "Oh-My-Zsh already present"
 fi
@@ -186,7 +200,7 @@ if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
     log "Install Powerlevel10k (theme)"
     sudo -u "${SUDO_USER:-$USER}" git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
         "$ZSH_CUSTOM/themes/powerlevel10k"
-    log "Remember to set ZSH_THEME=\"powerlevel10k/powerlevel10k\" in your ~/.zshrc"
+    log 'Remember to set ZSH_THEME="powerlevel10k/powerlevel10k" in your ~/.zshrc'
 else
     log "Powerlevel10k already present"
 fi
