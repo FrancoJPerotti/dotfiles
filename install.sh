@@ -23,22 +23,21 @@ add-apt-repository -y multiverse || true
 
 log "Base update/upgrade + essentials"
 apt update
-apt install -y ca-certificates curl wget gnupg software-properties-common lsb-release apt-transport-https
+apt install -y ca-certificates curl wget gnupg software-properties-common lsb-release apt-transport-https jq
 
 # ========== APT: core repo installs ==========
 APT_PKGS=(
-    # your yes-list available via Ubuntu repos
     btop
     cliphist
     eog
     evince
     firefox
     git
-    jq
     kitty
     neovim
     npm
     rofi
+    i3-wm
     stow
     tmux
     tree
@@ -60,8 +59,7 @@ if ! have gh; then
     chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
         >/etc/apt/sources.list.d/github-cli.list
-    apt update
-    apt install -y gh
+    apt update && apt install -y gh
 else
     log "GitHub CLI already installed"
 fi
@@ -69,11 +67,11 @@ fi
 # ========== VS Code (Microsoft repo) ==========
 if ! have code; then
     log "Add Microsoft repo & install VS Code"
-    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg
+    curl -fsSL https://packages.microsoft.com/keys/microsoft.asc |
+        gpg --dearmor -o /usr/share/keyrings/packages.microsoft.gpg
     echo "deb [arch=amd64,arm64,armhf signed-by=/usr/share/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" \
         >/etc/apt/sources.list.d/vscode.list
-    apt update
-    apt install -y code
+    apt update && apt install -y code
 else
     log "VS Code already installed"
 fi
@@ -85,8 +83,7 @@ if ! have vivaldi; then
         gpg --dearmor -o /usr/share/keyrings/vivaldi-browser.gpg
     echo "deb [signed-by=/usr/share/keyrings/vivaldi-browser.gpg arch=amd64] https://repo.vivaldi.com/archive/deb/ stable main" \
         >/etc/apt/sources.list.d/vivaldi-archive.list
-    apt update
-    apt install -y vivaldi-stable
+    apt update && apt install -y vivaldi-stable
 else
     log "Vivaldi already installed"
 fi
@@ -108,16 +105,17 @@ else
     log "Docker already installed"
 fi
 
-# ========== Docker Desktop (optional) ==========
+# ========== Docker Desktop (robust deb fetch) ==========
 if ! command -v com.docker.backend &>/dev/null; then
-    log "Attempting Docker Desktop install (.deb)"
+    log "Fetching Docker Desktop .deb (stable documented URL)"
     TMP_DEB="/tmp/docker-desktop.deb"
     set +e
-    wget -O "$TMP_DEB" "https://desktop.docker.com/linux/main/amd64/docker-desktop-latest-amd64.deb"
+    # Docker’s documented path; not always the *newest*, but stable for scripting.
+    curl -fL "https://desktop.docker.com/linux/main/amd64/docker-desktop-amd64.deb" -o "$TMP_DEB"
     if [ -s "$TMP_DEB" ]; then
         apt install -y "$TMP_DEB" || apt -f install -y
     else
-        err "Could not fetch Docker Desktop .deb automatically. Install manually: https://docs.docker.com/desktop/install/linux/"
+        err "Docker Desktop download failed. Manual install: https://docs.docker.com/desktop/setup/install/linux/ubuntu/"
     fi
     set -e
 else
@@ -135,29 +133,99 @@ else
     log "Yazi already installed"
 fi
 
-# ========== Zed (download .deb) ==========
+# ========== Zed (official installer with fallback) ==========
 if ! have zed; then
-    log "Install Zed editor (.deb)"
-    ZED_DEB="/tmp/zed.deb"
+    log "Install Zed via official installer"
     set +e
-    wget -O "$ZED_DEB" "https://zed.dev/api/releases/latest/zed-linux-deb"
-    if [ -s "$ZED_DEB" ]; then
-        apt install -y "$ZED_DEB" || apt -f install -y
-    else
-        err "Could not fetch Zed .deb automatically. Download from https://zed.dev and install with: sudo apt install ./zed*.deb"
+    # Official script (supports Ubuntu). If it ever fails, fall back to tarball.
+    curl -fsSL https://zed.dev/install.sh | sh
+    if ! have zed; then
+        log "Zed installer failed; trying tarball fallback"
+        ARCH="$(uname -m)"
+        case "$ARCH" in
+        x86_64 | amd64) ZED_TGZ="zed-linux-x86_64.tar.gz" ;;
+        aarch64 | arm64) ZED_TGZ="zed-linux-aarch64.tar.gz" ;;
+        *) ZED_TGZ="zed-linux-x86_64.tar.gz" ;;
+        esac
+        TMP_TGZ="/tmp/$ZED_TGZ"
+        curl -fL "https://zed.dev/api/releases/latest/$ZED_TGZ" -o "$TMP_TGZ" &&
+            tar -xzf "$TMP_TGZ" -C /usr/local --strip-components=1 ||
+            err "Could not install Zed. See https://zed.dev/docs/linux"
     fi
     set -e
 else
     log "Zed already installed"
 fi
 
-# ========== satty ==========
+# ========== satty (Snap -> prebuilt release with deps) ==========
 if ! have satty; then
-    log "Install satty (screenshot annotator) - trying snap first"
+    log "Install satty (prefer Snap, else prebuilt release)"
     if have snap; then
-        snap install satty || err "Snap install of satty failed. Install manually: https://github.com/satty-io/satty/releases"
+        if snap install satty; then
+            :
+        else
+            log "Snap failed; installing GTK4/libadwaita deps & fetching prebuilt binary"
+            apt install -y libgtk-4-1 libadwaita-1-0 libepoxy0 libgdk-pixbuf-2.0-0 fontconfig
+            ARCH="$(uname -m)"
+            case "$ARCH" in
+            x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
+            aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*(tar\.gz|tar\.xz)$' ;;
+            *) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
+            esac
+            TMP_DIR="$(mktemp -d)"
+            # Pull latest asset URL from GitHub API
+            URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
+                jq -r ".assets[]?.browser_download_url" | grep -E "$ASSET_RX" | head -n1)"
+            if [ -n "$URL" ]; then
+                FILE="$TMP_DIR/$(basename "$URL")"
+                curl -fL "$URL" -o "$FILE"
+                case "$FILE" in
+                *.tar.gz) tar -xzf "$FILE" -C "$TMP_DIR" ;;
+                *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
+                *) err "Unknown satty archive: $FILE" ;;
+                esac
+                # Try to find the binary named 'satty' and install
+                SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
+                if [ -n "$SATTY_BIN" ]; then
+                    install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
+                else
+                    err "Satty binary not found in archive."
+                fi
+            else
+                err "Could not locate Satty release asset. See https://github.com/gabm/Satty/releases"
+            fi
+            rm -rf "$TMP_DIR"
+        fi
     else
-        err "Snap not present; either install snapd or install satty manually from releases."
+        log "Snap not present; installing deps & fetching prebuilt binary"
+        apt install -y libgtk-4-1 libadwaita-1-0 libepoxy0 libgdk-pixbuf-2.0-0 fontconfig
+        ARCH="$(uname -m)"
+        case "$ARCH" in
+        x86_64 | amd64) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
+        aarch64 | arm64) ASSET_RX='linux.*(aarch64|arm64).*(tar\.gz|tar\.xz)$' ;;
+        *) ASSET_RX='linux.*(x86_64|amd64).*(tar\.gz|tar\.xz)$' ;;
+        esac
+        TMP_DIR="$(mktemp -d)"
+        URL="$(curl -fsSL https://api.github.com/repos/gabm/Satty/releases/latest |
+            jq -r ".assets[]?.browser_download_url" | grep -E "$ASSET_RX" | head -n1)"
+        if [ -n "$URL" ]; then
+            FILE="$TMP_DIR/$(basename "$URL")"
+            curl -fL "$URL" -o "$FILE"
+            case "$FILE" in
+            *.tar.gz) tar -xzf "$FILE" -C "$TMP_DIR" ;;
+            *.tar.xz) tar -xJf "$FILE" -C "$TMP_DIR" ;;
+            *) err "Unknown satty archive: $FILE" ;;
+            esac
+            SATTY_BIN="$(find "$TMP_DIR" -type f -name satty | head -n1 || true)"
+            if [ -n "$SATTY_BIN" ]; then
+                install -m 0755 "$SATTY_BIN" /usr/local/bin/satty
+            else
+                err "Satty binary not found in archive."
+            fi
+        else
+            err "Could not locate Satty release asset. See https://github.com/gabm/Satty/releases"
+        fi
+        rm -rf "$TMP_DIR"
     fi
 else
     log "satty already installed"
@@ -166,7 +234,6 @@ fi
 # ========== Starship (official installer) ==========
 if ! have starship; then
     log "Install Starship prompt"
-    # -y to auto-confirm
     sudo -u "${SUDO_USER:-$USER}" sh -c 'curl -sS https://starship.rs/install.sh | sh -s -- -y'
 else
     log "Starship already installed"
@@ -175,12 +242,14 @@ fi
 # ========== Zellij (release binary) ==========
 if ! have zellij; then
     log "Install Zellij (release binary)"
-    curl -L "https://github.com/zellij-org/zellij/releases/latest/download/zellij-$(uname -m)-unknown-linux-musl.tar.gz" |
-        tar xz -C /usr/local/bin || {
-        # fallback to x86_64 filename if arch mapping differs
-        curl -L "https://github.com/zellij-org/zellij/releases/latest/download/zellij-x86_64-unknown-linux-musl.tar.gz" |
-            tar xz -C /usr/local/bin || err "Zellij install failed. See: https://github.com/zellij-org/zellij/releases"
-    }
+    ARCH="$(uname -m)"
+    case "$ARCH" in
+    x86_64 | amd64) ZJ_ARCH="x86_64" ;;
+    aarch64 | arm64) ZJ_ARCH="aarch64" ;;
+    *) ZJ_ARCH="x86_64" ;;
+    esac
+    curl -fL "https://github.com/zellij-org/zellij/releases/latest/download/zellij-${ZJ_ARCH}-unknown-linux-musl.tar.gz" |
+        tar xz -C /usr/local/bin || err "Zellij install failed. See: https://zellij.dev/documentation/installation.html"
 else
     log "Zellij already installed"
 fi
@@ -204,6 +273,40 @@ if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
 else
     log "Powerlevel10k already present"
 fi
+
+# ========== Defaults ==========
+# Default shell: Zsh
+if [ "$SHELL" != "$(command -v zsh)" ]; then
+    log "Setting Zsh as default shell for ${SUDO_USER:-$USER}"
+    chsh -s "$(command -v zsh)" "${SUDO_USER:-$USER}" ||
+        err "Failed to set zsh as default shell. You may need: chsh -s $(command -v zsh)"
+else
+    log "Zsh is already the default shell"
+fi
+
+# Default editor: Neovim
+if command -v nvim >/dev/null; then
+    log "Setting Neovim as default editor"
+    update-alternatives --install /usr/bin/editor editor "$(command -v nvim)" 60
+    update-alternatives --set editor "$(command -v nvim)"
+    ZSHRC="/home/${SUDO_USER:-$USER}/.zshrc"
+    grep -q 'EDITOR=' "$ZSHRC" 2>/dev/null ||
+        echo 'export EDITOR="nvim"; export VISUAL="nvim"' >>"$ZSHRC"
+else
+    log "Neovim not found, skipping default editor setup"
+fi
+
+# Default terminal emulator: Kitty
+if command -v kitty >/dev/null; then
+    log "Registering Kitty as default terminal emulator"
+    update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$(command -v kitty)" 50
+    update-alternatives --set x-terminal-emulator "$(command -v kitty)"
+else
+    log "Kitty not found, skipping default terminal setup"
+fi
+
+log "Browser default not set automatically. To set Vivaldi as default later:"
+log "    xdg-settings set default-web-browser vivaldi-stable.desktop"
 
 # ========== Final update ==========
 log "Final apt update/upgrade and cleanup"
