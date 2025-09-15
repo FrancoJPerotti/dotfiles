@@ -1,133 +1,107 @@
-# 🛠️ My Dotfiles
+# My Dotfiles
 
-These are my personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/). This setup allows me to symlink configuration files and folders into my home directory in a modular and scalable way.
+Welcome to my personal dotfiles repository! This is where I store all the configurations for my Linux setup. The goal is to have a beautiful, functional, and consistent development environment that I can easily replicate on any machine.
 
----
+## Features
 
-## 📦 Structure
+*   **Highly Customized:** Every part of the setup is customized to my liking, from the color scheme to the keybindings.
+*   **Automated Setup:** The `install.sh` script automates the installation of all the necessary software and dependencies.
+*   **Symlinked Configurations:** The `stow-all.sh` script uses `stow` to symlink all the configuration files, making it easy to keep them in sync.
+*   **Custom Scripts:** The repository includes several custom scripts to automate common tasks, such as a power menu, a wallpaper picker, and a workspace toggler.
+*   **Coordinated Theme:** The color scheme is consistent across all applications, from the terminal to the editor to the window manager.
 
-Each configuration is placed in its own directory following this structure:
+## Software
 
-```
-dotfiles/
-├── zsh/
-│   └── .zshrc
-├── nvim/
-│   └── .config/nvim/...
-├── kitty/
-│   └── .config/kitty/...
-├── Code/
-│   └── .config/Code/User/...
-├── zed/
-│   └── .config/zed/...
-└── ...
-```
+This setup uses a combination of the following software:
 
-Each of these is a standalone [GNU Stow](https://www.gnu.org/software/stow/manual/stow.html) "package".
+*   **Window Manager:** [i3-wm](https://i3wm.org/) - A tiling window manager that is highly configurable and keyboard-driven.
+*   **Terminal:** [Kitty](https://sw.kovidgoyal.net/kitty/) - A fast, feature-rich, GPU-based terminal emulator.
+*   **Shell:** [Zsh](https://www.zsh.org/) with [Oh My Zsh](https://ohmyz.sh/) and [Powerlevel10k](https://github.com/romkatv/powerlevel10k) - A powerful and customizable shell with a beautiful and informative prompt.
+*   **Editor:** [Neovim](https://neovim.io/) - A modern and highly extensible text editor. The configuration is written in Lua and uses `lazy.nvim` for plugin management. Some of the key plugins include Telescope, Treesitter, and LSP Zero.
+*   **Application Launcher:** [Rofi](https://github.com/davatorium/rofi) - A versatile application launcher and window switcher.
+*   **Status Bar:** [Polybar](https://polybar.github.io/) - A fast and easy-to-use tool for creating status bars.
+*   **Compositor:** [Picom](https://github.com/yshui/picom) - A lightweight compositor for X11, providing visual effects like transparency and shadows.
+*   **File Manager:** [Yazi](https://github.com/sxyazi/yazi) - A fast and interactive terminal file manager.
+*   **Browser:** [Vivaldi](https://vivaldi.com/) - A highly customizable web browser.
 
----
+And many other command-line tools and utilities.
 
-## ⚙️ Requirements
+## Installation
 
-* [GNU Stow](https://www.gnu.org/software/stow/)
-* A Unix-like environment (Linux/macOS)
+1.  **Clone the repository:**
 
-Install Stow (if not already):
+    ```bash
+    git clone https://github.com/your-username/dotfiles.git ~/.dotfiles
+    ```
 
-```bash
-# On Arch
-sudo pacman -S stow
+2.  **Run the installation script:**
 
-# On Debian/Ubuntu
-sudo apt install stow
-```
+    The `install.sh` script is designed for Debian-based systems (like Ubuntu). It will install all the necessary packages.
 
----
+    ```bash
+    cd ~/.dotfiles
+    sudo ./install.sh
+    ```
 
-## 🚀 Usage
+    For other systems, you will need to install the packages listed in `pkglist.txt` and `aurlist.txt` manually using your system's package manager.
 
-Clone the repo:
+3.  **Stow the dotfiles:**
 
-```bash
-git clone git@github.com:yourusername/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-```
+    This will symlink the configuration files to your home directory.
 
-Then use the included script to stow all packages:
+    ```bash
+    ./stow-all.sh
+    ```
 
-```bash
-./stow-all.sh
-```
+## Keybindings
 
-### 🧪 Dry Run
+Here are some of the most important keybindings for i3:
 
-To preview the symlinks that would be created:
+### Window Management
 
-```bash
-./stow-all.sh --dry-run
-```
+| Keybinding              | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `F12`                   | Kill focused window                        |
+| `Super + Shift + f`     | Toggle floating for focused window         |
+| `Super + n, e, i, o`    | Change focus (left, down, up, right)       |
+| `Super + Left/Down/Up/Right` | Move focused window                    |
+| `Super + Mod1 + n/o`    | Shrink/grow window width                   |
+| `Super + Mod1 + i/e`    | Shrink/grow window height                  |
 
----
+### Applications
 
-## 🪚 Unstowing (removing symlinks)
+| Keybinding              | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `Super + Space`         | Open a new terminal                        |
+| `Super + Return`        | Open the application launcher (Rofi)       |
+| `Super + Shift + Return`| Open the file browser (Rofi)               |
+| `Super + p`             | Take a screenshot (select area)            |
+| `Super + c`             | Show clipboard history (Rofi)              |
+| `Super + Shift + =`     | Show power menu (Rofi)                     |
 
-To remove a stowed package (e.g., `nvim`):
+### Workspaces
 
-```bash
-cd ~/dotfiles/nvim
-stow -D -t ~ .
-```
+| Keybinding              | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `Super + h`             | Switch to 'web' workspace                  |
+| `Super + Shift + /`     | Switch to 'editor' workspace               |
+| `Super + '`             | Switch to 'term' workspace                 |
+| `Super + /`             | Switch to 'exp' workspace                  |
+| `Super + s`             | Toggle 'spotify' workspace                 |
+| `Super + d`             | Toggle 'discord' workspace                 |
+| `Super + w`             | Toggle 'whatsapp' workspace                |
+| `Super + t`             | Toggle 'ticktick' workspace                |
+| `Super + Tab`           | Toggle 'chatgpt' workspace (tabbed)        |
+| `Super + g`             | Toggle 'github' workspace (tabbed)         |
+| `Super + f`             | Toggle 'zathura' workspace (tabbed)        |
+| `Super + m`             | Toggle 'mail' workspace (tabbed)           |
+| `Super + -`             | Toggle 'meet' workspace (tabbed)           |
 
-This safely removes the symlinks created by Stow.
+### System
 
----
-
-## 📁 Installing Packages
-
-This repo includes two lists of packages:
-
-* `pkglist.txt` → Official packages (from the Arch \[extra]/\[community]/\[core] repos)
-* `aurlist.txt` → AUR packages (community-contributed packages)
-
-### 🛠️ Install Official Packages (pacman)
-
-```bash
-sudo pacman -S --needed - < pkglist.txt
-```
-
-* `--needed`: skips packages that are already installed
-* `- < pkglist.txt`: reads package names from the file
-
-### 🧪 Install AUR Packages (yay)
-
-Make sure you have [yay](https://github.com/Jguer/yay) installed.
-
-```bash
-yay -S --needed - < aurlist.txt
-```
-
-Or, if that doesn’t work (due to shell behavior), use:
-
-```bash
-xargs -a aurlist.txt yay -S --needed
-```
-
-### 📌 Tip
-
-After cloning and stowing dotfiles, you can quickly bootstrap your system like this:
-
-```bash
-cd ~/dotfiles
-./stow-all.sh
-sudo pacman -S --needed - < pkglist.txt
-xargs -a aurlist.txt yay -S --needed
-```
-
----
-
-## 🧠 Philosophy
-
-* ✅ Keep each config isolated in its own folder
-* ✅ Symlink only what you need
-* ✅ Make onboarding and restoration simple
+| Keybinding              | Description                                |
+| ----------------------- | ------------------------------------------ |
+| `Super + Shift + r`     | Reload i3 configuration                    |
+| `Super + Shift + u`     | Update system packages                     |
+| `Super + Shift + w`     | Open wallpaper picker                      |
 
