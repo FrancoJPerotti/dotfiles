@@ -162,6 +162,7 @@ set $ws_meet "meet"
 # Assign applications to specific workspaces
 assign [instance="^vivaldi-(.+)$"] $ws_web
 assign [instance="^nvim$"] $ws_editor
+assign [instance="^code$"] $ws_editor
 assign [instance="^term$"] $ws_term
 assign [instance="^yazi$"] $ws_exp
 assign [instance="^spotify.com$"] $ws_spotify
