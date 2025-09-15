@@ -4,6 +4,7 @@ set -euo pipefail
 # ========== helpers ==========
 log() { printf "\n\033[1;36m==> %s\033[0m\n" "$*"; }
 err() { printf "\n\033[1;31m[ERROR]\033[0m %s\n" "$*" >&2; }
+warn() { printf "\n\033[1;33m[WARN]\033[0m %s\n" "$*" >&2; }
 have() { command -v "$1" >/dev/null 2>&1; }
 
 require_root() {
@@ -27,25 +28,37 @@ apt install -y ca-certificates curl wget gnupg software-properties-common lsb-re
 
 # ========== APT: core repo installs ==========
 APT_PKGS=(
+    brightnessctl
     btop
     cliphist
     eog
     evince
+    feh
     firefox
+    fzf
     git
     kitty
-    neovim
-    npm
+    lxappearance
+    maim
+    picom
+    playerctl
     rofi
+    imagemagick
     i3-wm
+    i3lock
+    polybar
+    ripgrep
     stow
     tmux
     tree
     unzip
     vim
+    xclip
     zathura
     zathura-pdf-poppler
     zsh
+    build-essential
+    python3
 )
 
 log "Install core APT packages"
@@ -115,7 +128,6 @@ if dpkg-query -W -f='${Status}' docker-desktop 2>/dev/null | grep -q "install ok
 else
     log "Fetching Docker Desktop .deb"
     set +e
-    # -z uses If-Modified-Since based on TMP_DEB mtime; avoids re-downloading if unchanged
     curl -fL -z "$TMP_DEB" -o "$TMP_DEB" "$DOCKER_DESKTOP_URL"
     if [ -s "$TMP_DEB" ]; then
         apt install -y "$TMP_DEB" || apt -f install -y
@@ -125,9 +137,20 @@ else
     set -e
 fi
 
-# ========== Yazi (Snap fallback) ==========
+# ========== Neovim ==========
+if ! have nvim; then
+    log "Install Neovim via Snap"
+    if ! have snap; then
+        apt install -y snapd
+    fi
+    snap install nvim --classic || err "Snap install of neovim failed."
+else
+    log "Neovim already installed"
+fi
+
+# ========== Yazi (Snap) ==========
 if ! have yazi; then
-    log "Install Yazi via Snap (classic confinement)"
+    log "Install Yazi via Snap"
     if ! have snap; then
         apt install -y snapd
     fi
@@ -248,6 +271,128 @@ if [ ! -d "$ZSH_CUSTOM/themes/powerlevel10k" ]; then
     log 'Remember to set ZSH_THEME="powerlevel10k/powerlevel10k" in your ~/.zshrc'
 else
     log "Powerlevel10k already present"
+fi
+
+# ========== NVM / Node.js (per-user, latest) ==========
+TARGET_USER="${SUDO_USER:-$USER}"
+
+# Remove conflicting system Node (APT/Snap) so PATH resolves to NVM's Node
+if dpkg -l | grep -qE '^ii\s+nodejs\b' || dpkg -l | grep -qE '^ii\s+npm\b'; then
+    log "Removing system nodejs/npm from APT to avoid conflicts with NVM"
+    apt remove -y --purge nodejs npm || true
+fi
+if command -v snap >/dev/null 2>&1 && snap list 2>/dev/null | grep -qE '^node\s'; then
+    log "Removing Snap 'node' to avoid PATH conflicts with NVM"
+    snap remove node || true
+fi
+
+# Install NVM for the target user if missing
+if ! sudo -u "$TARGET_USER" bash -lc 'command -v nvm >/dev/null 2>&1'; then
+    log "Installing NVM for $TARGET_USER"
+    sudo -u "$TARGET_USER" bash -lc '
+        export NVM_DIR="$HOME/.nvm"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+    '
+else
+    log "NVM already installed for $TARGET_USER"
+fi
+
+# Load NVM and install latest Node; set as default
+log "Installing latest Node.js via NVM for $TARGET_USER"
+sudo -u "$TARGET_USER" bash -lc '
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    nvm install node
+    nvm alias default node
+    nvm use default
+    corepack enable >/dev/null 2>&1 || true  # yarn/pnpm shims if needed
+    echo "Node: $(node -v) | npm: $(npm -v)"
+'
+
+# ========== Greenclip (Rofi clipboard manager) ==========
+TARGET_USER="${SUDO_USER:-$USER}"
+USER_HOME="/home/$TARGET_USER"
+GC_BIN="/usr/local/bin/greenclip"
+GC_CFG_DIR="$USER_HOME/.config"
+GC_CFG_FILE="$GC_CFG_DIR/greenclip.toml"
+USR_SD_UNIT="$USER_HOME/.config/systemd/user/greenclip.service"
+
+# 1) Install binary (pinned version, adjust if you want newer)
+if ! have greenclip; then
+    log "Install Greenclip (latest release binary)"
+    TMP_DIR="$(mktemp -d)"
+    curl -fL "https://github.com/erebe/greenclip/releases/download/v4.2/greenclip" -o "$TMP_DIR/greenclip"
+    install -m 0755 "$TMP_DIR/greenclip" "$GC_BIN"
+    rm -rf "$TMP_DIR"
+else
+    log "Greenclip already installed"
+fi
+
+# 2) Minimal config
+if [ ! -f "$GC_CFG_FILE" ]; then
+    log "Creating ~/.config/greenclip.toml with sane defaults"
+    sudo -u "$TARGET_USER" mkdir -p "$GC_CFG_DIR"
+    cat >"$GC_CFG_FILE" <<'EOF'
+max_history_length = 200
+history_file = "~/.cache/greenclip.history"
+use_primary_selection_as_input = true
+trim_space_from_selection = true
+image_support = true
+static_history = []
+enable_blacklist = false
+blacklisted_applications = []
+EOF
+    chown "$TARGET_USER":"$TARGET_USER" "$GC_CFG_FILE"
+else
+    log "Greenclip config already present"
+fi
+
+# ========== Nerd Fonts: JetBrainsMono (latest, ALL styles/weights) ==========
+TARGET_USER="${SUDO_USER:-$USER}"
+USER_HOME="/home/$TARGET_USER"
+DEST="$USER_HOME/.local/share/fonts/JetBrainsMonoNF"
+
+if ! fc-list | grep -qi 'JetBrainsMono Nerd Font'; then
+    log "Install JetBrainsMono Nerd Font (latest, all TTFs)"
+    mkdir -p "$DEST"
+
+    # Find latest tag and JetBrainsMono asset (prefer .tar.xz, fallback to .zip)
+    VER="$(curl -s https://api.github.com/repos/ryanoasis/nerd-fonts/releases/latest | jq -r '.tag_name')"
+    ASSETS_JSON="$(curl -s "https://api.github.com/repos/ryanoasis/nerd-fonts/releases/tags/${VER}")"
+
+    URL="$(echo "$ASSETS_JSON" | jq -r '.assets[] | select(.name=="JetBrainsMono.tar.xz") | .browser_download_url')"
+    ARCHIVE_TYPE="txz"
+    if [ -z "$URL" ] || [ "$URL" = "null" ]; then
+        URL="$(echo "$ASSETS_JSON" | jq -r '.assets[] | select(.name=="JetBrainsMono.zip") | .browser_download_url')"
+        ARCHIVE_TYPE="zip"
+    fi
+    [ -n "$URL" ] || { err "Could not find JetBrainsMono asset in Nerd Fonts ${VER}"; }
+
+    TMP="$(mktemp -d)"
+    trap 'rm -rf "$TMP"' EXIT
+
+    log "Downloading JetBrainsMono (${VER})"
+    curl -fL "$URL" -o "$TMP/pkg"
+
+    log "Extracting all TTFs to $DEST"
+    case "$ARCHIVE_TYPE" in
+    txz)
+        # extract only *.ttf files (keeps things clean)
+        tar -tf "$TMP/pkg" | grep -Ei '\.ttf$' | while read -r path; do
+            tar -xJf "$TMP/pkg" -C "$TMP" "$path"
+            install -m 0644 "$TMP/$path" "$DEST/"
+        done
+        ;;
+    zip)
+        unzip -j "$TMP/pkg" '*.ttf' -d "$DEST"
+        ;;
+    esac
+
+    chown -R "$TARGET_USER:$TARGET_USER" "$DEST"
+    fc-cache -fv "$DEST"
+    log "JetBrainsMono Nerd Font installed."
+else
+    log "JetBrainsMono Nerd Font already installed"
 fi
 
 # ========== Defaults ==========
