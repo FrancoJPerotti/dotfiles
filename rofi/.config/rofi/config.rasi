@@ -1,0 +1,13 @@
+configuration {
+  modi: "drun,run,filebrowser,window";
+  show-icons: true;
+  icon-theme: "Papirus-Dark";
+  display-drun: "apps";
+  display-run: "run";
+  display-window: "win";
+  display-filebrowser: "files";
+  drun-match-fields: "name,generic,exec,categories,keywords";
+  cycle: true;
+}
+
+@theme "~/.config/rofi/themes/pink.rasi"
