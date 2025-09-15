@@ -1,175 +1,205 @@
-# --- basics ---
-set $mod Mod4            # $mainMod = Super  
-font pango:Sans 11
-floating_modifier Mod1   # Alt+LMB drag / Alt+RMB resize (matches your Alt+mouse binds)
+exec --no-startup-id picom --config ~/.config/picom/picom.conf
+exec_always --no-startup-id polybar
+exec --no-startup-id feh --bg-fill ~/.local/share/wallpapers/current_wallpaper
+exec --no-startup-id dex --autostart --environment i3
+exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+exec --no-startup-id nm-applet
 
-# --- terminal / launcher (from keybindings) ---
-set $term kitty           # $term = kitty  
-bindsym $mod+space exec $term
-# bindsym $mod+Return exec pkill -x rofi || ~/.config/hypr/rofilaunch.sh d      # 
-# bindsym $mod+Shift+Return exec pkill -x rofi || ~/.config/hypr/rofilaunch.sh f # 
-# bindsym $mod+Shift+e exec pkill -x rofi || ~/.config/hypr/emoji-picker.sh      # 
-# bindsym $mod+Shift+a exec pkill -x rofi || ~/.config/hypr/rofiselect.sh        # 
-# bindsym $mod+Shift+l exec pkill -x rofi || ~/.config/hypr/hyprlock.sh --select # 
+# Daemon that auto-captures ChatGPT/Zathura into tabbed scratchpad groups
+exec --no-startup-id ~/.local/bin/i3-scratchpad-groups.py
 
-# --- session/window actions ---
-bindsym F12 kill                             # , F12, killactive  
-bindsym $mod+Delete exit
-bindsym $mod+Shift+f floating toggle         # togglefloating     
+exec_always --no-startup-id bash -lc 'pgrep -x greenclip >/dev/null || greenclip daemon'
 
-# Use tabbed/stacked container layouts (toggle cycle) + marks for ad-hoc groups.
-bindsym $mod+Shift+g layout toggle tabbed stacking split  # :contentReference[oaicite:15]{index=15}
 
-# --- screenshots & utilities ---
-# bindsym $mod+p exec ~/.config/hypr/screenshot.sh s        # 
-# bindsym Print  exec ~/.config/hypr/screenshot.sh p        # 
+# ---------- Palette ----------
+set $c_base   #101114      
+set $c_text   #F5F5F5
+set $c_dim    #C8C8C8
+set $c_1 #BC00DD
+set $c_2 #D100D1
+set $c_3 #DB00B6
+set $c_4 #E500A4
+set $c_5 #F20089
 
-# --- audio / media / brightness ---
-# bindsym XF86AudioMute exec ~/.config/hypr/volumecontrol.sh -o m             # 
-# bindsym $mod+j       exec ~/.config/hypr/volumecontrol.sh -i m              # 
-# bindsym XF86AudioLowerVolume exec ~/.config/hypr/volumecontrol.sh -o d      # 
-# bindsym XF86AudioRaiseVolume exec ~/.config/hypr/volumecontrol.sh -o i      # 
+# class                        border   background  text    indicator child_border
+client.focused                 $c_5     $c_2        $c_text $c_5      $c_5
+client.focused_inactive        $c_3     $c_base     $c_dim  $c_3      $c_3
+client.unfocused               $c_base  $c_base     $c_dim  $c_base   $c_base
+client.urgent                  $c_4     $c_4        $c_text $c_4      $c_4
+client.placeholder             $c_base  $c_base     $c_text $c_base   $c_base
+client.background              $c_base
 
-bindsym XF86AudioPlay  exec playerctl play-pause                            # 
-bindsym XF86AudioPause exec playerctl play-pause                            # 
-bindsym XF86AudioNext  exec playerctl next                                  # 
-bindsym XF86AudioPrev  exec playerctl previous                              # 
+# Window Titles
+font pango:monospace 8
+title_align center
 
-# bindsym XF86MonBrightnessUp   exec ~/.config/hypr/brightnesscontrol.sh i    # 
-# bindsym XF86MonBrightnessDown exec ~/.config/hypr/brightnesscontrol.sh d    # 
+# Borders
+default_border pixel 0
 
-# --- focus / movement ---
-bindsym $mod+n focus left       
-bindsym $mod+o focus right      
-bindsym $mod+i focus up         
-bindsym $mod+e focus down       
+# Gaps
+gaps inner 6
+
+#     __              __    _           ___                 
+#    / /_____  __  __/ /_  (_)___  ____/ (_)___  ____ ______
+#   / //_/ _ \/ / / / __ \/ / __ \/ __  / / __ \/ __ `/ ___/
+#  / ,< /  __/ /_/ / /_/ / / / / / /_/ / / / / / /_/ (__  ) 
+# /_/|_|\___/\__, /_.___/_/_/ /_/\__,_/_/_/ /_/\__, /____/  
+#           /____/                            /____/        
+
+### Variables ###
+# Super/Meta/Windows key
+set $mod Mod4
+
+### Window Actions ###
+
+# Drag floating windows
+floating_modifier $mod
+
+# Kill focused window
+bindsym F12 kill
+
+# Toggle floating
+bindsym $mod+Shift+f floating toggle
+
+# Toggle group
+bindsym $mod+Shift+g layout toggle tabbed split
+
+# Change focus
+bindsym $mod+n focus left
+bindsym $mod+e focus down
+bindsym $mod+i focus up
+bindsym $mod+o focus right
+
+# Move focused window
+bindsym $mod+Left move left
+bindsym $mod+Down move down
+bindsym $mod+Up move up
+bindsym $mod+Right move right
 
 # within “groups” (tabbed/stacked containers), cycle members
-bindsym $mod+u focus prev
-bindsym $mod+y focus next
+# bindsym $mod+u focus prev
+# bindsym $mod+y focus next
 
-# move containers (arrow keys)
-bindsym $mod+Left  move left
-bindsym $mod+Right move right
-bindsym $mod+Up    move up
-bindsym $mod+Down  move down
-
-# --- resize (Alt held like your ALT_L) ---
-mode "resize" {
-  bindsym n resize shrink width 20 px or 20 ppt
-  bindsym o resize grow   width 20 px or 20 ppt
-  bindsym i resize shrink height 20 px or 20 ppt
-  bindsym e resize grow   height 20 px or 20 ppt
-  bindsym Escape mode "default"
-}
-bindsym $mod+Mod1+r mode "resize"     # enter resize mode 
-
-# --- workspaces (numbered) ---
-set $ws1 "1"
-set $ws2 "2"
-set $ws3 "3"
-set $ws4 "4"
-
-bindsym $mod+1 workspace number $ws1
-bindsym $mod+2 workspace number $ws2
-bindsym $mod+3 workspace number $ws3
-bindsym $mod+4 workspace number $ws4
-
-bindsym $mod+Shift+1 move container to workspace number $ws1
-bindsym $mod+Shift+2 move container to workspace number $ws2
-bindsym $mod+Shift+3 move container to workspace number $ws3
-bindsym $mod+Shift+4 move container to workspace number $ws4
-
-# Relative navigation 
-bindsym $mod+ñ workspace next
-bindsym $mod+l   workspace prev
+# 
+bindsym $mod+l workspace prev
+# bindsym $mod+Mod1+ntilde workspace next
 bindsym $mod+End  move container to workspace next
 bindsym $mod+Home move container to workspace prev
 
-# --- “groups” analogues ---
-# 1) Tabbed/stacked layouts
-bindsym $mod+t layout tabbed
-bindsym $mod+s layout stacking
-bindsym $mod+e layout toggle split
-# Default layout for new containers if you want: (uncomment)
-# workspace_layout tabbed   # :contentReference[oaicite:35]{index=35}
+# Resize focused window
+bindsym $mod+Mod1+n resize shrink width 10px 
+bindsym $mod+Mod1+o resize grow width 10px
+bindsym $mod+Mod1+i resize shrink height 10px
+bindsym $mod+Mod1+e resize grow height 10px
 
-# 2) Marks for ad-hoc sets (label windows and jump/move them)
-bindsym $mod+m mark code
-bindsym $mod+Shift+m unmark code
-bindsym $mod+g [con_mark="code"] focus      # jump to the “group”
-# (ref: i3 marks) :contentReference[oaicite:36]{index=36}:contentReference[oaicite:37]{index=37}
+# start a terminal
+bindsym $mod+space exec i3-sensible-terminal
 
-# --- scratchpads (Hypr “special workspaces”) ---
-# i3 scratchpad: move to scratchpad, then toggle with "scratchpad show".  :contentReference[oaicite:38]{index=38}
-bindsym $mod+minus move scratchpad
-bindsym $mod+Shift+minus scratchpad show
+# Toggle app launcher
+bindsym --release $mod+Return exec --no-startup-id "rofi -no-lazy-grab -show drun -kb-cancel \\"Escape,Super+Return\\""
 
-# Per-app scratchpads to mirror your special workspaces (spotify/discord/…):
-# pattern: on first launch, mark & move to scratchpad; the key toggles it.
-# Spotify
-for_window [class="vivaldi-spotify.com__-Default"] mark sp_spotify, move scratchpad
-bindsym $mod+s [con_mark="sp_spotify"] scratchpad show
+# Toggle file browser
+bindsym --release $mod+Shift+Return exec --no-startup-id "rofi -no-lazy-grab -modi drun,run,filebrowser -show filebrowser -kb-cancel \\"Escape,Super+Shift+Return\\""
 
-# Discord
-for_window [class="vivaldi-discord.com__-Default"] mark sp_discord, move scratchpad
-bindsym $mod+d [con_mark="sp_discord"] scratchpad show
 
-# WhatsApp
-for_window [class="vivaldi-web.whatsapp.com__-Default"] mark sp_whatsapp, move scratchpad
-bindsym $mod+w [con_mark="sp_whatsapp"] scratchpad show
+# split in horizontal orientation
+# bindsym $mod+h split h
 
-# TickTick
-for_window [class="vivaldi-ticktick.com__-Default"] mark sp_tick, move scratchpad
-bindsym $mod+t [con_mark="sp_tick"] scratchpad show
+# split in vertical orientation
+# bindsym $mod+v split v
 
-# Obsidian
-for_window [class="obsidian"] mark sp_obsidian, move scratchpad
-bindsym $mod+k [con_mark="sp_obsidian"] scratchpad show
+# change focus between tiling / floating windows
+# bindsym $mod+space focus mode_toggle
 
-# ChatGPT
-for_window [class="vivaldi-chatgpt.com__-Default"] mark sp_gpt, move scratchpad
-bindsym $mod+Tab [con_mark="sp_gpt"] scratchpad show
+# focus the parent container
+bindsym $mod+a focus parent
 
-# PDF (zathura)
-for_window [class="org.pwmt.zathura"] floating enable, mark sp_pdf, move scratchpad
-bindsym $mod+f [con_mark="sp_pdf"] scratchpad show
+# reload the configuration file
+bindsym $mod+Shift+r reload
 
-# OBS
-for_window [class="com.obsproject.Studio"] mark sp_obs, move scratchpad
-bindsym $mod+r [con_mark="sp_obs"] scratchpad show
+# Take screenshot
+bindsym $mod+p exec --no-startup-id maim --select -o | xclip -selection clipboard -t image/png
 
-# GitHub
-for_window [class="vivaldi-github.com__-Default"] mark sp_gh, move scratchpad
-bindsym $mod+g [con_mark="sp_gh"] scratchpad show
+# Toggle clipboard (greenclip)
+bindsym --release $mod+c exec --no-startup-id "rofi -no-lazy-grab -modi 'clipboard:greenclip print' -show clipboard -run-command '{cmd}' -kb-cancel \\"Escape,Super+c\\""
 
-# Meet
-for_window [class="vivaldi-meet.google.com__-Default"] mark sp_meet, move scratchpad
-bindsym $mod+minus [con_mark="sp_meet"] scratchpad show
+# Power Menu
+bindsym $mod+Shift+equal exec --no-startup-id ~/.local/bin/rofi_power.sh
 
-# Mail
-for_window [class="vivaldi-mail.google.com__-Default" class="vivaldi-outlook.live.com__-Default"] \
-  mark sp_mail, move scratchpad
-bindsym $mod+m [con_mark="sp_mail"] scratchpad show
+# Update System 
+bindsym $mod+Shift+u exec --no-startup-id "i3-sensible-terminal -e bash -lc '~/.local/bin/update.sh -y; echo; read -n1 -rsp \\"Press any key to close...\\"'"
 
-# --- app → workspace assignment (from userprefs) ---
-# Neovim / Neovide → WS 2
-assign [class="(?i)nvim"] 2            # 
-assign [class="(?i)neovide"] 2         # 
+# ── 🔊 Audio control (PipeWire / wpctl) ─────────────────────────────────────────
+bindsym XF86AudioMute         exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
+bindsym XF86AudioLowerVolume  exec --no-startup-id wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%-
+bindsym XF86AudioRaiseVolume  exec --no-startup-id wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
 
-# Kitty shells (your “term”) → WS 3
-assign [class="(?i)kitty"] 3           # 
+# ── 🎵 Media control (playerctl) ───────────────────────────────────────────────
+bindsym XF86AudioPlay         exec --no-startup-id playerctl play-pause
+bindsym XF86AudioPause        exec --no-startup-id playerctl play-pause
+bindsym XF86AudioNext         exec --no-startup-id playerctl next
+bindsym XF86AudioPrev         exec --no-startup-id playerctl previous
 
-# Yazi → WS 4
-assign [class="(?i)yazi"] 4            # 
+# ── 🌞 Brightness (brightnessctl) ──────────────────────────────────────────────
+bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set +10%
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
 
-# --- floating rules (common tools) ---
-for_window [class="org.pulseaudio.pavucontrol"] floating enable     # 
-for_window [class="blueman-manager"] floating enable                # 
-for_window [class="nm-connection-editor"] floating enable           # 
-for_window [class="org.kde.ark"] floating enable                    # 
+# --- Workspaces ---
+set $ws_web "web"
+set $ws_editor "editor"
+set $ws_term "term"
+set $ws_exp "exp"
+set $ws_spotify "spotify"
+set $ws_discord "discord"
+set $ws_whatsapp "whatsapp"
+set $ws_ticktick "ticktick"
+set $ws_chatgpt "chatgpt"
+set $ws_github "github"
+set $ws_zathura "zathura"
+set $ws_mail "mail"
+set $ws_meet "meet"
 
-# --- optional: bars, gaps, compositor ---
-# i3 does not handle opacity/blur; if you want transparency like Hyprland’s windowrules, use picom.
-# Example:
-# exec --no-startup-id picom --config ~/.config/picom/picom.conf
+# Assign applications to specific workspaces
+assign [instance="^vivaldi-(.+)$"] $ws_web
+assign [instance="^nvim$"] $ws_editor
+assign [instance="^term$"] $ws_term
+assign [instance="^yazi$"] $ws_exp
+assign [instance="^spotify.com$"] $ws_spotify
+assign [instance="^discord.com__app$"] $ws_discord
+assign [instance="^web.whatsapp.com$"] $ws_whatsapp
+assign [instance="^ticktick.com$"] $ws_ticktick
+assign [instance="^chatgpt.com$"] $ws_chatgpt
+assign [instance="^github.com$"] $ws_github
+assign [class="^Zathura$"] $ws_zathura
+assign [instance="^mail\.google\.com__mail_u_(\d+)$"] $ws_mail
+assign [instance="^outlook\.live\.com__mail_(\d+)$"] $ws_mail
+assign [instance="^meet\.google\.com__(.+)$"] $ws_meet
+
+# Define script path variable
+set $script_path ~/.local/bin
+
+# Keybindings to toggle or focus workspaces
+bindsym $mod+h workspace $ws_web
+bindsym $mod+Shift+slash workspace $ws_editor; layout tabbed
+bindsym $mod+dead_acute workspace $ws_term
+bindsym $mod+slash workspace $ws_exp
+bindsym $mod+s exec --no-startup-id $script_path/toggle_workspace.sh $ws_spotify
+bindsym $mod+d exec --no-startup-id $script_path/toggle_workspace.sh $ws_discord
+bindsym $mod+w exec --no-startup-id $script_path/toggle_workspace.sh $ws_whatsapp
+bindsym $mod+t exec --no-startup-id $script_path/toggle_workspace.sh $ws_ticktick
+bindsym $mod+Tab exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_chatgpt"
+bindsym $mod+g exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_github"
+bindsym $mod+f   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_zathura"
+bindsym $mod+m   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_mail"
+bindsym $mod+minus   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_meet"
+
+# Wallpaper Picker
+bindsym $mod+Shift+w exec --no-startup-id $script_path/wallpaper_picker.sh
+
+# Status Bar
+bar {
+        mode invisible
+}
+
+# Autostart script
+exec --no-startup-id $script_path/autostart.sh
