@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 DOTFILES_DIR="${DOTFILES_DIR:-$SCRIPT_DIR}"
 
 # Packages whose directories should be skipped entirely (metadata, helper files)
-EXCLUDED=(custom README.md pkglist.txt aurlist.txt .git .github .stow-local-ignore)
+EXCLUDED=(custom vivaldi README.md pkglist.txt aurlist.txt .git .github .stow-local-ignore)
 
 # ── Flags ────────────────────────────────────────────────────────────────────
 DRY_RUN=false
@@ -40,9 +40,19 @@ EOF
 # ── CLI parsing ─────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    -n|--dry-run) DRY_RUN=true ; shift ;;
-    -h|--help)    usage; exit 0 ;;
-    *) echo "❌ Unknown option: $1"; usage; exit 1 ;;
+  -n | --dry-run)
+    DRY_RUN=true
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  *)
+    echo "❌ Unknown option: $1"
+    usage
+    exit 1
+    ;;
   esac
 done
 
@@ -67,7 +77,7 @@ cleanup_conflicts() {
 
   # Run stow simulation; capture output (exit 2 is expected when conflicts).
   local sim_out
-  if ! sim_out=$( (cd "$pkg_path" && stow -nv -t "$HOME" .) 2>&1 ); then
+  if ! sim_out=$( (cd "$pkg_path" && stow -nv -t "$HOME" .) 2>&1); then
     :
   fi
 
@@ -108,7 +118,7 @@ cleanup_conflicts() {
   done
 
   if $DRY_RUN; then
-	  echo "$sim_out"
+    echo "$sim_out"
   fi
 }
 
