@@ -1,5 +1,13 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 # --- Oh My Zsh ---
-export ZSH="${ZSH:-$HOME/.oh-my-zsh}"
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 plugins=(git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
 source "$ZSH/oh-my-zsh.sh"
 
@@ -84,18 +92,6 @@ export PATH="$PATH:$HOME/.local/bin"
 export PATH="$HOME/.cargo/bin:$PATH"
 export EDITOR='nvim'
 
-# --- Neovide helper ---
-nvd() {
-  if command -v neovide >/dev/null 2>&1; then
-    neovide "$@" & disown
-    sleep 0.5
-    kill $PPID
-  else
-    echo "neovide not found; opening nvim"
-    nvim "$@"
-  fi
-}
-
 # --- Yazi integration ---
 function y() {
   local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
@@ -110,25 +106,33 @@ export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
 [[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
 
-# --- nvim launcher (Kitty-aware only) ---
 function nvim() {
-  local dest_dir=$PWD
-  if (( $# )); then
-    for arg in "$@"; do
-      [[ "$arg" == [+-]* ]] && continue
-      local abs=${arg:A}
-      if [[ -d $abs ]]; then dest_dir=$abs; else dest_dir=${abs:h}; fi
-      break
-    done
-  fi
-  local short=${dest_dir/#$HOME/~}
-  local -a cmd=(nvim "$@")
+    local dest_dir=$PWD
+    if (( $# )); then
+        for arg in "$@"; do
+            [[ "$arg" == [+-]* ]] && continue
+            local abs=${arg:A}
+            if [[ -d $abs ]]; then
+                dest_dir=$abs
+            else
+                dest_dir=${abs:h}
+            fi
+            break
+        done
+    fi
+    local short=${dest_dir/#$HOME/~}
 
-  if command -v kitty >/dev/null 2>&1; then
-    cmd=(kitty --single-instance --class nvim --title "nvim:${short}" --working-directory "${dest_dir}" nvim "$@")
-  fi
+    # Build the kitty command safely
+    local -a cmd=(
+        kitty --single-instance
+        --class nvim
+        --title "nvim:${short}"
+        --working-directory "${dest_dir}"
+        nvim "$@"
+    )
 
-  "${cmd[@]}"
+    # Launch via i3 (note: --no-startup-id, not --)
+    i3-msg -q "exec --no-startup-id $(printf '%q ' "${cmd[@]}")"
 }
 
 # --- Google Meet launcher ---
@@ -156,3 +160,5 @@ function meet() {
     echo "Open this URL: $url"
   fi
 }
+export ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"
+# backup by install script
