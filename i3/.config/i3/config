@@ -120,9 +120,6 @@ bindsym $mod+Shift+r reload
 # Take screenshot
 bindsym $mod+p exec --no-startup-id maim --select -o | xclip -selection clipboard -t image/png
 
-# Toggle clipboard (greenclip)
-bindsym --release $mod+c exec --no-startup-id "rofi -no-lazy-grab -modi 'clipboard:greenclip print' -show clipboard -run-command '{cmd}' -kb-cancel \\"Escape,Super+c\\""
-
 # Power Menu
 bindsym $mod+Shift+equal exec --no-startup-id ~/.local/bin/rofi_power.sh
 
@@ -196,6 +193,9 @@ bindsym $mod+minus   exec --no-startup-id $script_path/toggle_workspace.sh --tab
 
 # Wallpaper Picker
 bindsym $mod+Shift+w exec --no-startup-id $script_path/wallpaper_picker.sh
+
+# Toggle clipboard (greenclip)
+bindsym --release $mod+c exec --no-startup-id $script_path/clipboard.sh
 
 # Status Bar
 bar {
