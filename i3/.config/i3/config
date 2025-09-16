@@ -184,6 +184,9 @@ bindsym $mod+minus   exec --no-startup-id $script_path/toggle_workspace.sh --tab
 # Wallpaper Picker
 bindsym $mod+Shift+w exec --no-startup-id $script_path/wallpaper_picker.sh
 
+# Emoji Picker
+bindsym --release $mod+Shift+e exec --no-startup-id $script_path/emoji_picker.sh
+
 # Toggle clipboard (greenclip)
 bindsym --release $mod+c exec --no-startup-id $script_path/clipboard.sh
 
