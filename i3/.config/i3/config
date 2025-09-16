@@ -141,10 +141,11 @@ set $ws_discord "discord"
 set $ws_whatsapp "whatsapp"
 set $ws_ticktick "ticktick"
 set $ws_chatgpt "chatgpt"
-set $ws_github "github"
+set $ws_git "git"
 set $ws_zathura "zathura"
 set $ws_mail "mail"
 set $ws_meet "meet"
+set $ws_work "work"
 
 # Assign applications to specific workspaces
 assign [instance="^vivaldi-(.+)$"] $ws_web
@@ -157,11 +158,15 @@ assign [instance="^discord.com__app$"] $ws_discord
 assign [instance="^web.whatsapp.com$"] $ws_whatsapp
 assign [instance="^ticktick.com$"] $ws_ticktick
 assign [instance="^chatgpt.com$"] $ws_chatgpt
-assign [instance="^github.com$"] $ws_github
+assign [instance="^github.com$"] $ws_git
+assign [instance="^gitlab.com$"] $ws_git
 assign [class="^Zathura$"] $ws_zathura
 assign [instance="^mail\.google\.com__mail_u_(\d+)$"] $ws_mail
 assign [instance="^outlook\.live\.com__mail_(\d+)$"] $ws_mail
 assign [instance="^meet\.google\.com__(.+)$"] $ws_meet
+assign [instance="^jira.com$"] $ws_work
+assign [instance="^trello.com$"] $ws_work
+assign [instance="^slack.com$"] $ws_work
 
 # Define script path variable
 set $script_path ~/.local/bin
@@ -176,10 +181,11 @@ bindsym $mod+d exec --no-startup-id $script_path/toggle_workspace.sh $ws_discord
 bindsym $mod+w exec --no-startup-id $script_path/toggle_workspace.sh $ws_whatsapp
 bindsym $mod+t exec --no-startup-id $script_path/toggle_workspace.sh $ws_ticktick
 bindsym $mod+Tab exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_chatgpt"
-bindsym $mod+g exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_github"
+bindsym $mod+g exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_git"
 bindsym $mod+f   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_zathura"
 bindsym $mod+m   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_mail"
 bindsym $mod+minus   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_meet"
+bindsym $mod+k   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed $ws_work
 
 # Wallpaper Picker
 bindsym $mod+Shift+w exec --no-startup-id $script_path/wallpaper_picker.sh
