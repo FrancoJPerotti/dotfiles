@@ -2,6 +2,6 @@
 Terminal=false
 Type=Application
 Name=Home Assistant
-Exec=/opt/vivaldi/vivaldi --app=http://192.168.0.4:8123
+Exec=/opt/vivaldi/vivaldi --app=http://192.168.0.5:8123
 Icon=~/.local/share/applications/web_app_icons/home_assistant.svg
 
