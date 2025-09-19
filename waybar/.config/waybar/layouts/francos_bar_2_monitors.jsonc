@@ -32,7 +32,7 @@
 
   "group/pill#right1": {
     "orientation": "inherit",
-    "modules": [ "mpris" ]
+    "modules": [ "custom/mediaplayer" ]
   },
 
   "group/pill#right2": {
