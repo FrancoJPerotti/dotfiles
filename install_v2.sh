@@ -136,12 +136,48 @@ initialize_system() {
 install_apt_packages() {
     log_step "Installing packages via APT"
     local core_pkgs=(
-        brightnessctl btop cliphist eog evince feh firefox fzf git kitty
-        lxappearance maim picom playerctl python3.12-venv rofi imagemagick i3-wm i3lock
-        polybar ripgrep stow tmux tree unzip vim xclip zathura
-        zathura-pdf-poppler zsh
+        brightnessctl
+        btop
+        cliphist
+        eog
+        evince
+        feh
+        firefox
+        fzf
+        git
+        kitty
+        lxappearance
+        maim
+        picom
+        playerctl
+        python3.12-venv
+        rofi
+        imagemagick
+        i3-wm
+        i3lock
+        polybar
+        ripgrep
+        stow
+        tmux
+        tree
+        unzip
+        vim
+        wmctrl
+        xclip
+        zathura
+        zathura-pdf-poppler
+        zsh
     )
-    local repo_pkgs=(gh code vivaldi-stable docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin)
+    local repo_pkgs=(
+        gh
+        code
+        vivaldi-stable
+        docker-ce
+        docker-ce-cli
+        containerd.io
+        docker-buildx-plugin
+        docker-compose-plugin
+    )
     apt-get update -qq
     apt-get install -yq "${core_pkgs[@]}" "${repo_pkgs[@]}"
     if ! getent group docker | grep -q "\b$TARGET_USER\b"; then
