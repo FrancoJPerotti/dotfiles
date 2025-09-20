@@ -49,6 +49,8 @@ gaps inner 6
 ### Variables ###
 # Super/Meta/Windows key
 set $mod Mod4
+# Define script path variable
+set $script_path ~/.local/bin
 
 ### Window Actions ###
 
@@ -82,15 +84,16 @@ bindsym $mod+Right move right
 
 # 
 bindsym $mod+l workspace prev
+
 # bindsym $mod+Mod1+ntilde workspace next
 bindsym $mod+End  move container to workspace next
 bindsym $mod+Home move container to workspace prev
 
-# Resize focused window
-bindsym $mod+Mod1+n resize shrink width 10px 
-bindsym $mod+Mod1+o resize grow width 10px
-bindsym $mod+Mod1+i resize shrink height 10px
-bindsym $mod+Mod1+e resize grow height 10px
+# Smart Directional Resize
+bindsym $mod+Mod1+n exec --no-startup-id $script_path/resize_improved.sh left 1
+bindsym $mod+Mod1+o exec --no-startup-id $script_path/resize_improved.sh right 1
+bindsym $mod+Mod1+i exec --no-startup-id $script_path/resize_improved.sh up 1
+bindsym $mod+Mod1+e exec --no-startup-id $script_path/resize_improved.sh down 1
 
 # start a terminal
 bindsym $mod+space exec i3-sensible-terminal
@@ -230,8 +233,6 @@ for_window [instance="^youtube\.com(.*)$"] \
     workspace $ws_youtube, \
     focus parent, layout tabbed
 
-# Define script path variable
-set $script_path ~/.local/bin
 
 # Keybindings to toggle or focus workspaces
 bindsym $mod+h workspace $ws_web
