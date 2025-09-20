@@ -139,6 +139,7 @@ install_apt_packages() {
         brightnessctl
         btop
         cliphist
+        dunst
         eog
         evince
         feh
