@@ -1,6 +1,6 @@
 * {
   bg0:     #1F1F2F;   /* main background */
-  bg1:     #201a2e;   /* surface / pill background */
+  bg1:     #252A3A;   /* surface / pill background */
   fg:      #F6E9FF;   /* normal text color (unselected) */
   muted:   #C9AFD7;   /* secondary/placeholder text */
   accent:  #FF79C6;   /* main pink */
@@ -19,7 +19,7 @@ window {
   height: 20em;
   transparency: "real";
   location: center;
-  border: 2px;
+  border: 0px;
   border-radius: 16px;
   border-color: @border;
   background-color: @bg0;
@@ -32,7 +32,7 @@ mainbox {
 
 inputbar {
   background-color: @bg1;       
-  border: 1px;
+  border: 0px;
   border-color: @accent2;
   border-radius: 10px;
   padding: 6px 10px; 
