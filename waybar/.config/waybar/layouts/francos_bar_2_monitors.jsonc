@@ -47,5 +47,28 @@
   "group/pill#right3": {
     "orientation": "inherit",
     "modules": ["privacy", "tray", "battery"]
+  },
+
+  "hyprland/workspaces": {
+    "all-outputs": true,
+    "sort-by-number": true,
+    "show-special": true,
+    "on-click": "activate",
+    "format":"{icon} ",
+    "format-icons": {
+      "1": "󰖟",
+      "2": "",
+      "3": "",
+      "4": "",
+      "5": "",
+      "chatgpt": "󰚩",
+      "discord": "",
+      "github": "󰊤",
+      "mail": "",
+      "obsidian": "",
+      "spotify": "",
+      "ticktick": "",
+      "whatsapp": ""
+    }
   }
 }
