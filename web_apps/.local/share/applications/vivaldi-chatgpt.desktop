@@ -4,4 +4,5 @@ Type=Application
 Name=ChatGPT
 Exec=/opt/vivaldi/vivaldi --app=https://chatgpt.com
 Icon=~/.local/share/applications/web_app_icons/chatgpt.svg
+Keywords=chatgpt;ai;gpt;openai;assistant;productivity;
 
