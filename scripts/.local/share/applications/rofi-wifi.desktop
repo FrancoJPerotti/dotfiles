@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Wi-Fi Picker
+Comment=Connect to Wi-Fi via rofi + nmcli
+Exec=/home/franco/.local/bin/wifi_picker.sh
+Icon=network-wireless
+Terminal=false
+Categories=Network;Utility;
+NoDisplay=false
+StartupNotify=false
