@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Bluetooth Picker
+Comment=Connect, pair, and manage Bluetooth devices via rofi + bluetoothctl
+Exec=/home/franco/.local/bin/bluetooth_picker.sh
+TryExec=/home/franco/.local/bin/bluetooth_picker.sh
+Icon=bluetooth
+Terminal=false
+Categories=Network;Settings;Utility;
+Keywords=bluetooth;rofi;bluetoothctl;audio;headphones;keyboard;mouse;
+NoDisplay=false
+StartupNotify=false
