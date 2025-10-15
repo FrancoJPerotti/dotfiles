@@ -146,6 +146,7 @@ install_apt_packages() {
         feh
         firefox
         fzf
+        gcc
         git
         kitty
         lxappearance
@@ -166,6 +167,7 @@ install_apt_packages() {
         vim
         wmctrl
         xclip
+        xdotool
         zathura
         zathura-pdf-poppler
         zsh
@@ -218,6 +220,40 @@ install_standalone_tools() {
         curl -fL "$url" | tar xz -C /usr/local/bin
         log_ok "Installed Zellij"
     else log_skip "Zellij already installed"; fi
+
+    # ========== Greenclip (Rofi clipboard manager) ==========
+    log_step "Installing and configuring Greenclip"
+    if ! have greenclip; then
+        local tmp_dir
+        tmp_dir="$(mktemp -d)"
+        curl -fL "https://github.com/erebe/greenclip/releases/download/v4.2/greenclip" -o "$tmp_dir/greenclip"
+        install -m 0755 "$tmp_dir/greenclip" "/usr/local/bin/greenclip"
+        rm -rf "$tmp_dir"
+        log_ok "Installed Greenclip (v4.2)"
+    else
+        log_skip "Greenclip already installed"
+    fi
+
+    local gc_cfg_dir="$USER_HOME/.config"
+    local gc_cfg_file="$gc_cfg_dir/greenclip.toml"
+    if [ ! -f "$gc_cfg_file" ]; then
+        log_step "Creating ~/.config/greenclip.toml with sane defaults"
+        sudo -u "$TARGET_USER" mkdir -p "$gc_cfg_dir"
+        cat >"$gc_cfg_file" <<'EOF'
+max_history_length = 200
+history_file = "~/.cache/greenclip.history"
+use_primary_selection_as_input = true
+trim_space_from_selection = true
+image_support = true
+static_history = []
+enable_blacklist = false
+blacklisted_applications = []
+EOF
+        chown "$TARGET_USER":"$TARGET_USER" "$gc_cfg_file"
+        log_ok "Created default Greenclip config"
+    else
+        log_skip "Greenclip config already present"
+    fi
 }
 
 configure_shell() {
