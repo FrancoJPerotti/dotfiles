@@ -142,6 +142,7 @@ install_apt_packages() {
         dunst
         eog
         evince
+        eza
         feh
         firefox
         fzf
