@@ -164,6 +164,7 @@ install_apt_packages() {
         kitty
         lxappearance
         maim
+        make
         picom
         playerctl
         python3.12-venv
