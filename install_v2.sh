@@ -82,6 +82,19 @@ cleanup_managed_repos() {
             log_ok "Removed conflicting file: $file"
         fi
     done
+
+    # Aggressively remove any lingering VS Code repo definitions using old key
+    for f in /etc/apt/sources.list.d/*.list; do
+        [ -e "$f" ] || break
+        if grep -qE 'https?://packages.microsoft.com/repos/code' "$f"; then
+            rm -f "$f"
+            log_ok "Removed VS Code repo list: $f"
+        fi
+    done
+    if [ -f "/etc/apt/sources.list" ] && grep -qE 'https?://packages.microsoft.com/repos/code' "/etc/apt/sources.list"; then
+        sed -i '/packages.microsoft.com\/repos\/code/d' "/etc/apt/sources.list"
+        log_ok "Removed VS Code repo lines from /etc/apt/sources.list"
+    fi
 }
 
 initialize_system() {
