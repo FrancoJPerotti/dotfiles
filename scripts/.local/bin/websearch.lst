@@ -1,6 +1,8 @@
 *  | g      | Google           | https://google.com/search?q=
    | gi     | Google Images    | https://google.com/search?tbm=isch&q=
+  󰊪 | gt     | Google Translate | https://translate.google.com/?sl=en&tl=es&text=
   󰚩 | chat   | ChatGPT          | https://chatgpt.com/?q=
+   | yg     | YouGlish         | https://youglish.com/pronounce/{q}/english/us
    | w      | Wikipedia        | https://en.wikipedia.org/w/index.php?search=
   󰣇 | aw     | Arch Wiki        | https://wiki.archlinux.org/index.php?search=
    | y      | YouTube          | https://youtube.com/results?search_query=
