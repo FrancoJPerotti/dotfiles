@@ -25,6 +25,7 @@
    | imdb   | IMDb             | https://imdb.com/find/?q=
    | libg   | LibGen           | https://libgen.is/search.php?req=
    | zlib   | Z-Library        | https://singlelogin.me/s/?q=
+   | anna   | Anna's Archive   | https://annas-archive.org/search?q=
    | scih   | Sci-Hub          | https://sci-hub.se/
    | gsch   | Google Scholar   | https://scholar.google.com/scholar?q=
   󰊫 | gm     | Gmail            | https://mail.google.com/mail/u/0/#search/
