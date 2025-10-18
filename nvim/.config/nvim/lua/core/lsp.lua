@@ -1,22 +1,18 @@
-vim.lsp.enable({
-	"clangd",
-	"lua_ls",
-	"lua_ls",
-	"pyright",
-	"rust_analyzer",
-	"bash-language-server",
+-- 1) Make Compose files use the filetype the server expects
+vim.filetype.add({
+	pattern = {
+		["docker%-compose%.ya?ml"] = "yaml.docker-compose",
+		["compose%.ya?ml"] = "yaml.docker-compose",
+	},
 })
 
+-- 2) Diagnostics: tidy but not noisy
 vim.diagnostic.config({
 	virtual_lines = true,
-	-- virtual_text = true,
 	underline = true,
 	update_in_insert = false,
 	severity_sort = true,
-	float = {
-		border = "rounded",
-		source = true,
-	},
+	float = { border = "rounded", source = true },
 	signs = {
 		text = {
 			[vim.diagnostic.severity.ERROR] = "󰅚 ",
@@ -31,6 +27,7 @@ vim.diagnostic.config({
 	},
 })
 
+-- 3) Define configs BEFORE enabling (so settings actually apply)
 vim.lsp.config("lua_ls", {
 	on_init = function(client)
 		if client.workspace_folders then
@@ -42,40 +39,26 @@ vim.lsp.config("lua_ls", {
 				return
 			end
 		end
-
 		client.config.settings.Lua = vim.tbl_deep_extend("force", client.config.settings.Lua, {
-			runtime = {
-				-- Tell the language server which version of Lua you're using (most
-				-- likely LuaJIT in the case of Neovim)
-				version = "LuaJIT",
-				-- Tell the language server how to find Lua modules same way as Neovim
-				-- (see `:h lua-module-load`)
-				path = {
-					"lua/?.lua",
-					"lua/?/init.lua",
-				},
-			},
-			-- Make the server aware of Neovim runtime files
-			workspace = {
-				checkThirdParty = false,
-				library = {
-					vim.env.VIMRUNTIME,
-					-- Depending on the usage, you might want to add additional paths
-					-- here.
-					-- '${3rd}/luv/library'
-					-- '${3rd}/busted/library'
-				},
-				-- Or pull in all of 'runtimepath'.
-				-- NOTE: this is a lot slower and will cause issues when working on
-				-- your own configuration.
-				-- See https://github.com/neovim/nvim-lspconfig/issues/3189
-				-- library = {
-				--   vim.api.nvim_get_runtime_file('', true),
-				-- }
-			},
+			runtime = { version = "LuaJIT", path = { "lua/?.lua", "lua/?/init.lua" } },
+			workspace = { checkThirdParty = false, library = { vim.env.VIMRUNTIME } },
 		})
 	end,
-	settings = {
-		Lua = {},
-	},
+	settings = { Lua = {} },
+})
+
+-- Optional: register empty configs (not required, but silences "no config" warnings in some setups)
+vim.lsp.config("dockerls", {})
+vim.lsp.config("docker_compose_language_service", {})
+vim.lsp.config("bashls", {})
+
+-- 4) Enable servers with the CORRECT names (no dupes)
+vim.lsp.enable({
+	"clangd",
+	"lua_ls",
+	"pyright",
+	"rust_analyzer",
+	"bashls", -- was: bash-language-server (wrong)
+	"dockerls",
+	"docker_compose_language_service",
 })
