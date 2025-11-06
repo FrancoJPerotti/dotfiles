@@ -1,34 +1,37 @@
+exec --no-startup-id /usr/bin/gnome-keyring-daemon --start --components=ssh,secrets,pkcs11
+exec --no-startup-id setxkbmap us intl
 exec --no-startup-id picom --config ~/.config/picom/picom.conf
 exec_always --no-startup-id ~/.local/bin/launch_polybar.sh
 exec --no-startup-id pkill dunst; exec --no-startup-id dunst
-exec --no-startup-id feh --bg-fill ~/.local/share/wallpapers/current_wallpaper
+exec --no-startup-id ~/.local/bin/apply_wallpaper.sh ~/.local/share/wallpapers/current_wallpaper
 exec --no-startup-id dex --autostart --environment i3
 exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id nm-applet
+exec --no-startup-id ~/.local/bin/capslock_notify.sh
 
 # Daemon that auto-captures ChatGPT/Zathura into tabbed scratchpad groups
-exec --no-startup-id ~/.local/bin/i3-scratchpad-groups.py
+exec --no-startup-id            ~/.local/bin/i3-scratchpad-groups.py
 
-exec_always --no-startup-id bash -lc 'pgrep -x greenclip >/dev/null || greenclip daemon'
+exec_always --no-startup-id     bash -lc 'pgrep -x greenclip >/dev/null || greenclip daemon'
 
 
 # ---------- Palette ----------
-set $c_base   #101114      
-set $c_text   #F5F5F5
-set $c_dim    #C8C8C8
-set $c_1 #BC00DD
-set $c_2 #D100D1
-set $c_3 #DB00B6
-set $c_4 #E500A4
-set $c_5 #F20089
+set $c_base     #101114      
+set $c_text     #F5F5F5
+set $c_dim      #C8C8C8
+set $c_1        #BC00DD
+set $c_2        #D100D1
+set $c_3        #DB00B6
+set $c_4        #E500A4
+set $c_5        #F20089
 
-# class                        border   background  text    indicator child_border
-client.focused                 $c_5     $c_2        $c_text $c_5      $c_5
-client.focused_inactive        $c_3     $c_base     $c_dim  $c_3      $c_3
-client.unfocused               $c_base  $c_base     $c_dim  $c_base   $c_base
-client.urgent                  $c_4     $c_4        $c_text $c_4      $c_4
-client.placeholder             $c_base  $c_base     $c_text $c_base   $c_base
-client.background              $c_base
+# class                    border      background     text        indicator     child_border
+client.focused             $c_5        $c_2           $c_text     $c_5          $c_5
+client.focused_inactive    $c_3        $c_base        $c_dim      $c_3          $c_3
+client.unfocused           $c_base     $c_base        $c_dim      $c_base       $c_base
+client.urgent              $c_4        $c_4           $c_text     $c_4          $c_4
+client.placeholder         $c_base     $c_base        $c_text     $c_base       $c_base
+client.background          $c_base
 
 # Window Titles
 font pango:monospace 8
@@ -48,8 +51,10 @@ gaps inner 6
 #           /____/                            /____/        
 
 ### Variables ###
+
 # Super/Meta/Windows key
 set $mod Mod4
+
 # Define script path variable
 set $script_path ~/.local/bin
 
@@ -74,36 +79,39 @@ bindsym $mod+i focus up
 bindsym $mod+o focus right
 
 # Move focused window
-bindsym $mod+Left move left
-bindsym $mod+Down move down
-bindsym $mod+Up move up
-bindsym $mod+Right move right
+bindsym $mod+Left   move left
+bindsym $mod+Down   move down
+bindsym $mod+Up     move up
+bindsym $mod+Right  move right
 
 # within “groups” (tabbed/stacked containers), cycle members
-# bindsym $mod+u focus prev
-# bindsym $mod+y focus next
+bindsym $mod+u focus prev
+bindsym $mod+y focus next
 
-# 
 bindsym $mod+l workspace prev
-
 # bindsym $mod+Mod1+ntilde workspace next
+
 bindsym $mod+End  move container to workspace next
 bindsym $mod+Home move container to workspace prev
 
 # Smart Directional Resize
-bindsym $mod+Mod1+n exec --no-startup-id $script_path/resize_improved.sh left 1
-bindsym $mod+Mod1+o exec --no-startup-id $script_path/resize_improved.sh right 1
-bindsym $mod+Mod1+i exec --no-startup-id $script_path/resize_improved.sh up 1
-bindsym $mod+Mod1+e exec --no-startup-id $script_path/resize_improved.sh down 1
+bindsym $mod+Mod1+n     exec --no-startup-id $script_path/resize_improved.sh left  1
+bindsym $mod+Control+n  exec --no-startup-id $script_path/resize_improved.sh left  1
+bindsym $mod+Mod1+o     exec --no-startup-id $script_path/resize_improved.sh right 1
+bindsym $mod+Control+o  exec --no-startup-id $script_path/resize_improved.sh right 1
+bindsym $mod+Mod1+i     exec --no-startup-id $script_path/resize_improved.sh up    1
+bindsym $mod+Control+i  exec --no-startup-id $script_path/resize_improved.sh up    1
+bindsym $mod+Mod1+e     exec --no-startup-id $script_path/resize_improved.sh down  1
+bindsym $mod+Control+e  exec --no-startup-id $script_path/resize_improved.sh down  1
 
 # start a terminal
-bindsym $mod+space exec i3-sensible-terminal
+bindsym $mod+space      exec i3-sensible-terminal
 
 # Toggle app launcher
 bindsym --release $mod+Return exec --no-startup-id "rofi -no-lazy-grab -show drun -kb-cancel \\"Escape,Super+Return\\""
 
-# Toggle file browser
-# bindsym --release $mod+Shift+Return exec --no-startup-id "rofi -no-lazy-grab -modi drun,run,filebrowser -show filebrowser -kb-cancel \\"Escape,Super+Shift+Return\\""
+# Toggle Window browser
+bindsym --release $mod+Caps_Lock exec --no-startup-id "rofi -no-lazy-grab -modi drun,run,window -show window -kb-cancel \\"Escape,Super+Caps_Lock\\""
 
 # focus the parent container
 bindsym $mod+a focus parent
@@ -116,9 +124,10 @@ bindsym $mod+p exec --no-startup-id maim --select -o | xclip -selection clipboar
 
 # Power Menu
 bindsym $mod+Shift+equal exec --no-startup-id ~/.local/bin/rofi_power.sh
+bindsym $mod+plus exec --no-startup-id ~/.local/bin/rofi_power.sh
 
 # Update System 
-bindsym $mod+Shift+u exec --no-startup-id "i3-sensible-terminal -e bash -lc '~/.local/bin/update.sh -y; echo; read -n1 -rsp \\"Press any key to close...\\"'"
+bindsym $mod+Shift+u exec --no-startup-id "i3-sensible-terminal -e bash -lc '~/.local/bin/update.sh -y --no-firmware; echo; read -n1 -rsp \\"Press any key to close...\\"'"
 
 # ── 🔊 Audio control (PipeWire / wpctl) ─────────────────────────────────────────
 bindsym XF86AudioMute         exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle
@@ -136,34 +145,42 @@ bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set +10%
 bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
 
 # --- Workspaces ---
-set $ws_web "web"
-set $ws_editor "editor"
-set $ws_term "term"
-set $ws_exp "exp"
-set $ws_spotify "spotify"
-set $ws_discord "discord"
-set $ws_whatsapp "whatsapp"
-set $ws_ticktick "ticktick"
-set $ws_chatgpt "chatgpt"
-set $ws_git "git"
-set $ws_zathura "zathura"
-set $ws_mail "mail"
-set $ws_meet "meet"
-set $ws_work "work"
-set $ws_youtube "youtube"
+set $ws_web         "web"
+set $ws_editor      "editor"
+set $ws_term        "term"
+set $ws_explorer    "explorer"
+set $ws_spotify     "spotify"
+set $ws_slack       "slack"
+set $ws_whatsapp    "whatsapp"
+set $ws_ticktick    "ticktick"
+set $ws_chatgpt     "chatgpt"
+set $ws_git         "git"
+set $ws_zathura     "zathura"
+set $ws_mail        "mail"
+set $ws_meet        "meet"
+set $ws_work        "work"
+set $ws_youtube     "youtube"
+set $ws_obsidian    "obsidian"
 
-set $external_monitor HDMI-1
-set $laptop_monitor eDP-1
+set $hdmi_monitor        HDMI-1
+set $displayport_monitor DP-1
+set $laptop_monitor      eDP-1
 
-workspace $ws_web output $external_monitor $laptop_monitor
-workspace $ws_editor output $external_monitor $laptop_monitor
-workspace $ws_term output $external_monitor $laptop_monitor
-workspace $ws_exp output $external_monitor $laptop_monitor
+workspace $ws_web       output $hdmi_monitor $displayport_monitor $laptop_monitor
+workspace $ws_editor    output $hdmi_monitor $displayport_monitor $laptop_monitor
+workspace $ws_term      output $hdmi_monitor $displayport_monitor $laptop_monitor
+workspace $ws_explorer  output $hdmi_monitor $displayport_monitor $laptop_monitor
+workspace $ws_obsidian  output $laptop_monitor
+workspace $ws_youtube   output $laptop_monitor
 
 for_window [instance="^vivaldi-(.+)$"] \
     move to workspace $ws_web, \
     workspace $ws_web
 for_window [instance="^nvim$"] \
+    move to workspace $ws_editor, \
+    workspace $ws_editor \
+    focus parent, layout tabbed
+for_window [instance="^nvim-workflow$"] \
     move to workspace $ws_editor, \
     workspace $ws_editor \
     focus parent, layout tabbed
@@ -175,14 +192,11 @@ for_window [instance="^term$"] \
     move to workspace $ws_term, \
     workspace $ws_term
 for_window [instance="^yazi$"] \
-    move to workspace $ws_exp, \
-    workspace $ws_exp
+    move to workspace $ws_explorer, \
+    workspace $ws_explorer
 for_window [instance="^spotify\.com(.*)$"] \
     move to workspace $ws_spotify, \
     workspace $ws_spotify
-for_window [instance="^discord\.com__app$"] \
-    move to workspace $ws_discord, \
-    workspace $ws_discord
 for_window [instance="^web\.whatsapp\.com$"] \
     move to workspace $ws_whatsapp, \
     workspace $ws_whatsapp
@@ -217,7 +231,11 @@ for_window [instance="^meet\.google\.com__(.+)$"] \
     move to workspace $ws_meet, \
     workspace $ws_meet, \
     focus parent, layout tabbed
-for_window [instance="^jira\.com(.*)$"] \
+for_window [instance=".*\.atlassian\.net.*jira.*"] \
+    move to workspace $ws_work, \
+    workspace $ws_work, \
+    focus parent, layout tabbed
+for_window [instance=".*\.atlassian\.net.*wiki.*"] \
     move to workspace $ws_work, \
     workspace $ws_work, \
     focus parent, layout tabbed
@@ -225,41 +243,56 @@ for_window [instance="^trello\.com(.*)$"] \
     move to workspace $ws_work, \
     workspace $ws_work, \
     focus parent, layout tabbed
-for_window [instance="^slack\.com(.*)$"] \
-    move to workspace $ws_work, \
-    workspace $ws_work, \
+for_window [instance="^app\.slack\.com.*$"] \
+    move to workspace $ws_slack, \
+    workspace $ws_slack, \
     focus parent, layout tabbed
 for_window [instance="^youtube\.com(.*)$"] \
     move to workspace $ws_youtube, \
     workspace $ws_youtube, \
     focus parent, layout tabbed
+for_window [instance="^obsidian$"] \
+    move to workspace $ws_obsidian, \
+    workspace $ws_obsidian, \
+    focus parent, layout tabbed
 
 
 # Keybindings to toggle or focus workspaces
-bindsym $mod+h workspace $ws_web
-bindsym $mod+Shift+slash workspace $ws_editor; layout tabbed
-bindsym $mod+dead_acute workspace $ws_term
-bindsym $mod+slash workspace $ws_exp
-bindsym $mod+s exec --no-startup-id $script_path/toggle_workspace.sh $ws_spotify
-bindsym $mod+d exec --no-startup-id $script_path/toggle_workspace.sh $ws_discord
-bindsym $mod+w exec --no-startup-id $script_path/toggle_workspace.sh $ws_whatsapp
-bindsym $mod+t exec --no-startup-id $script_path/toggle_workspace.sh $ws_ticktick
-bindsym $mod+Tab exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_chatgpt"
-bindsym $mod+g exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_git"
-bindsym $mod+f   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_zathura"
-bindsym $mod+m   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_mail"
-bindsym $mod+minus   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_meet"
-bindsym $mod+k   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed $ws_work
-bindsym $mod+v   exec --no-startup-id $script_path/toggle_workspace.sh --tabbed $ws_youtube
+bindsym $mod+h              workspace $ws_web
+bindsym $mod+Shift+slash    workspace $ws_editor; 
+bindsym $mod+question       workspace $ws_editor; 
+bindsym $mod+dead_acute     workspace $ws_term
+bindsym $mod+slash          workspace $ws_explorer
+bindsym $mod+s              exec --no-startup-id $script_path/toggle_workspace.sh $ws_spotify
+bindsym $mod+k              exec --no-startup-id $script_path/toggle_workspace.sh $ws_obsidian
+bindsym $mod+d              exec --no-startup-id $script_path/toggle_workspace.sh $ws_slack
+bindsym $mod+w              exec --no-startup-id $script_path/toggle_workspace.sh $ws_whatsapp
+bindsym $mod+t              exec --no-startup-id $script_path/toggle_workspace.sh $ws_ticktick
+bindsym $mod+Tab            exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_chatgpt"
+bindsym $mod+g              exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_git"
+bindsym $mod+f              exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_zathura"
+bindsym $mod+m              exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_mail"
+bindsym $mod+minus          exec --no-startup-id $script_path/toggle_workspace.sh --tabbed "$ws_meet"
+bindsym $mod+j              exec --no-startup-id $script_path/toggle_workspace.sh --tabbed $ws_work
+bindsym $mod+v              exec --no-startup-id $script_path/toggle_workspace.sh --tabbed $ws_youtube
 
 # Wallpaper Picker
-bindsym $mod+Shift+w exec --no-startup-id $script_path/wallpaper_picker.sh
+bindsym $mod+Shift+w        exec --no-startup-id $script_path/wallpaper_picker.sh
+
+# Display Profile Picker
+bindsym --release $mod+Shift+m      exec --no-startup-id $script_path/rofi_autorandr_picker.sh
+
+# Keyboard Layout Picker
+bindsym --release $mod+Shift+k      exec --no-startup-id $script_path/rofi_layout_picker.sh
+
+# Zellij Workflow Picker
+bindsym --release $mod+Shift+space  exec --no-startup-id $script_path/rofi_zellij_picker.sh
 
 # Emoji Picker
-bindsym --release $mod+Shift+e exec --no-startup-id $script_path/emoji_picker.sh
+bindsym --release $mod+Shift+e      exec --no-startup-id $script_path/emoji_picker.sh
 
 # Toggle clipboard (greenclip)
-bindsym --release $mod+c exec --no-startup-id $script_path/clipboard.sh
+bindsym --release $mod+c            exec --no-startup-id $script_path/clipboard.sh
 
 # Toggle web search
 bindsym --release $mod+Shift+Return exec --no-startup-id $script_path/rofi_websearch.sh
