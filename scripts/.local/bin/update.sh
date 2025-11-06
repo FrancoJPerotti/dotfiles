@@ -163,6 +163,30 @@ run_task() {
     fi
 }
 
+# ---------- Kitty Update ----------
+update_kitty() {
+    if [[ -z "${INVOKER:-}" || -z "${INV_HOME:-}" ]]; then
+        warn "Unable to determine invoking user; skipping Kitty update."
+        return
+    fi
+    local kitty_app="$INV_HOME/.local/kitty.app"
+    local kitty_bin="$kitty_app/bin/kitty"
+    local kitty_link="$INV_HOME/.local/bin/kitty"
+    if [[ ! -x "$kitty_bin" ]]; then
+        warn "Kitty not found at $kitty_bin; skipping Kitty update."
+        return
+    fi
+    section "Kitty terminal"
+    run_task "Updating Kitty from upstream installer..." \
+        sudo -u "$INVOKER" bash -lc 'set -euo pipefail; curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin launch=n'
+    run_task "Refreshing Kitty launcher symlink..." \
+        sudo -u "$INVOKER" bash -lc 'mkdir -p ~/.local/bin && ln -sf ~/.local/kitty.app/bin/kitty ~/.local/bin/kitty'
+    run_task "Registering Kitty with update-alternatives..." \
+        update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$kitty_link" 50
+    run_task "Setting Kitty as default terminal..." \
+        update-alternatives --set x-terminal-emulator "$kitty_link"
+}
+
 # ---------- Main ----------
 main() {
     printf '\n'
@@ -194,6 +218,8 @@ main() {
         run_task "Removing unused packages..." apt-get "${APT_OPTS_COMMON[@]}" autoremove --purge -y
         run_task "Cleaning APT cache..." apt-get "${APT_OPTS_COMMON[@]}" clean
     fi
+
+    update_kitty
 
     # --- Snap ---
     if ((DO_SNAP)); then

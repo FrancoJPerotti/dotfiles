@@ -161,7 +161,6 @@ install_apt_packages() {
         fzf
         gcc
         git
-        kitty
         lxappearance
         maim
         make
@@ -202,6 +201,42 @@ install_apt_packages() {
         usermod -aG docker "$TARGET_USER"
         log_ok "Added user '$TARGET_USER' to the 'docker' group"
     else log_skip "User '$TARGET_USER' is already in the 'docker' group"; fi
+}
+
+install_kitty() {
+    log_step "Installing Kitty terminal emulator"
+    local kitty_app_dir="$USER_HOME/.local/kitty.app"
+    local installer_url="https://sw.kovidgoyal.net/kitty/installer.sh"
+    if [ ! -x "$kitty_app_dir/bin/kitty" ]; then
+        sudo -u "$TARGET_USER" bash -lc "set -euo pipefail; curl -L $installer_url | sh /dev/stdin launch=n"
+        log_ok "Installed Kitty from official installer"
+    else
+        log_skip "Kitty already installed at $kitty_app_dir"
+    fi
+}
+
+configure_kitty_default() {
+    log_step "Configuring Kitty as default terminal"
+    local kitty_app_dir="$USER_HOME/.local/kitty.app"
+    local kitty_bin="$kitty_app_dir/bin/kitty"
+    local kitty_symlink="$USER_HOME/.local/bin/kitty"
+    if [ ! -x "$kitty_bin" ]; then
+        log_skip "Kitty not installed at $kitty_bin, skipping default terminal configuration"
+        return
+    fi
+    sudo -u "$TARGET_USER" mkdir -p "$USER_HOME/.local/bin"
+    sudo -u "$TARGET_USER" ln -sf "$kitty_bin" "$kitty_symlink"
+    log_ok "Ensured Kitty launcher symlink at $kitty_symlink"
+    local alternatives
+    alternatives=$(update-alternatives --list x-terminal-emulator 2>/dev/null || true)
+    if ! grep -Fx "$kitty_symlink" <<<"$alternatives"; then
+        update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$kitty_symlink" 50
+        log_ok "Registered Kitty with update-alternatives"
+    else
+        log_skip "Kitty already registered with update-alternatives"
+    fi
+    update-alternatives --set x-terminal-emulator "$kitty_symlink"
+    log_ok "Set Kitty as the default terminal emulator"
 }
 
 install_standalone_tools() {
@@ -348,7 +383,6 @@ set_system_defaults() {
     log_step "Setting system-wide defaults"
     if have zsh; then chsh -s "$(command -v zsh)" "$TARGET_USER" && log_ok "Set Zsh as default shell"; else log_skip "Zsh not found"; fi
     if have nvim; then update-alternatives --install /usr/bin/editor editor "$(command -v nvim)" 60 && log_ok "Set Neovim as default editor"; else log_skip "Neovim not found"; fi
-    if have kitty; then update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator "$(command -v kitty)" 50 && log_ok "Set Kitty as default terminal"; else log_skip "Kitty not found"; fi
 }
 
 final_cleanup() {
@@ -375,6 +409,8 @@ print_summary() {
 main() {
     initialize_system
     install_apt_packages
+    install_kitty
+    configure_kitty_default
     install_standalone_tools
     configure_shell
     install_user_environment
