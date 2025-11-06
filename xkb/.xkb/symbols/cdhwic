@@ -1,0 +1,67 @@
+// Colemak-DH Wide ISO Custom
+
+default partial alphanumeric_keys modifier_keys
+xkb_symbols "cdhwic" {
+
+    name[Group1]= "Colemak-DH Wide ISO Custom";
+    key.type[Group1] = "EIGHT_LEVEL";
+
+    key <TLDE> { [    semicolon,        colon,      dead_tilde,       asciitilde ] };
+    key <AE01> { [            1,       exclam,      exclamdown,      onesuperior ] };
+    key <AE02> { [            2,           at,       masculine,      twosuperior ] };
+    key <AE03> { [            3,   numbersign,     ordfeminine,    threesuperior ] };
+    key <AE04> { [            4,       dollar,            cent,         sterling ] };
+    key <AE05> { [            5,      percent,        EuroSign,              yen ] };
+    key <AE06> { [            6,  asciicircum,         hstroke,          Hstroke ] };
+    key <AE07> { [            7,    ampersand,             eth,              ETH ] };
+    key <AE08> { [            8,     asterisk,           thorn,            THORN ] };
+    key <AE09> { [            9,    parenleft,  leftsinglequotemark,  leftdoublequotemark ] };
+    key <AE10> { [            0,   parenright, rightsinglequotemark,  rightdoublequotemark ] };
+    key <AE11> { [        minus,   underscore,          endash,           emdash ] };
+    key <AE12> { [        equal,         plus,        multiply,         division ] };
+
+    key <AD01> { [            q,            Q,        quotedbl,       Adiaeresis ] };
+    key <AD02> { [            w,            W,      apostrophe,            Aring ] };
+    key <AD03> { [            f,            F,           slash,           Atilde ] };
+    key <AD04> { [            p,            P,       backslash,           Oslash ] };
+    key <AD05> { [            b,            B,      asciitilde                   ] };
+    key <AD06> { [        slash,    backslash,    bracketright                   ] };
+    key <AD07> { [            j,            J,     asciicircum,          Dstroke ] };
+    key <AD08> { [            l,            L,          exclam,       parenright ] };
+    key <AD09> { [            u,            U,           equal,       braceright ] };
+    key <AD10> { [            y,            Y,       ampersand,          greater ] };
+    key <AD11> { [       ntilde,       Ntilde,             bar,     bracketright ] };
+    key <AD12> { [         plus,    plusminus,        asterisk,        0x1002039 ] };
+
+    key <AC01> { [            a,            A,           colon,           Aacute ] };
+    key <AC02> { [            r,            R,       semicolon,       asciitilde ] };
+    key <AC03> { [            s,            S,           comma,        0x1001e9e ] };
+    key <AC04> { [            t,            T,          period, dead_doubleacute ] };
+    key <AC05> { [            g,            G,              at,       asciitilde ] };
+    key <AC06> { [    semicolon,        colon                                    ] };
+    key <AC07> { [            m,            M,      underscore,       exclamdown ] };
+    key <AC08> { [            n,            N,       parenleft,           Ntilde ] };
+    key <AC09> { [            e,            E,       braceleft,           Eacute ] };
+    key <AC10> { [            i,            I,            less,           Iacute ] };
+    key <AC11> { [            o,            O,     bracketleft,           Oacute ] };
+    key <AC12> { [        minus,       endash,      underscore,       asciitilde ] };
+
+    key <LSGT> { [            z,            Z,          dollar,               AE ] };
+    key <AB01> { [            x,            X,          dollar,       asciitilde ] };
+    key <AB02> { [            c,            C,           minus,         Ccedilla ] };
+    key <AB03> { [            d,            D,      numbersign,               OE ] };
+    key <AB04> { [            v,            V,         percent,       asciitilde ] };
+    key <AB05> { [            z,            Z,          dollar,               AE ] };
+    key <AB06> { [       period,      greater                                    ] };    
+    key <AB07> { [            k,            K,           grave,       asciitilde ] };
+    key <AB08> { [            h,            H,      parenright,       asciitilde ] };
+    key <AB09> { [     question, questiondown,      braceright,       asciitilde ] };
+    key <AB10> { [   dead_acute,     asterisk,         greater,       asciitilde ] };
+
+    key <CAPS> { [Super_L] };
+    key <SPCE> { [space, space, space, space ]};
+    key <LWIN> { [Caps_Lock] };
+    
+    key <LALT> {[  ISO_Level3_Shift  ], type[group1]="ONE_LEVEL" };
+    key <RALT> {[  Alt_L  ] };
+};
