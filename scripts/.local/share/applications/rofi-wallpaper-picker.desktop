@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Wallpaper Picker
+Comment=Select and apply wallpapers via rofi
+Exec=/home/franco.perotti/.local/bin/wallpaper_picker.sh
+TryExec=/home/franco.perotti/.local/bin/wallpaper_picker.sh
+Icon=preferences-desktop-wallpaper
+Terminal=false
+Categories=Settings;DesktopSettings;
+Keywords=rofi;wallpaper;background;desktop;
+NoDisplay=false
+StartupNotify=false

@@ -26,6 +26,7 @@ OPTIONS=$(
   reboot
   power off
   logout
+  screen off
 EOF
 )
 
@@ -70,6 +71,11 @@ case "$choice" in
 "  logout")
   notify "logging out…"
   i3-msg exit >/dev/null
+  ;;
+
+"  screen off")
+  notify "turning display off…"
+  xset dpms force off
   ;;
 
 *)

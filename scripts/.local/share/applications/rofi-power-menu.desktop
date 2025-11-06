@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Power Menu
+Comment=Shutdown, reboot, lock, etc. via rofi
+Exec=/home/franco.perotti/.local/bin/rofi_power.sh
+TryExec=/home/franco.perotti/.local/bin/rofi_power.sh
+Icon=system-shutdown
+Terminal=false
+Categories=System;Settings;
+Keywords=rofi;power;shutdown;reboot;logout;lock;
+NoDisplay=false
+StartupNotify=false

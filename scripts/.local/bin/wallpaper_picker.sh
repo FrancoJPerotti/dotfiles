@@ -4,44 +4,63 @@ set -euo pipefail
 WALL_DIR="$HOME/.local/share/wallpapers"
 CURRENT_WALLPAPER="$WALL_DIR/current_wallpaper"
 CURRENT_LOCK_WALLPAPER="$WALL_DIR/current_lock_wallpaper"
+APPLY_WALL_SCRIPT="$HOME/.local/bin/apply_wallpaper.sh"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/wallpaper-picker"
+THUMB_DIR="$CACHE_DIR/thumbs"
+THUMB_WIDTH=320
+THUMB_HEIGHT=180
 
-mkdir -p "$WALL_DIR"
+mkdir -p "$WALL_DIR" "$THUMB_DIR"
 
 # ---------------- helpers ----------------
 have() { command -v "$1" >/dev/null 2>&1; }
 
-get_primary_resolution() {
-  # Prefer primary output
-  if have xrandr; then
-    if xrandr | grep -q " connected primary "; then
-      # Field with resolution like 1920x1080+X+Y
-      xrandr | awk '/ connected primary /{print $4}' | sed 's/+.*//; s/x/ /'
-      return
-    fi
-    # Fallback: first mode marked with '*'
-    local mode
-    mode="$(xrandr --current | awk '/\*/{print $1; exit}')"
-    if [[ -n "${mode:-}" ]]; then
-      echo "$mode" | sed 's/x/ /'
-      return
-    fi
-  fi
-  # X11 fallback
-  if have xdpyinfo; then
-    xdpyinfo | awk '/dimensions:/{print $2}' | sed 's/x/ /'
-    return
-  fi
-  # Last resort
-  echo "1920 1080"
+sanitize_for_path() {
+  local name="${1//[^A-Za-z0-9._-]/_}"
+  echo "$name"
 }
 
-resize_crop_to() {
-  # $1: src, $2: WxH, $3: dst
-  local src="$1" size="$2" dst="$3"
-  convert "$src" \
-    -filter Lanczos -resize "${size}^" -gravity center -extent "$size" \
-    -strip -define png:compression-level=3 -define png:compression-strategy=1 \
-    "$dst"
+ensure_thumbnail() {
+  local src="$1"
+  local base sanitized dst
+  base="$(basename "$src")"
+  sanitized="$(sanitize_for_path "$base")"
+  dst="$THUMB_DIR/${sanitized}.png"
+
+  if [[ -f "$dst" && "$dst" -nt "$src" ]]; then
+    echo "$dst"
+    return 0
+  fi
+
+  if ! have convert; then
+    return 1
+  fi
+
+  if convert "$src" \
+    -auto-orient \
+    -strip \
+    -resize "${THUMB_WIDTH}x${THUMB_HEIGHT}^" \
+    -gravity center -extent "${THUMB_WIDTH}x${THUMB_HEIGHT}" \
+    "PNG:$dst" >/dev/null 2>&1; then
+    echo "$dst"
+    return 0
+  fi
+
+  return 1
+}
+
+apply_wallpaper() {
+  local image="${1:-}"
+  [[ -z "$image" ]] && return 0
+
+  if [[ -x "$APPLY_WALL_SCRIPT" ]]; then
+    "$APPLY_WALL_SCRIPT" "$image"
+    return 0
+  fi
+
+  if have feh; then
+    feh --bg-fill "$image" >/dev/null 2>&1 &
+  fi
 }
 
 # -------------- gather images --------------
@@ -54,65 +73,93 @@ mapfile -t files < <(
 # Exit silently if no wallpapers
 [[ ${#files[@]} -eq 0 ]] && exit 0
 
-ROFI_BASE=(rofi -dmenu -i -markup-rows -p "wallpaper"
-  -show-icons false
-  -theme-str ' element { padding: 6px; }
-               element-icon { size: 0; }'
-)
+declare -a entries=()
+use_icons=false
+for filename in "${files[@]}"; do
+  thumb=""
+  if thumb_path="$(ensure_thumbnail "$WALL_DIR/$filename" 2>/dev/null)"; then
+    thumb="$thumb_path"
+  fi
+  if [[ -n "${thumb:-}" ]]; then
+    entries+=("ICON:$thumb")
+    use_icons=true
+  else
+    entries+=("TEXT:$filename")
+  fi
+done
+
+ICON_THEME=$'window { width: 50em; height: 20em; }\ntextbox-prompt-colon { enabled: false; }\nmainbox { children: [listview]; padding: 1em; spacing: 0px; }\nlistview { columns: 3; lines: 1; spacing: 0em; cycle: false; dynamic: false; }\nscrollbar { enabled: false; }\nelement { orientation: vertical; children: [element-icon]; padding: 0.75em; border-radius: 18px; border: 3px; border-color: transparent; background-color: transparent; }\nelement selected { border-color: @selected; background-color: rgba(255,255,255,0.05); }\nelement-icon { size: 16em; border-radius: 18px; margin: 0px; }'
+TEXT_THEME=$'listview { lines: 10; }\nelement { padding: 10px; }'
+
+if [[ "$use_icons" == true ]]; then
+  ROFI_THEME_STR="$ICON_THEME"
+  ROFI_BASE=(rofi -dmenu -i -markup-rows -p "" -format i -theme-str "$ROFI_THEME_STR" -location 2 -show-icons)
+else
+  ROFI_THEME_STR="$TEXT_THEME"
+  ROFI_BASE=(rofi -dmenu -i -markup-rows -p "" -format i -theme-str "$ROFI_THEME_STR" -location 2 -no-show-icons)
+fi
 
 # -------------- pick with rofi --------------
-choice="$(printf '%s\n' "${files[@]}" | "${ROFI_BASE[@]}")"
-[[ -z "${choice:-}" ]] && exit 0
+choice_index="$(
+  {
+    for entry in "${entries[@]}"; do
+      if [[ "$entry" == ICON:* ]]; then
+        thumb="${entry#ICON:}"
+        printf ' \0icon\x1f%s\0display\x1f \n' "$thumb"
+      else
+        text="${entry#TEXT:}"
+        printf '%s\n' "$text"
+      fi
+    done
+  } | "${ROFI_BASE[@]}"
+)"
+[[ -z "${choice_index:-}" || "$choice_index" == "-1" ]] && exit 0
+
+if [[ "$choice_index" =~ ^[0-9]+$ ]] && ((choice_index < ${#files[@]})); then
+  choice="${files[choice_index]}"
+else
+  choice="$choice_index"
+fi
 
 src="$WALL_DIR/$choice"
 base="${choice%.*}"
-png_src="$WALL_DIR/${base}.png"
 
-# -------------- target size --------------
-read -r W H <<<"$(get_primary_resolution)"
-TARGET="${W}x${H}"
+# Apply immediately so the selection feels instant; heavy work happens later.
+apply_wallpaper "$src"
 
-# -------------- fast path (already PNG & right size) --------------
-if [[ "${choice,,}" == *.png ]] && have identify; then
-  if [[ "$(identify -format '%wx%h' "$src" 2>/dev/null || echo '')" == "$TARGET" ]]; then
-    # Already perfect: just copy/apply and blur in background
-    cp -f -- "$src" "$CURRENT_WALLPAPER"
-    (
-      convert "$src" -resize 50% -blur 0x8 -resize 200% \
-        -strip -define png:compression-level=3 -define png:compression-strategy=1 \
-        "$CURRENT_LOCK_WALLPAPER"
-    ) >/dev/null 2>&1 &
-    have feh && feh --bg-fill "$CURRENT_WALLPAPER" >/dev/null 2>&1 &
-    exit 0
-  fi
-fi
-
-# -------------- convert, resize, and REPLACE original --------------
-tmp_resized="$(mktemp "${WALL_DIR}/.tmp_${base}_${W}x${H}.XXXXXX.png")"
-resize_crop_to "$src" "$TARGET" "$tmp_resized"
-
-# Move resized PNG into place as the new original
-mv -f -- "$tmp_resized" "$png_src"
-
-# Remove old file if its name differs (e.g., .jpg/.webp)
-if [[ "$src" != "$png_src" ]]; then
-  rm -f -- "$src"
-fi
-
-# -------------- update current files --------------
-cp -f -- "$png_src" "$CURRENT_WALLPAPER"
-
-# Lock image (async & quick)
+# Normalize and copy assets asynchronously so the picker stays responsive.
 (
-  convert "$png_src" \
-    -resize 50% -blur 0x8 -resize 200% \
-    -strip -define png:compression-level=3 -define png:compression-strategy=1 \
-    "$CURRENT_LOCK_WALLPAPER"
-) >/dev/null 2>&1 &
+  set -euo pipefail
+  trap '[[ -n "${tmp_copy:-}" ]] && rm -f -- "${tmp_copy}"' EXIT
 
-# -------------- apply immediately --------------
-if have feh; then
-  feh --bg-fill "$CURRENT_WALLPAPER" >/dev/null 2>&1 &
-fi
+  tmp_copy=""
+  processed="$src"
+
+  if have convert; then
+    tmp_copy="$(mktemp "${WALL_DIR}/.tmp_${base}.XXXXXX.png")"
+    if convert "$src" -auto-orient -strip "PNG:$tmp_copy" >/dev/null 2>&1; then
+      mv -f -- "$tmp_copy" "$CURRENT_WALLPAPER"
+      tmp_copy=""
+      processed="$CURRENT_WALLPAPER"
+    else
+      rm -f -- "$tmp_copy"
+      tmp_copy=""
+      cp -f -- "$processed" "$CURRENT_WALLPAPER"
+    fi
+  else
+    cp -f -- "$processed" "$CURRENT_WALLPAPER"
+  fi
+
+  if have convert; then
+    convert "$CURRENT_WALLPAPER" \
+      -resize 50% -blur 0x8 -resize 200% \
+      -strip -define png:compression-level=3 -define png:compression-strategy=1 \
+      "PNG:$CURRENT_LOCK_WALLPAPER" >/dev/null 2>&1 || true
+  else
+    cp -f -- "$CURRENT_WALLPAPER" "$CURRENT_LOCK_WALLPAPER"
+  fi
+
+  apply_wallpaper "$CURRENT_WALLPAPER"
+) >/dev/null 2>&1 &
 
 exit 0
