@@ -10,5 +10,5 @@ return {
 		-- log_level = 'debug',
 	},
 
-	vim.keymap.set("n", "<C-s>", "<cmd>SessionSearch<cr>", { desc = "Select session" }),
+	vim.keymap.set("n", "<C-s>", "<cmd>AutoSession search<cr>", { desc = "Select session" }),
 }
