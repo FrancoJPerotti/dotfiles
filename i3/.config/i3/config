@@ -55,6 +55,9 @@ gaps inner 6
 # Super/Meta/Windows key
 set $mod Mod4
 
+# Default terminal emulator
+set $terminal ~/.local/kitty.app/bin/kitty
+
 # Define script path variable
 set $script_path ~/.local/bin
 
@@ -105,7 +108,7 @@ bindsym $mod+Mod1+e     exec --no-startup-id $script_path/resize_improved.sh dow
 bindsym $mod+Control+e  exec --no-startup-id $script_path/resize_improved.sh down  1
 
 # start a terminal
-bindsym $mod+space      exec i3-sensible-terminal
+bindsym $mod+space      exec --no-startup-id $terminal
 
 # Toggle app launcher
 bindsym --release $mod+Return exec --no-startup-id "rofi -no-lazy-grab -show drun -kb-cancel \\"Escape,Super+Return\\""
@@ -127,7 +130,7 @@ bindsym $mod+Shift+equal exec --no-startup-id ~/.local/bin/rofi_power.sh
 bindsym $mod+plus exec --no-startup-id ~/.local/bin/rofi_power.sh
 
 # Update System 
-bindsym $mod+Shift+u exec --no-startup-id "i3-sensible-terminal -e bash -lc '~/.local/bin/update.sh -y --no-firmware; echo; read -n1 -rsp \\"Press any key to close...\\"'"
+bindsym $mod+Shift+u exec --no-startup-id "$terminal -e bash -lc '~/.local/bin/update.sh -y --no-firmware; echo; read -n1 -rsp \\"Press any key to close...\\"'"
 
 # ── 🔊 Audio control (PipeWire / wpctl) ─────────────────────────────────────────
 bindsym XF86AudioMute         exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle

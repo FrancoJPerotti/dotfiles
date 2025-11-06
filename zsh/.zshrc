@@ -166,3 +166,8 @@ function meet() {
 }
 export ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"
 # backup by install script
+
+# Kitty PATH
+if [[ -d "$HOME/.local/kitty.app/bin" ]]; then
+  export PATH="$HOME/.local/kitty.app/bin:$PATH"
+fi
