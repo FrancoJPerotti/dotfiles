@@ -107,32 +107,36 @@ export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/bash_completion" ]] && . "$NVM_DIR/bash_completion"
 
 function nvim() {
-    local dest_dir=$PWD
+  if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
+    command nvim "$@"
+    return
+  fi
+
+  if ! command -v zellij >/dev/null 2>&1; then
+    printf 'Error: zellij is required for this nvim wrapper.\n' >&2
+    return 1
+  fi
+
+  local session="${ZELLIJ_NVIM_SESSION:-nvim}"
+  local layout="${ZELLIJ_NVIM_LAYOUT:-$HOME/.config/zellij/layouts/nvim.kdl}"
+
+  local session_exists=0
+  if zellij list-sessions --no-formatting 2>/dev/null | awk '{print $1}' | grep -Fxq "$session"; then
+    session_exists=1
+  fi
+
+  if (( session_exists )); then
+    exec zellij attach "$session"
+  else
     if (( $# )); then
-        for arg in "$@"; do
-            [[ "$arg" == [+-]* ]] && continue
-            local abs=${arg:A}
-            if [[ -d $abs ]]; then
-                dest_dir=$abs
-            else
-                dest_dir=${abs:h}
-            fi
-            break
-        done
+      local args_base64
+      args_base64="$(printf '%s\0' "$@" | base64 | tr -d '\n')"
+      export ZELLIJ_NVIM_ARGS_BASE64="$args_base64"
+    else
+      unset ZELLIJ_NVIM_ARGS_BASE64
     fi
-    local short=${dest_dir/#$HOME/~}
-
-    # Build the kitty command safely
-    local -a cmd=(
-        kitty --single-instance
-        --class nvim
-        --title "nvim:${short}"
-        --working-directory "${dest_dir}"
-        nvim "$@"
-    )
-
-    # Launch via i3 (note: --no-startup-id, not --)
-    i3-msg -q "exec --no-startup-id $(printf '%q ' "${cmd[@]}")"
+    exec zellij --session "$session" --layout "$layout"
+  fi
 }
 
 # --- Google Meet launcher ---

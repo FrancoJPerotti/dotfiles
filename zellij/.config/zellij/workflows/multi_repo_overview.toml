@@ -1,0 +1,76 @@
+name = "Multi Repo Overview"
+session = "multi-repo"
+description = "Quick status panes for every repository directory"
+
+[context]
+repo_root = "$HOME"
+repo_find_maxdepth = "4"
+
+[defaults]
+shell = "/bin/zsh"
+shell_args = ["-ic"]
+terminal_program = ["kitty"]
+terminal_args = ["zsh", "-lc"]
+
+[[tabs]]
+name = "Overview"
+[tabs.root]
+split_direction = "Vertical"
+
+[[tabs.root.children]]
+name = "Repositories"
+command = "watch --color -n 15 -t 'first=$(find \"$repo_root\" -mindepth 1 -maxdepth $repo_find_maxdepth \\( -path \"$repo_root/.cache\" -o -path \"$repo_root/.local/share\" \\) -prune -o -type d -name .git -print -quit 2>/dev/null); if [ -z \"$first\" ]; then printf \"No git repositories found under %s\\\\n\" \"$repo_root\"; else find \"$repo_root\" -mindepth 1 -maxdepth $repo_find_maxdepth \\( -path \"$repo_root/.cache\" -o -path \"$repo_root/.local/share\" \\) -prune -o -type d -name .git -print 2>/dev/null | sort | while IFS= read -r gitdir; do repo=${gitdir%/.git}; [ -d \"$repo\" ] || continue; cd \"$repo\" 2>/dev/null || continue; rel=${repo#${repo_root}/}; [ \"$rel\" = \"$repo\" ] && rel=$(basename \"$repo\"); branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo \"?\"); dirty=$(git status --short --ignore-submodules=dirty 2>/dev/null); state=\"\\033[32mclean\\033[0m\"; [ -n \"$dirty\" ] && state=\"\\033[33mdirty\\033[0m\"; ahead=0; behind=0; if git rev-parse --abbrev-ref --symbolic-full-name @{u} >/dev/null 2>&1; then counts=$(git rev-list --left-right --count @{u}...HEAD 2>/dev/null || echo \"0 0\"); set -- $counts; behind=${1:-0}; ahead=${2:-0}; fi; printf \"\\033[1;36m%-36s\\033[0m %-14s ahead:%s behind:%s %s\\\\n\" \"$rel\" \"$branch\" \"$ahead\" \"$behind\" \"$state\"; done; fi'"
+
+[[tabs.root.children]]
+name = "Disk Usage"
+command = "watch -n 45 -t 'printf \"%-48s %s\\\\n\" \"Mount\" \"Use\"; df -h --output=target,pcent | sed 1d | sort -k2 -hr | head -n 8; printf \"\\\\nTop git repo sizes (depth $repo_find_maxdepth)\\\\n\"; first=$(find \"$repo_root\" -mindepth 1 -maxdepth $repo_find_maxdepth \\( -path \"$repo_root/.cache\" -o -path \"$repo_root/.local/share\" \\) -prune -o -type d -name .git -print -quit 2>/dev/null); if [ -z \"$first\" ]; then printf \"No git repositories found under %s\\\\n\" \"$repo_root\"; else find \"$repo_root\" -mindepth 1 -maxdepth $repo_find_maxdepth \\( -path \"$repo_root/.cache\" -o -path \"$repo_root/.local/share\" \\) -prune -o -type d -name .git -print 2>/dev/null | sed \"s#/\\\\.git$##\" | while IFS= read -r repo; do [ -d \"$repo\" ] || continue; du -sh \"$repo\" 2>/dev/null; done | sort -rh | head -n 8; fi'"
+
+[[foreach]]
+glob = "$repo_root/**/.git"
+directories = true
+recursive = true
+exclude_prefixes = ["$repo_root/.cache", "$repo_root/.local/share"]
+[foreach.tab]
+name = "${dirname_basename_title}"
+[foreach.root]
+split_direction = "Horizontal"
+
+[[foreach.root.children]]
+name = "Insights"
+split_direction = "Vertical"
+size = "70%"
+
+[[foreach.root.children.children]]
+name = "Branch Overview"
+cwd = "$dirname"
+size = "15%"
+command = "watch --color -n 5 -t 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then branch=$(git rev-parse --abbrev-ref HEAD); upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo \"(no upstream)\"); counts=$(git rev-list --left-right --count @{u}...HEAD 2>/dev/null || echo \"0 0\"); set -- $counts; behind=${1:-0}; ahead=${2:-0}; stash=$(git stash list 2>/dev/null | wc -l); stash=$(printf \"%s\" \"$stash\" | xargs); stash=${stash:-0}; printf \"\\033[1;36m%-15s\\033[0m %s\\\\n\" \"Branch\" \"$branch\"; printf \"\\033[1;36m%-15s\\033[0m %s\\\\n\" \"Upstream\" \"$upstream\"; printf \"\\033[1;36m%-15s\\033[0m ahead:%s behind:%s\\\\n\" \"Tracking\" \"$ahead\" \"$behind\"; printf \"\\033[1;36m%-15s\\033[0m %s\\\\n\" \"Stash\" \"$stash\"; else printf \"\\033[33mNot a git repo: $dirname\\033[0m\\\\n\"; fi'"
+
+[[foreach.root.children.children]]
+name = "Branches"
+cwd = "$dirname"
+size = "20%"
+command = "watch --color -n 15 -t 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git branch -a --color=always; else printf \"\\033[33mNot a git repo: $dirname\\033[0m\\\\n\"; fi'"
+
+[[foreach.root.children.children]]
+name = "Git Status"
+cwd = "$dirname"
+size = "25%"
+command = "watch --color -n 5 -t 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git -c color.status=always status --short --branch --show-stash; else printf \"\\033[33mNot a git repo: $dirname\\033[0m\\\\n\"; fi'"
+
+[[foreach.root.children.children]]
+name = "Diff Summary"
+cwd = "$dirname"
+size = "20%"
+command = "watch --color -n 15 -t 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git diff --stat --color=always || true; else printf \"\\033[33mNo git history in $dirname\\033[0m\\\\n\"; fi'"
+
+[[foreach.root.children.children]]
+name = "Recent Commits"
+cwd = "$dirname"
+command = "watch --color -n 25 -t 'if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then git --no-pager log --graph --color=always --date=relative --pretty=format:\"%C(auto)%h %C(cyan)%ad%C(reset) %s %C(blue)%an\" -6; else printf \"\\033[33mNo commits available\\033[0m\\\\n\"; fi'"
+
+[[foreach.root.children]]
+name = "Shell"
+cwd = "$dirname"
+size = "30%"
+focus = true

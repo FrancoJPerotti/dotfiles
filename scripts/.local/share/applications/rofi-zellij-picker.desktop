@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Zellij Picker
+Comment=Manage Zellij sessions and workflows via rofi
+Exec=/home/franco.perotti/.local/bin/rofi_zellij_picker.sh
+TryExec=/home/franco.perotti/.local/bin/rofi_zellij_picker.sh
+Icon=utilities-terminal
+Terminal=false
+Categories=System;Utility;
+Keywords=rofi;zellij;terminal;session;workflow;
+NoDisplay=false
+StartupNotify=false

@@ -1,0 +1,1086 @@
+#!/usr/bin/env python3
+"""
+zellij-workflow --- Manage Zellij sessions from declarative workflow manifests.
+
+The manifest format is TOML, stored by default under ~/.config/zellij/workflows/.
+Each workflow describes a session name, tabs, and panes (including commands).
+This tool renders manifests into KDL layouts, launches Zellij sessions in a
+terminal emulator, and exposes helpers for Rofi menus.
+"""
+
+from __future__ import annotations
+
+import argparse
+import copy
+import glob
+import json
+import os
+import re
+import shlex
+import shutil
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from string import Template
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
+try:
+    import tomllib  # Python 3.11+
+except ModuleNotFoundError:  # pragma: no cover - fallback for older Python
+    try:
+        import tomli as tomllib  # type: ignore
+    except ModuleNotFoundError as exc:  # pragma: no cover
+        raise SystemExit(
+            "tomllib is required. On Python <3.11 install `tomli`."
+        ) from exc
+
+
+# -----------------------------------------------------------------------------
+# Configuration helpers
+
+DEFAULT_WORKFLOW_DIR = Path(
+    os.environ.get(
+        "ZELLIJ_WORKFLOW_DIR", os.path.expanduser("~/.config/zellij/workflows")
+    )
+)
+
+DEFAULT_SHELL = os.environ.get("SHELL", "/bin/zsh")
+DEFAULT_SHELL_ARGS = ["-ic"]
+
+DEFAULT_TERMINAL = os.environ.get("ZELLIJ_WORKFLOW_TERMINAL", "kitty")
+DEFAULT_TERMINAL_ARGS = ["zsh", "-lc"]
+
+DEFAULT_NVR_BIN = os.environ.get("ZELLIJ_WORKFLOW_NVR_BIN", "nvr")
+DEFAULT_NVIM_BIN = os.environ.get("ZELLIJ_WORKFLOW_NVIM_BIN", "nvim")
+DEFAULT_NVIM_SPLIT_RATIO = 0.3
+
+CACHE_DIR = Path(
+    os.environ.get(
+        "ZELLIJ_WORKFLOW_CACHE",
+        os.path.join(os.environ.get("XDG_CACHE_HOME", os.path.expanduser("~/.cache")), "zellij-workflows"),
+    )
+)
+
+DEFAULT_NVIM_SERVER_FILE = Path(
+    os.environ.get(
+        "ZELLIJ_WORKFLOW_NVIM_SERVER_FILE",
+        str(CACHE_DIR / "nvim-server"),
+    )
+)
+
+LAYOUT_HEADER = """layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+    }
+"""
+
+
+# -----------------------------------------------------------------------------
+# Data model
+
+@dataclass
+class Workflow:
+    key: str
+    path: Path
+    raw: Dict[str, Any]
+    name: str
+    session: str
+    description: str
+
+    @property
+    def defaults(self) -> Dict[str, Any]:
+        return self.raw.get("defaults", {})
+
+    @property
+    def context(self) -> Dict[str, Any]:
+        ctx = {}
+        ctx.update(self.raw.get("context", {}))
+        # Provide a couple of common values up front.
+        ctx.setdefault("home", os.path.expanduser("~"))
+        ctx.setdefault("HOME", os.path.expanduser("~"))
+        ctx.setdefault("workflow", self.key)
+        ctx.setdefault("session", self.session)
+        return ctx
+
+
+# -----------------------------------------------------------------------------
+# Utility helpers
+
+def warn(message: str) -> None:
+    print(f"[zellij-workflow] {message}", file=sys.stderr)
+
+
+def ensure_list(value: Any) -> List[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value]
+    return [str(value)]
+
+
+def read_toml(path: Path) -> Dict[str, Any]:
+    with path.open("rb") as handle:
+        return tomllib.load(handle)
+
+
+def discover_workflows(directory: Path) -> List[Workflow]:
+    workflows: List[Workflow] = []
+    if not directory.exists():
+        return workflows
+
+    for entry in sorted(directory.glob("*.toml")):
+        try:
+            data = read_toml(entry)
+        except Exception as exc:  # pragma: no cover - parse errors
+            warn(f"Failed to parse {entry}: {exc}")
+            continue
+
+        key = entry.stem
+        name = str(data.get("name") or key.replace("_", " ").title())
+        session = str(data.get("session") or key)
+        description = str(data.get("description") or "")
+        workflows.append(
+            Workflow(
+                key=key,
+                path=entry,
+                raw=data,
+                name=name,
+                session=session,
+                description=description,
+            )
+        )
+
+    return workflows
+
+
+def load_workflow(directory: Path, name: str) -> Workflow:
+    workflows = {wf.key: wf for wf in discover_workflows(directory)}
+    if name not in workflows:
+        available = ", ".join(sorted(workflows)) or "<none>"
+        raise SystemExit(f"Unknown workflow '{name}'. Available: {available}")
+    return workflows[name]
+
+
+def substitute_templates(value: Any, context: Dict[str, Any]) -> Any:
+    if isinstance(value, str):
+        return Template(value).safe_substitute(context)
+    if isinstance(value, list):
+        return [substitute_templates(item, context) for item in value]
+    if isinstance(value, dict):
+        return {key: substitute_templates(val, context) for key, val in value.items()}
+    return value
+
+
+def expand_path(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    return os.path.expanduser(os.path.expandvars(value))
+
+
+def sanitize_session_name(name: str) -> str:
+    # Ensure layout filenames are safe.
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", name)
+
+
+def ensure_cache_dir() -> Path:
+    CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    return CACHE_DIR
+
+
+def write_layout(session: str, contents: str) -> Path:
+    ensure_cache_dir()
+    safe = sanitize_session_name(session)
+    layout_path = CACHE_DIR / f"{safe}.kdl"
+    layout_path.write_text(contents, encoding="utf-8")
+    return layout_path
+
+
+def run_command(cmd: List[str], check: bool = True, capture: bool = False) -> subprocess.CompletedProcess[str]:
+    kwargs: Dict[str, Any] = {"text": True}
+    if capture:
+        kwargs["stdout"] = subprocess.PIPE
+        kwargs["stderr"] = subprocess.PIPE
+    try:
+        result = subprocess.run(cmd, check=check, **kwargs)
+    except FileNotFoundError as exc:
+        raise SystemExit(f"Command not found: {cmd[0]}") from exc
+    return result  # type: ignore[return-value]
+
+
+def spawn_terminal(full_command: List[str], defaults: Dict[str, Any], title: Optional[str] = None) -> None:
+    terminal_program = ensure_list(
+        defaults.get("terminal_program")
+        or defaults.get("terminal")
+        or DEFAULT_TERMINAL
+    )
+    if not terminal_program:
+        raise SystemExit("Terminal program is empty - set defaults.terminal or $ZELLIJ_WORKFLOW_TERMINAL.")
+
+    terminal_args = ensure_list(defaults.get("terminal_args") or DEFAULT_TERMINAL_ARGS)
+
+    cmd_str = shlex.join(full_command)
+    failure_guard = ' || { echo "Zellij failed!"; read -r; }'
+    wrapped = f"{cmd_str}{failure_guard}"
+
+    command = terminal_program + terminal_args + [wrapped]
+    if title and terminal_program and Path(terminal_program[0]).name == "kitty":
+        command.insert(1, "--title")
+        command.insert(2, title)
+
+    subprocess.Popen(
+        command,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        stdin=subprocess.DEVNULL,
+        close_fds=True,
+    )
+
+
+REMOTE_CLIENT: Optional[Tuple[str, str]] = None
+
+
+def find_remote_client() -> Optional[Tuple[str, str]]:
+    global REMOTE_CLIENT
+    if REMOTE_CLIENT:
+        return REMOTE_CLIENT
+
+    nvr_path = shutil.which(DEFAULT_NVR_BIN)
+    if nvr_path:
+        REMOTE_CLIENT = ("nvr", nvr_path)
+        return REMOTE_CLIENT
+
+    nvim_path = shutil.which(DEFAULT_NVIM_BIN)
+    if nvim_path:
+        REMOTE_CLIENT = ("nvim", nvim_path)
+        return REMOTE_CLIENT
+
+    return None
+
+
+def ensure_remote_client() -> Tuple[str, str]:
+    client = find_remote_client()
+    if not client:
+        raise SystemExit(
+            "Neovim remote helper not found. Install `nvr` or set $ZELLIJ_WORKFLOW_NVIM_BIN."
+        )
+    return client
+
+
+def read_cached_nvim_server() -> Optional[str]:
+    try:
+        data = DEFAULT_NVIM_SERVER_FILE.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        warn(f"Failed to read cached Neovim server file '{DEFAULT_NVIM_SERVER_FILE}': {exc}")
+        return None
+    if not data:
+        try:
+            DEFAULT_NVIM_SERVER_FILE.unlink(missing_ok=True)
+        except OSError:
+            pass
+        return None
+    if is_nvim_server_alive(data):
+        return data
+    try:
+        DEFAULT_NVIM_SERVER_FILE.unlink(missing_ok=True)
+    except OSError:
+        pass
+    return None
+
+
+def write_cached_nvim_server(server: str) -> None:
+    if not server:
+        return
+    try:
+        DEFAULT_NVIM_SERVER_FILE.parent.mkdir(parents=True, exist_ok=True)
+        DEFAULT_NVIM_SERVER_FILE.write_text(f"{server}\n", encoding="utf-8")
+    except OSError as exc:
+        warn(f"Failed to write cached Neovim server file '{DEFAULT_NVIM_SERVER_FILE}': {exc}")
+
+
+def is_nvim_server_alive(server: str) -> bool:
+    client = find_remote_client()
+    if not client:
+        return False
+
+    client_kind, client_bin = client
+    command = (
+        [client_bin, "--servername", server, "--remote-expr", "1"]
+        if client_kind == "nvr"
+        else [client_bin, "--server", server, "--remote-expr", "1"]
+    )
+    try:
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+    except subprocess.CalledProcessError:
+        return False
+    return True
+
+
+def detect_nvim_server() -> Optional[str]:
+    for env_var in (
+        "ZELLIJ_WORKFLOW_NVIM_SERVER",
+        "NVIM_LISTEN_ADDRESS",
+        "NVIM",
+    ):
+        value = os.environ.get(env_var)
+        if value:
+            if is_nvim_server_alive(value):
+                return value
+
+    cached = read_cached_nvim_server()
+    if cached:
+        return cached
+
+    client = find_remote_client()
+    if not client:
+        return None
+
+    client_kind, client_bin = client
+
+    try:
+        result = subprocess.run(
+            [client_bin, "--serverlist"],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        warn(
+            f"Failed to query Neovim servers via '{client_bin}': {exc.stderr.strip() or exc}"
+        )
+        return None
+
+    servers = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if not servers:
+        return None
+
+    configured = os.environ.get("ZELLIJ_WORKFLOW_NVIM_SERVER")
+    if configured and configured in servers:
+        return configured
+
+    if len(servers) > 1:
+        warn(
+            f"Multiple Neovim servers detected ({', '.join(servers)}). Using '{servers[0]}'."
+        )
+    return servers[0]
+
+
+def resolve_nvim_split_ratio() -> float:
+    raw = os.environ.get("ZELLIJ_WORKFLOW_NVIM_SPLIT_RATIO")
+    if not raw:
+        return DEFAULT_NVIM_SPLIT_RATIO
+    try:
+        value = float(raw)
+    except ValueError:
+        warn(f"Ignoring invalid $ZELLIJ_WORKFLOW_NVIM_SPLIT_RATIO value: {raw!r}")
+        return DEFAULT_NVIM_SPLIT_RATIO
+    return min(0.9, max(0.1, value))
+
+
+def nvim_remote_expr(server: str, expr: str) -> Optional[str]:
+    client_kind, client_bin = ensure_remote_client()
+    if client_kind == "nvr":
+        command = [client_bin, "--servername", server, "--remote-expr", expr]
+    else:
+        command = [client_bin, "--server", server, "--remote-expr", expr]
+    try:
+        result = subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        warn(
+            f"Failed to evaluate Neovim expression '{expr}': {exc.stderr.strip() or exc}"
+        )
+        return None
+    return result.stdout.strip()
+
+
+def nvim_remote_send(server: str, keys: str) -> None:
+    client_kind, client_bin = ensure_remote_client()
+    if client_kind == "nvr":
+        command = [client_bin, "--servername", server, "--remote-send", keys]
+    else:
+        command = [client_bin, "--server", server, "--remote-send", keys]
+    try:
+        subprocess.run(
+            command,
+            check=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit(
+            f"Failed to send keys to Neovim: {exc.stderr.strip() or exc}"
+        ) from exc
+
+
+def spawn_in_nvim(full_command: List[str], server: str) -> None:
+    ratio = resolve_nvim_split_ratio()
+    width_value: Optional[int] = None
+    expr = nvim_remote_expr(server, f"float2nr(&columns * {ratio:.6f})")
+    if expr:
+        try:
+            width_value = max(10, int(expr))
+        except ValueError:
+            warn(f"Unexpected value from Neovim for split width: {expr!r}")
+            width_value = None
+
+    nvim_remote_send(server, "<Esc>:botright vsplit<CR>")
+    if width_value:
+        nvim_remote_send(server, f"<Esc>:vertical resize {width_value}<CR>")
+
+    command_str = shlex.join(full_command)
+    nvim_remote_send(server, f"<Esc>:terminal {command_str}<CR>")
+
+
+def launch_in_ui(
+    full_command: List[str],
+    defaults: Dict[str, Any],
+    title: Optional[str],
+    ui_mode: str,
+    nvim_server: Optional[str],
+) -> None:
+    if ui_mode == "nvim":
+        if not nvim_server:
+            raise SystemExit("Neovim split requested but no server detected.")
+        spawn_in_nvim(full_command, nvim_server)
+    else:
+        spawn_terminal(full_command, defaults, title)
+
+
+def resolve_ui_mode(requested: str) -> Tuple[str, Optional[str]]:
+    server = detect_nvim_server()
+    if requested == "auto":
+        if server:
+            write_cached_nvim_server(server)
+            return "nvim", server
+        return "terminal", None
+    if requested == "nvim":
+        if not server:
+            raise SystemExit(
+                "Neovim split requested but no server detected. Export $NVIM or $NVIM_LISTEN_ADDRESS."
+            )
+        write_cached_nvim_server(server)
+        return "nvim", server
+    return "terminal", None
+
+
+# -----------------------------------------------------------------------------
+# Zellij session helpers
+
+@dataclass
+class SessionInfo:
+    name: str
+    status: str  # "active" or "exited"
+    raw: str
+
+
+def list_sessions() -> List[SessionInfo]:
+    try:
+        result = run_command(
+            ["zellij", "list-sessions", "--no-formatting"],
+            check=False,
+            capture=True,
+        )
+    except SystemExit:
+        # Propagate error if zellij missing.
+        raise
+
+    sessions: List[SessionInfo] = []
+    if result.returncode != 0:
+        return sessions
+
+    for line in result.stdout.splitlines():
+        stripped = line.strip()
+        if not stripped:
+            continue
+        name = stripped.split(" ", 1)[0]
+        status = "exited" if "EXITED" in stripped.upper() else "active"
+        sessions.append(SessionInfo(name=name, status=status, raw=stripped))
+    return sessions
+
+
+def find_session(name: str) -> Optional[SessionInfo]:
+    for session in list_sessions():
+        if session.name == name:
+            return session
+    return None
+
+
+def delete_session(name: str) -> None:
+    run_command(["zellij", "delete-session", "--force", name], check=False)
+
+
+def attach_session(
+    name: str,
+    defaults: Dict[str, Any],
+    ui_mode: str,
+    nvim_server: Optional[str],
+) -> None:
+    launch_in_ui(
+        ["zellij", "attach", name],
+        defaults,
+        title=f"{name} (attach)",
+        ui_mode=ui_mode,
+        nvim_server=nvim_server,
+    )
+
+
+# -----------------------------------------------------------------------------
+# Layout rendering
+
+def escape_kdl(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def format_attr(key: str, value: Any) -> str:
+    if isinstance(value, bool):
+        return f"{key}={'true' if value else 'false'}"
+    if isinstance(value, (int, float)):
+        return f"{key}={value}"
+    return f'{key}="{escape_kdl(str(value))}"'
+
+
+def build_command_args(node: Dict[str, Any], defaults: Dict[str, Any]) -> Optional[List[str]]:
+    if "exec" in node:
+        exec_args = ensure_list(node["exec"])
+        return exec_args if exec_args else None
+
+    command = node.get("command")
+    if not command:
+        return None
+
+    shell = node.get("shell") or defaults.get("shell") or DEFAULT_SHELL
+    shell_args = ensure_list(node.get("shell_args") or defaults.get("shell_args") or DEFAULT_SHELL_ARGS)
+    return [str(shell), *shell_args, str(command)]
+
+
+def render_pane(node: Dict[str, Any], defaults: Dict[str, Any], indent: int = 8) -> List[str]:
+    indent_str = " " * indent
+    header = indent_str + "pane"
+    attrs: List[str] = []
+
+    for attr in ("name", "cwd", "split_direction", "size", "borderless", "focus", "stacked"):
+        if attr in node and node[attr] is not None:
+            attrs.append(format_attr(attr, node[attr]))
+
+    header_line = header
+    if attrs:
+        header_line += " " + " ".join(attrs)
+    header_line += " {"
+
+    lines = [header_line]
+
+    if "plugin" in node and node["plugin"]:
+        plugin = str(node["plugin"])
+        lines.append(f'{indent_str}    plugin location="{escape_kdl(plugin)}"')
+
+    command_args = build_command_args(node, defaults)
+    if command_args:
+        command = command_args[0]
+        lines.append(f'{indent_str}    command "{escape_kdl(command)}"')
+        if len(command_args) > 1:
+            args = " ".join(f'"{escape_kdl(arg)}"' for arg in command_args[1:])
+            lines.append(f"{indent_str}    args {args}")
+
+    children = node.get("children") or []
+    for child in children:
+        lines.extend(render_pane(child, defaults, indent + 4))
+
+    lines.append(indent_str + "}")
+    return lines
+
+
+def render_tab(tab: Dict[str, Any], defaults: Dict[str, Any]) -> str:
+    name = escape_kdl(str(tab["name"]))
+    lines = [f'    tab name="{name}" {{']
+
+    root = tab.get("root") or {}
+    if not root:
+        root = {}
+
+    pane_lines = render_pane(root, defaults, indent=8)
+    if not pane_lines:
+        pane_lines = ["        pane {", "        }"]
+
+    lines.extend(pane_lines)
+    lines.append("    }")
+    return "\n".join(lines)
+
+
+def generate_layout_contents(workflow: Workflow, tabs: List[Dict[str, Any]]) -> str:
+    parts = [LAYOUT_HEADER.rstrip()]
+    defaults = workflow.defaults
+    for tab in tabs:
+        parts.append(render_tab(tab, defaults))
+    parts.append("}")
+    return "\n".join(parts) + "\n"
+
+
+# -----------------------------------------------------------------------------
+# Workflow expansion
+
+def build_base_context(workflow: Workflow) -> Dict[str, Any]:
+    base = workflow.context.copy()
+    base.setdefault("workflow_name", workflow.name)
+    base.setdefault("session_name", workflow.session)
+    base.setdefault("config_dir", str(workflow.path.parent))
+    return base
+
+
+def enrich_path_context(path: str) -> Dict[str, str]:
+    expanded = expand_path(path) or path
+    absolute = os.path.abspath(expanded)
+    base = os.path.basename(absolute)
+    spaces = base.replace("_", " ")
+    parent = os.path.dirname(absolute)
+    parent_base = os.path.basename(parent)
+    parent_spaces = parent_base.replace("_", " ")
+    return {
+        "path": absolute,
+        "basename": base,
+        "basename_upper": base.upper(),
+        "basename_lower": base.lower(),
+        "basename_title": base.title(),
+        "basename_spaces": spaces,
+        "basename_spaces_upper": spaces.upper(),
+        "basename_spaces_title": spaces.title(),
+        "dirname": os.path.dirname(absolute),
+        "dirname_basename": parent_base,
+        "dirname_basename_upper": parent_base.upper(),
+        "dirname_basename_lower": parent_base.lower(),
+        "dirname_basename_title": parent_base.title(),
+        "dirname_basename_spaces": parent_spaces,
+        "dirname_basename_spaces_upper": parent_spaces.upper(),
+        "dirname_basename_spaces_title": parent_spaces.title(),
+    }
+
+
+def expand_tabs(workflow: Workflow) -> List[Dict[str, Any]]:
+    tabs: List[Dict[str, Any]] = []
+    defaults = workflow.defaults
+    base_context = build_base_context(workflow)
+
+    def find_pane_by_id(pane: Dict[str, Any], pane_id: str) -> Optional[Dict[str, Any]]:
+        if pane.get("id") == pane_id:
+            return pane
+        for child in pane.get("children") or []:
+            found = find_pane_by_id(child, pane_id)
+            if found:
+                return found
+        return None
+
+    def find_pane_in_tabs(tab_list: List[Dict[str, Any]], pane_id: str) -> Optional[Dict[str, Any]]:
+        for tab in tab_list:
+            root = tab.get("root")
+            if not root:
+                continue
+            found = find_pane_by_id(root, pane_id)
+            if found:
+                return found
+        return None
+
+    static_tabs = workflow.raw.get("tabs", [])
+    for tab_def in static_tabs:
+        context = base_context.copy()
+        tab_copy = copy.deepcopy(tab_def)
+        tab_copy = substitute_templates(tab_copy, context)
+        if "root" in tab_copy:
+            tab_copy["root"] = normalize_pane(tab_copy["root"], defaults, context)
+        else:
+            tab_copy["root"] = {}
+        tab_copy["name"] = tab_copy.get("name") or tab_copy.get("title") or "Tab"
+        tabs.append(tab_copy)
+
+    foreach_entries = workflow.raw.get("foreach", [])
+    for entry in foreach_entries:
+        entry_copy = copy.deepcopy(entry)
+        entry_context = base_context.copy()
+
+        glob_pattern = entry_copy.get("glob")
+        if not glob_pattern:
+            continue
+        glob_pattern = substitute_templates(glob_pattern, entry_context)
+        glob_pattern = expand_path(glob_pattern) or glob_pattern
+
+        raw_exclude_prefixes = ensure_list(
+            entry_copy.get("exclude_prefixes") or entry_copy.get("exclude_prefix")
+        )
+        exclude_prefixes: List[str] = []
+        for prefix in raw_exclude_prefixes:
+            pref = substitute_templates(prefix, entry_context)
+            pref = expand_path(pref) or pref
+            if pref:
+                exclude_prefixes.append(os.path.abspath(pref.rstrip(os.sep)))
+
+        only_directories = entry_copy.get("directories", True)
+        recursive = entry_copy.get("recursive", False)
+
+        matches: Iterable[str]
+        if recursive:
+            matches = glob.glob(glob_pattern, recursive=True)
+        else:
+            matches = glob.glob(glob_pattern)
+
+        for match in sorted(matches):
+            match_path = os.path.abspath(match)
+            if only_directories and not os.path.isdir(match_path):
+                continue
+            if exclude_prefixes:
+                if any(
+                    match_path == prefix or match_path.startswith(prefix + os.sep)
+                    for prefix in exclude_prefixes
+                ):
+                    continue
+            if only_directories and os.path.basename(match_path) == "":
+                continue
+
+            path_context = enrich_path_context(match_path)
+            context = entry_context.copy()
+            context.update(path_context)
+
+            pane_template = entry_copy.get("pane")
+            if pane_template:
+                target_id = entry_copy.get("target_pane") or pane_template.get("target_pane")
+                if not target_id:
+                    warn("foreach entry with pane requires 'target_pane'.")
+                    continue
+                target = find_pane_in_tabs(tabs, target_id)
+                if not target:
+                    warn(f"foreach pane target '{target_id}' not found.")
+                    continue
+                pane_data = substitute_templates(copy.deepcopy(pane_template), context)
+                pane_data.pop("target_pane", None)
+                normalized_pane = normalize_pane(pane_data, defaults, context)
+                target.setdefault("children", [])
+                target["children"].append(normalized_pane)
+                continue
+
+            tab_template = entry_copy.get("tab", {})
+            tab_data = substitute_templates(copy.deepcopy(tab_template), context)
+            name = tab_data.get("name") or tab_template.get("name") or path_context["basename"]
+            tab_data["name"] = name
+
+            root_template = entry_copy.get("root", tab_data.get("root", {}))
+            root = substitute_templates(copy.deepcopy(root_template), context)
+            tab_data["root"] = normalize_pane(root, defaults, context)
+
+            tabs.append(tab_data)
+
+    return tabs
+
+
+def normalize_pane(pane: Any, defaults: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    if not isinstance(pane, dict):
+        return {}
+
+    pane = substitute_templates(pane, context)
+    result: Dict[str, Any] = {}
+    for key in (
+        "id",
+        "name",
+        "cwd",
+        "split_direction",
+        "size",
+        "borderless",
+        "focus",
+        "plugin",
+        "command",
+        "shell",
+        "shell_args",
+        "exec",
+        "stacked",
+        "close_on_exit",
+        "start_suspended",
+    ):
+        if key in pane:
+            value = pane[key]
+            if key == "cwd":
+                value = expand_path(value)
+            result[key] = value
+
+    if "children" in pane:
+        children = []
+        for child in pane["children"]:
+            if isinstance(child, dict):
+                children.append(normalize_pane(child, defaults, context))
+        result["children"] = children
+
+    return result
+
+
+# -----------------------------------------------------------------------------
+# Command handlers
+
+def cmd_list(args: argparse.Namespace, workflows: List[Workflow]) -> None:
+    if args.format == "json":
+        payload = [
+            {
+                "key": wf.key,
+                "name": wf.name,
+                "session": wf.session,
+                "description": wf.description,
+                "path": str(wf.path),
+            }
+            for wf in workflows
+        ]
+        print(json.dumps(payload, indent=2))
+        return
+
+    for wf in workflows:
+        line = f"{wf.key}\t{wf.name}\t{wf.session}\t{wf.description}"
+        if args.format == "tsv":
+            print(line)
+        else:
+            if wf.description:
+                print(f"{wf.key} ({wf.session}) - {wf.description}")
+            else:
+                print(f"{wf.key} ({wf.session})")
+
+
+def cmd_sessions(args: argparse.Namespace, workflows: List[Workflow]) -> None:
+    session_map = {wf.session: wf for wf in workflows}
+    sessions = list_sessions()
+    for session in sessions:
+        workflow = session_map.get(session.name)
+        fields = [
+            session.name,
+            session.status,
+            workflow.key if workflow else "",
+            workflow.name if workflow else "",
+        ]
+        if args.format == "json":
+            print(
+                json.dumps(
+                    {
+                        "name": session.name,
+                        "status": session.status,
+                        "workflow_key": workflow.key if workflow else None,
+                        "workflow_name": workflow.name if workflow else None,
+                    }
+                )
+            )
+        elif args.format == "tsv":
+            print("\t".join(fields))
+        else:
+            title = workflow.name if workflow else session.name
+            status = "active" if session.status == "active" else "detached"
+            print(f"{session.name} ({status}) - {title}")
+
+
+def cmd_start(args: argparse.Namespace, workflow: Workflow) -> None:
+    defaults = workflow.defaults
+    session = workflow.session
+    ui_mode, nvim_server = resolve_ui_mode(args.ui)
+    ui_label = "Neovim split" if ui_mode == "nvim" else "terminal window"
+
+    existing = find_session(session)
+    if existing and not args.recreate:
+        if existing.status == "active":
+            print(f"Session '{session}' active. Attaching via {ui_label}…")
+            attach_session(session, defaults, ui_mode, nvim_server)
+            return
+        else:
+            print(f"Cleaning up exited session '{session}'…")
+            delete_session(session)
+
+    tabs = expand_tabs(workflow)
+    layout = generate_layout_contents(workflow, tabs)
+    layout_path = write_layout(session, layout)
+
+    print(f"Launching workflow '{workflow.name}' (session: {session}) via {ui_label}")
+    launch_in_ui(
+        ["zellij", "--new-session-with-layout", str(layout_path), "--session", session],
+        defaults,
+        title=f"{workflow.name}",
+        ui_mode=ui_mode,
+        nvim_server=nvim_server,
+    )
+
+
+def cmd_attach(
+    session_name: str,
+    workflow: Optional[Workflow],
+    ui_mode: str,
+    nvim_server: Optional[str],
+) -> None:
+    if not session_name:
+        raise SystemExit("attach requires a session name or workflow.")
+
+    existing = find_session(session_name)
+    if not existing:
+        raise SystemExit(f"Session '{session_name}' not found.")
+
+    defaults: Dict[str, Any] = workflow.defaults if workflow else {}
+    attach_session(session_name, defaults, ui_mode, nvim_server)
+
+
+def cmd_kill(args: argparse.Namespace) -> None:
+    session = args.session
+    existing = find_session(session)
+    if not existing:
+        print(f"Session '{session}' not found.")
+        return
+    delete_session(session)
+    print(f"Deleted session '{session}'.")
+
+
+def cmd_show_layout(args: argparse.Namespace, workflow: Workflow) -> None:
+    tabs = expand_tabs(workflow)
+    layout = generate_layout_contents(workflow, tabs)
+    if args.output:
+        Path(args.output).write_text(layout, encoding="utf-8")
+    else:
+        print(layout.rstrip())
+
+
+def cmd_rofi_menu(args: argparse.Namespace, workflows: List[Workflow]) -> None:
+    # Output TSV rows suitable for Rofi: type, id, label, description, status
+    sessions = list_sessions()
+    session_map = {session.name: session for session in sessions}
+    workflow_by_session = {wf.session: wf for wf in workflows}
+
+    for wf in workflows:
+        session = session_map.get(wf.session)
+        status = session.status if session else "missing"
+        print(
+            "\t".join(
+                ["workflow", wf.key, wf.name, wf.description, status],
+            )
+        )
+
+    for session in sessions:
+        wf = workflow_by_session.get(session.name)
+        label = wf.name if wf else session.name
+        print(
+            "\t".join(
+                ["session", session.name, label, session.status, session.status],
+            )
+        )
+
+
+# -----------------------------------------------------------------------------
+# Argument parsing
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Manage Zellij workflows.")
+    parser.add_argument(
+        "--workflow-dir",
+        default=str(DEFAULT_WORKFLOW_DIR),
+        help="Directory containing workflow manifests (default: %(default)s)",
+    )
+
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    list_parser = subparsers.add_parser("list", help="List available workflows")
+    list_parser.add_argument(
+        "--format",
+        choices=("plain", "tsv", "json"),
+        default="plain",
+        help="Output format (default: plain)",
+    )
+
+    sessions_parser = subparsers.add_parser("sessions", help="List current sessions")
+    sessions_parser.add_argument(
+        "--format",
+        choices=("plain", "tsv", "json"),
+        default="plain",
+        help="Output format (default: plain)",
+    )
+
+    start_parser = subparsers.add_parser("start", help="Start or attach a workflow")
+    start_parser.add_argument("workflow", help="Workflow key (filename without extension)")
+    start_parser.add_argument(
+        "--recreate",
+        action="store_true",
+        help="Force recreation even if session is active",
+    )
+    start_parser.add_argument(
+        "--ui",
+        choices=("auto", "terminal", "nvim"),
+        default="auto",
+        help="Launch in a terminal window, Neovim split, or choose automatically (default: auto)",
+    )
+
+    attach_parser = subparsers.add_parser("attach", help="Attach to a workflow/session")
+    attach_parser.add_argument(
+        "target",
+        help="Workflow key or session name",
+    )
+    attach_parser.add_argument(
+        "--ui",
+        choices=("auto", "terminal", "nvim"),
+        default="auto",
+        help="Attach in a terminal window, Neovim split, or choose automatically (default: auto)",
+    )
+
+    kill_parser = subparsers.add_parser("kill", help="Kill a session by name")
+    kill_parser.add_argument("session", help="Session name to delete")
+
+    show_parser = subparsers.add_parser("show-layout", help="Print the rendered layout")
+    show_parser.add_argument("workflow", help="Workflow key")
+    show_parser.add_argument(
+        "--output",
+        help="Optional file path to write the layout to",
+    )
+
+    rofi_parser = subparsers.add_parser(
+        "rofi-menu", help="Emit tab-separated entries for Rofi menus"
+    )
+
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> None:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    workflow_dir = Path(args.workflow_dir).expanduser()
+    workflows = discover_workflows(workflow_dir)
+
+    if args.command == "list":
+        cmd_list(args, workflows)
+    elif args.command == "sessions":
+        cmd_sessions(args, workflows)
+    elif args.command == "start":
+        workflow = load_workflow(workflow_dir, args.workflow)
+        cmd_start(args, workflow)
+    elif args.command == "attach":
+        ui_mode, nvim_server = resolve_ui_mode(args.ui)
+        target = args.target
+        workflows_by_key = {wf.key: wf for wf in workflows}
+        workflow = workflows_by_key.get(target)
+        if workflow:
+            cmd_attach(workflow.session, workflow, ui_mode, nvim_server)
+        else:
+            cmd_attach(target, None, ui_mode, nvim_server)
+    elif args.command == "kill":
+        cmd_kill(args)
+    elif args.command == "show-layout":
+        workflow = load_workflow(workflow_dir, args.workflow)
+        cmd_show_layout(args, workflow)
+    elif args.command == "rofi-menu":
+        cmd_rofi_menu(args, workflows)
+    else:  # pragma: no cover - argparse enforces commands
+        parser.print_help()
+
+
+if __name__ == "__main__":
+    main()
