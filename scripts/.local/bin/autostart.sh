@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-need() { command -v "$1" >/dev/null || { echo "❌ Missing: $1"; exit 1; }; }
+need() { command -v "$1" >/dev/null || {
+  echo "❌ Missing: $1"
+  exit 1
+}; }
 need i3-msg
 need jq
 
@@ -52,11 +55,11 @@ launch_pwa() {
   while [ $i -lt 50 ]; do
     cur="$(count_windows "${ws}")"
     [[ "${cur}" =~ ^[0-9]+$ ]] || cur=0
-    if (( cur > before )); then
+    if ((cur > before)); then
       echo "   ↳ ${tag} ready."
       return 0
     fi
-    i=$((i+1))
+    i=$((i + 1))
     sleep 0.1
   done
 
@@ -67,11 +70,14 @@ launch_pwa() {
 ###############################################################################
 # PWAs (each gets its own workspace: pwa:<tag>)
 ###############################################################################
-launch_pwa spotify  "https://spotify.com"
+launch_pwa spotify "https://spotify.com"
 launch_pwa whatsapp "https://web.whatsapp.com"
-launch_pwa discord  "https://discord.com/app"
-launch_pwa ticktick "https://ticktick.com"
-launch_pwa chatgpt  "https://chatgpt.com"
+launch_pwa slack "https://app.slack.com/client"
+launch_pwa work "https://eclypsium.atlassian.net/jira/"
+launch_pwa work "https://eclypsium.atlassian.net/wiki/"
+launch_pwa git "https://gitlab.com"
+launch_pwa mail "https://mail.google.com/mail/u/0/#inbox"
+launch_pwa chatgpt "https://chatgpt.com"
 
 # Non-PWA apps
 i3-msg -q 'exec --no-startup-id obsidian' &

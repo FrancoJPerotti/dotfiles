@@ -1,7 +1,0 @@
-[Desktop Entry]
-Terminal=false
-Type=Application
-Name=francojperotti@hotmail.com
-Exec=/opt/vivaldi/vivaldi --app=https://outlook.live.com/mail/0/
-Icon=~/.local/share/applications/web_app_icons/outlook.svg
-

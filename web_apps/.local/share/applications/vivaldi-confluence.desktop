@@ -1,7 +1,7 @@
 [Desktop Entry]
 Terminal=false
 Type=Application
-Name=Jira
-Exec=/opt/vivaldi/vivaldi --app=https://eclypsium.atlassian.net/jira/
+Name=Confluence
+Exec=/opt/vivaldi/vivaldi --app=https://eclypsium.atlassian.net/wiki/
 Icon=~/.local/share/applications/web_app_icons/jira.svg
 

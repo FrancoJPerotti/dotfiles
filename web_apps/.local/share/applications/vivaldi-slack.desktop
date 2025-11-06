@@ -2,6 +2,6 @@
 Terminal=false
 Type=Application
 Name=Slack
-Exec=/opt/vivaldi/vivaldi --app=https://slack.com
+Exec=/opt/vivaldi/vivaldi --app=https://app.slack.com/client
 Icon=~/.local/share/applications/web_app_icons/slack.svg
 
