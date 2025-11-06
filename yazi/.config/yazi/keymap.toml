@@ -1,10 +1,13 @@
 [mgr]
 prepend_keymap = [
+  { on = "<C-t>", run = "shell --orphan kitty", desc = "Open terminal at current dir" },
   { on = "<C-ñ>", run = "tab_switch --relative +1", desc = "Next tab" },
   { on = "<C-l>", run = "tab_switch --relative -1", desc = "Previous tab" },
-  { on = "<C-t>", run = "tab_create", desc = "New tab" },
-  { on = ["<C-q>", "<C-q>"], run = "tab_close", desc = "Close tab" },
+  { on = "<C-n>", run = "tab_create", desc = "New tab" },
+  { on = ["<C-q>", "<C-q>"], run = "close", desc = "Close tab" },
   { on = ["<C-q>", "<C-a>"], run = "quit", desc = "Exit process" },
   { on = "V", run = "visual_mode", desc = "Visual mode" },
-  { on = "h", run = "cd ~", desc = "Go Home"}
+  { on = "h", run = "cd ~", desc = "Go Home"},
+  { on = "<C-d>", run = "cd ~/Downloads", desc = "Go Downloads" },
+  { on = "<Enter>", run = "enter", desc = "Enter hovered directory" }
 ]
