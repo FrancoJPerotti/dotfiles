@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Emoji Picker
+Comment=Select and copy emojis via rofi
+Exec=/home/franco.perotti/.local/bin/emoji_picker.sh
+TryExec=/home/franco.perotti/.local/bin/emoji_picker.sh
+Icon=face-smile
+Terminal=false
+Categories=Utility;
+Keywords=rofi;emoji;picker;
+NoDisplay=false
+StartupNotify=false

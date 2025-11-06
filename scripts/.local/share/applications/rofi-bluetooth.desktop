@@ -2,8 +2,8 @@
 Type=Application
 Name=Bluetooth Picker
 Comment=Connect, pair, and manage Bluetooth devices via rofi + bluetoothctl
-Exec=/home/franco/.local/bin/bluetooth_picker.sh
-TryExec=/home/franco/.local/bin/bluetooth_picker.sh
+Exec=/home/franco.perotti/.local/bin/bluetooth_picker.sh
+TryExec=/home/franco.perotti/.local/bin/bluetooth_picker.sh
 Icon=bluetooth
 Terminal=false
 Categories=Network;Settings;Utility;
