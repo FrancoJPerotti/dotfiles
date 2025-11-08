@@ -12,18 +12,31 @@ ROFI=(rofi -dmenu -i -markup-rows -p "  bluetooth"
     -theme-str ' element { padding: 6px; } element-icon { size: 0; }'
 )
 
-NOTIFY="notify-send -u normal -t 3000"
-die() { $NOTIFY "Bluetooth" "Error: $*" && exit 1; }
+NOTIFY_CMD=(notify-send -u normal -t 3000)
+
+notify() {
+    if ! "${NOTIFY_CMD[@]}" "Bluetooth" "$1"; then
+        printf 'Bluetooth: %s\n' "$1" >&2
+    fi
+    return 0
+}
+
+die() { notify "Error: $*"; exit 1; }
+
+if ! command -v notify-send >/dev/null 2>&1; then
+    NOTIFY_CMD=(echo)
+fi
 
 command -v bluetoothctl >/dev/null 2>&1 || die "bluetoothctl not found (install bluez)."
 command -v rofi >/dev/null 2>&1 || die "rofi not found."
-command -v notify-send >/dev/null 2>&1 || NOTIFY="echo"
 
 bt() { bluetoothctl "$@" </dev/null; } # avoid interactive hangs
 
 # ----- Helpers -----
 bt_power_state() {
-    bt show | awk -F': ' '/Powered:/{print $2; exit}'
+    local state=""
+    state=$(bt show 2>/dev/null | awk -F': ' '/Powered:/{print $2; exit}' || true)
+    printf '%s\n' "$state"
 }
 
 active_adapter() {
@@ -39,14 +52,18 @@ any_connected() {
         }; done
 }
 
-device_is_paired() {
-    local mac="$1"
-    bt paired-devices | grep -q "Device $mac "
-}
-
 device_is_connected() {
     local mac="$1"
-    bt info "$mac" | grep -q "Connected: yes"
+    local info
+    info=$(bt info "$mac" 2>/dev/null || true)
+    [[ "$info" == *"Connected: yes"* ]]
+}
+
+device_is_paired() {
+    local mac="$1"
+    local info
+    info=$(bt info "$mac" 2>/dev/null || true)
+    [[ "$info" == *"Paired: yes"* ]]
 }
 
 device_name() {
@@ -57,6 +74,64 @@ device_name() {
 device_rssi() {
     local mac="$1"
     bt info "$mac" | awk -F': ' '/RSSI:/{print $2; exit}'
+}
+
+ensure_agent() {
+    bt agent NoInputNoOutput >/dev/null 2>&1 || true
+    bt default-agent >/dev/null 2>&1 || true
+}
+
+ensure_powered() {
+    if [[ "$(bt_power_state)" != "yes" ]]; then
+        bt power on >/dev/null 2>&1 || return 1
+        sleep 1
+    fi
+    return 0
+}
+
+wait_until_connected() {
+    local mac="$1" tries=0
+    while (( tries < 10 )); do
+        if device_is_connected "$mac"; then
+            return 0
+        fi
+        sleep 0.5
+        ((tries++))
+    done
+    return 1
+}
+
+connect_with_retry() {
+    local mac="$1" attempts=0
+
+    ensure_agent
+    ensure_powered || return 1
+    bt trust "$mac" >/dev/null 2>&1 || true
+
+    if device_is_connected "$mac"; then
+        return 0
+    fi
+
+    while (( attempts < 3 )); do
+        if device_is_connected "$mac"; then
+            return 0
+        fi
+
+        if bt connect "$mac" >/dev/null 2>&1; then
+            if wait_until_connected "$mac"; then
+                return 0
+            fi
+        else
+            if wait_until_connected "$mac"; then
+                return 0
+            fi
+        fi
+
+        ((attempts++))
+        sleep 1
+    done
+
+    return 1
 }
 
 scan_quick() {
@@ -155,14 +230,14 @@ choice=$(build_menu | "${ROFI[@]}")
 case "$choice" in
 *"Toggle Bluetooth"*)
     if [[ "$(bt_power_state)" == "yes" ]]; then
-        bt power off && $NOTIFY "Bluetooth" "Bluetooth powered off."
+        bt power off && notify "Bluetooth powered off."
     else
-        bt power on && $NOTIFY "Bluetooth" "Bluetooth powered on."
+        bt power on && notify "Bluetooth powered on."
     fi
     exit 0
     ;;
 *"Scan (5s)"*)
-    $NOTIFY "Bluetooth" "Scanning for 5s…"
+    notify "Scanning for 5s…"
     scan_quick
     # Rofi dmenu can't auto-refresh itself; just exit. Bind your launcher to reopen.
     exit 0
@@ -177,7 +252,7 @@ case "$choice" in
     for mac in "${macs[@]}"; do
         device_is_connected "$mac" && bt disconnect "$mac" >/dev/null 2>&1 || true
     done
-    $NOTIFY "Bluetooth" "Disconnected all devices."
+    notify "Disconnected all devices."
     exit 0
     ;;
 *)
@@ -191,30 +266,32 @@ esac
 
 # ----- Device action: smart toggle connect/pair -----
 if device_is_connected "$mac"; then
-    bt disconnect "$mac" >/dev/null 2>&1 && $NOTIFY "Bluetooth" "Disconnected: $name"
+    bt disconnect "$mac" >/dev/null 2>&1 && notify "Disconnected: $name"
     exit 0
 fi
 
 # If not paired, try to pair, trust, then connect
 if ! device_is_paired "$mac"; then
-    $NOTIFY "Bluetooth" "Pairing with: $name"
-    # Make sure an agent exists to handle passkeys
-    bt agent NoInputNoOutput >/dev/null 2>&1 || true
-    bt default-agent >/dev/null 2>&1 || true
+    notify "Pairing with: $name"
+    ensure_agent
 
-    if bt pair "$mac" >/dev/null 2>&1; then
+    if ensure_powered && bt pair "$mac" >/dev/null 2>&1; then
         bt trust "$mac" >/dev/null 2>&1 || true
     else
-        $NOTIFY "Bluetooth" "Failed to pair with $name"
-        exit 1
+        if device_is_paired "$mac"; then
+            notify "Already paired with $name"
+        else
+            notify "Failed to pair with $name"
+            exit 1
+        fi
     fi
 fi
 
-$NOTIFY "Bluetooth" "Connecting to: $name"
-if bt connect "$mac" >/dev/null 2>&1; then
-    $NOTIFY "Bluetooth" "Connected to $name"
+notify "Connecting to: $name"
+if connect_with_retry "$mac"; then
+    notify "Connected to $name"
     exit 0
 else
-    $NOTIFY "Bluetooth" "Failed to connect to $name"
+    notify "Failed to connect to $name"
     exit 1
 fi
