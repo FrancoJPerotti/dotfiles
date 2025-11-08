@@ -265,7 +265,7 @@ bindsym $mod+h              workspace $ws_web
 bindsym $mod+Shift+slash    workspace $ws_editor; 
 bindsym $mod+question       workspace $ws_editor; 
 bindsym $mod+dead_acute     workspace $ws_term
-bindsym $mod+slash          workspace $ws_explorer
+bindsym $mod+dead_grave          workspace $ws_explorer
 bindsym $mod+s              exec --no-startup-id $script_path/toggle_workspace.sh $ws_spotify
 bindsym $mod+k              exec --no-startup-id $script_path/toggle_workspace.sh $ws_obsidian
 bindsym $mod+d              exec --no-startup-id $script_path/toggle_workspace.sh $ws_slack
