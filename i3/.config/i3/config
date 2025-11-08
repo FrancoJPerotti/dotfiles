@@ -123,7 +123,7 @@ bindsym $mod+a focus parent
 bindsym $mod+Shift+r reload
 
 # Take screenshot
-bindsym $mod+p exec --no-startup-id maim --select -o | xclip -selection clipboard -t image/png
+bindsym $mod+p exec --no-startup-id flameshot gui -c -p ~/Pictures/Screenshots
 
 # Power Menu
 bindsym $mod+Shift+equal exec --no-startup-id ~/.local/bin/rofi_power.sh

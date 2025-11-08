@@ -158,11 +158,11 @@ install_apt_packages() {
         eza
         feh
         firefox
+        flameshot
         fzf
         gcc
         git
         lxappearance
-        maim
         make
         picom
         playerctl
