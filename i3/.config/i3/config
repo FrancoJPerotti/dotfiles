@@ -300,6 +300,9 @@ bindsym --release $mod+c            exec --no-startup-id $script_path/clipboard.
 # Toggle web search
 bindsym --release $mod+Shift+Return exec --no-startup-id $script_path/rofi_websearch.sh
 
+# Toggle power profile picker
+bindsym --release $mod+Shift+p exec --no-startup-id $script_path/rofi_power_profile_picker.sh
+
 # Status Bar
 bar {
         mode invisible
