@@ -130,6 +130,11 @@ case "$selected_action" in
       else
         "$HOME/dotfiles/scripts/.local/bin/launch_polybar.sh" 2>/dev/null || true
       fi
+      if [[ -x "$HOME/.local/bin/apply_wallpaper.sh" ]]; then
+        "$HOME/.local/bin/apply_wallpaper.sh"
+      else
+        "$HOME/dotfiles/scripts/.local/bin/apply_wallpaper.sh" 2>/dev/null || true
+      fi
     else
       $NOTIFY "Failed to load profile: $profile"
       exit 1
