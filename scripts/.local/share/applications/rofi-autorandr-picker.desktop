@@ -2,8 +2,7 @@
 Type=Application
 Name=Autorandr Picker
 Comment=Switch display profiles using autorandr and rofi
-Exec=/home/franco.perotti/.local/bin/rofi_autorandr_picker.sh
-TryExec=/home/franco.perotti/.local/bin/rofi_autorandr_picker.sh
+Exec=/bin/sh -c "$HOME/.local/bin/rofi_autorandr_picker.sh"
 Icon=video-display
 Terminal=false
 Categories=Settings;HardwareSettings;

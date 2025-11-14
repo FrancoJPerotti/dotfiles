@@ -2,8 +2,7 @@
 Type=Application
 Name=Web Search
 Comment=Search the web via rofi
-Exec=/home/franco.perotti/.local/bin/rofi_websearch.sh
-TryExec=/home/franco.perotti/.local/bin/rofi_websearch.sh
+Exec=/bin/sh -c "$HOME/.local/bin/rofi_websearch.sh"
 Icon=web-browser
 Terminal=false
 Categories=Network;Utility;
