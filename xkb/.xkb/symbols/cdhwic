@@ -25,7 +25,7 @@ xkb_symbols "cdhwic" {
     key <AD03> { [            f,            F,           slash,           Atilde ] };
     key <AD04> { [            p,            P,       backslash,           Oslash ] };
     key <AD05> { [            b,            B,      asciitilde                   ] };
-    key <AD06> { [        slash,    backslash,    bracketright                   ] };
+    key <AD06> { [   dead_grave,    backslash,    bracketright                   ] };
     key <AD07> { [            j,            J,     asciicircum,          Dstroke ] };
     key <AD08> { [            l,            L,          exclam,       parenright ] };
     key <AD09> { [            u,            U,           equal,       braceright ] };
