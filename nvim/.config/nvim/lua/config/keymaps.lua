@@ -117,7 +117,7 @@ keymap.set(
 	{ desc = "Reload config", noremap = true, silent = true }
 )
 
-vim.keymap.set("n", "?", function()
+keymap.set("n", "?", function()
 	local float_buf, float_win = vim.diagnostic.open_float(nil, { focus = true })
 	if float_buf and float_win then
 		vim.api.nvim_buf_set_keymap(float_buf, "n", "<Esc>", "<Cmd>close<CR>", { noremap = true, silent = true })
@@ -127,6 +127,13 @@ end, { desc = "Open diagnostics float" })
 keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })
 
 -- Move to next diagnostic
-vim.keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
+keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })
 -- Move to previous diagnostic
-vim.keymap.set("n", "<leader>dN", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+keymap.set("n", "<leader>dN", vim.diagnostic.goto_prev, { desc = "Go to previous diagnostic" })
+
+keymap.set("n", "<C-=>", "<C-w>=", { desc = "Equalize window sizes" })
+
+-- Lazy
+keymap.set("n", "<leader>ll", "<cmd>Lazy<CR>", { desc = "Open Lazy" })
+keymap.set("n", "<leader>lu", "<cmd>Lazy update<CR>", { desc = "Update plugins" })
+keymap.set("n", "<leader>li", "<cmd>Lazy install<CR>", { desc = "Install plugins" })
