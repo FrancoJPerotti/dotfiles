@@ -21,21 +21,19 @@ return {
 		local function abbreviate_path(path)
 			local home = vim.fn.getenv("HOME")
 			path = path:gsub("^" .. home .. "/", "") -- remove ~/ entirely
-
 			local parts = vim.split(path, "/")
 			for i = 1, #parts - 1 do
 				parts[i] = parts[i]:sub(1, 4)
 			end
-
 			return table.concat(parts, "/")
 		end
 
 		-- Preload project directories on startup using your find command
 		local project_dirs = vim.fn.systemlist([[
-			find ~ -type d -name .git -prune 2>/dev/null |
-			sed 's|/\.git||' |
-			grep -v '/\.[^/]\+'
-		]])
+      find ~ -type d -name .git -prune 2>/dev/null |
+      sed 's|/\.git||' |
+      grep -v '/\.[^/]\+'
+    ]])
 
 		-- Custom picker uses pre-loaded dirs
 		local function project_folder_picker()
@@ -44,7 +42,7 @@ return {
 					themes.get_dropdown({
 						prompt_title = " Git Projects",
 					}),
-					{ -- normal picker opts
+					{
 						finder = finders.new_table({
 							results = vim.tbl_map(function(path)
 								return {
@@ -65,10 +63,8 @@ return {
 							actions.select_default:replace(function()
 								local selection = action_state.get_selected_entry().value
 								actions.close(prompt_bufnr)
-
 								vim.cmd("cd " .. vim.fn.fnameescape(selection))
 								vim.notify("Changed cwd to: " .. selection, vim.log.levels.INFO)
-
 								local ok, tree = pcall(require, "nvim-tree.api")
 								if ok then
 									tree.tree.change_root(selection)
@@ -83,11 +79,31 @@ return {
 
 		telescope.setup({
 			defaults = {
+				vimgrep_arguments = {
+					"rg",
+					"--color=never",
+					"--no-heading",
+					"--with-filename",
+					"--line-number",
+					"--column",
+					"--smart-case",
+					"--fixed-strings",
+				},
 				path_display = { "smart" },
 				mappings = {
 					i = {
 						["<Esc>"] = actions.close,
+						["<C-e>"] = actions.cycle_history_next,
+						["<C-i>"] = actions.cycle_history_prev,
 					},
+					n = {
+						["<C-e>"] = actions.cycle_history_next,
+						["<C-i>"] = actions.cycle_history_prev,
+					},
+				},
+				history = {
+					path = vim.fn.stdpath("data") .. "/telescope_history",
+					limit = 200,
 				},
 			},
 			pickers = {
@@ -101,7 +117,7 @@ return {
 					follow = true,
 					file_ignore_patterns = { "node_modules", ".git", ".venv" },
 					hidden = true,
-					previewer = false,
+					previewer = true, -- enable preview
 				},
 				buffers = {
 					entry_maker = require("telescope.custom_buffers").gen_with_dot(),
@@ -116,16 +132,26 @@ return {
 
 		telescope.load_extension("fzf")
 
-		-- Set keymaps
 		local keymap = vim.keymap
 
-		-- Fuzzy find files
-		keymap.set(
-			"n",
-			"<leader><leader>",
-			"<cmd>Telescope find_files theme=dropdown<cr>",
-			{ desc = "Fuzzy find files in cwd" }
-		)
+		-- Fuzzy find files with PREVIEW on the RIGHT
+		keymap.set("n", "<leader><leader>", function()
+			require("telescope.builtin").find_files({
+				layout_strategy = "flex",
+				layout_config = {
+					width = 0.90,
+					height = 0.85,
+					prompt_position = "bottom",
+					preview_cutoff = 1,
+					horizontal = {
+						preview_width = 0.55,
+						mirror = false,
+					},
+				},
+				hidden = true,
+				follow = true,
+			})
+		end, { desc = "Fuzzy find files in cwd (preview on right)" })
 
 		-- Fuzzy find recent files
 		keymap.set(
@@ -136,7 +162,7 @@ return {
 		)
 
 		-- Fuzzy find strings
-		keymap.set("n", "<leader>fs", "<cmd>Telescope live_grep theme=dropdown<cr>", { desc = "Find string in cwd" })
+		keymap.set("n", "<leader>fs", "<cmd>Telescope live_grep<cr>", { desc = "Find string in cwd" })
 
 		-- Fuzzy find string under cursor
 		keymap.set(
