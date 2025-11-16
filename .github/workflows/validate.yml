@@ -1,0 +1,126 @@
+name: Validate Dotfiles Structure
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  validate-structure:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install GNU Stow
+        run: sudo apt-get update && sudo apt-get install -y stow
+
+      - name: Validate package structure
+        run: |
+          echo "🔍 Validating dotfiles structure..."
+          
+          # Check that common/ exists
+          if [[ ! -d "common" ]]; then
+            echo "❌ common/ directory not found"
+            exit 1
+          fi
+          
+          # Validate at least one profile exists
+          profiles=$(ls -d */ 2>/dev/null | grep -v "common/" | grep -v ".github/" | wc -l)
+          if [[ "$profiles" -eq 0 ]]; then
+            echo "❌ No profile directories found"
+            exit 1
+          fi
+          
+          echo "✅ Found $profiles profile(s)"
+          
+          # Check each package has proper structure (contains dotfiles paths)
+          for domain in common arch ubuntu; do
+            [[ ! -d "$domain" ]] && continue
+            
+            echo ""
+            echo "📦 Validating $domain/ packages..."
+            
+            for pkg_path in "$domain"/*; do
+              [[ ! -d "$pkg_path" ]] && continue
+              
+              pkg_name=$(basename "$pkg_path")
+              
+              # Skip meta files
+              if [[ "$pkg_name" == ".git" || "$pkg_name" == ".github" || "$pkg_name" == ".stow-local-ignore" || "$pkg_name" == ".stow-exclude" ]]; then
+                continue
+              fi
+              
+              # Check if package contains any files
+              if ! find "$pkg_path" -type f | grep -q .; then
+                echo "⚠️  Warning: $domain/$pkg_name is empty"
+                continue
+              fi
+              
+              echo "  ✓ $domain/$pkg_name"
+            done
+          done
+          
+          echo ""
+          echo "✅ Structure validation complete"
+
+      - name: Test stow dry-run (arch profile)
+        run: |
+          echo "🧪 Testing stow for arch profile..."
+          ./stow-manager --stow arch -n
+
+      - name: Test stow dry-run (ubuntu profile)
+        run: |
+          echo "🧪 Testing stow for ubuntu profile..."
+          ./stow-manager --stow ubuntu -n
+
+      - name: Test unstow dry-run (arch profile)
+        run: |
+          echo "🧪 Testing unstow for arch profile..."
+          ./stow-manager --unstow arch -n
+
+      - name: Test unstow dry-run (ubuntu profile)
+        run: |
+          echo "🧪 Testing unstow for ubuntu profile..."
+          ./stow-manager --unstow ubuntu -n
+
+      - name: Check for broken symlinks patterns
+        run: |
+          echo "🔗 Checking for potential symlink issues..."
+          
+          # Check if any package tries to stow .git directories
+          if find common arch ubuntu -name ".git" -type d 2>/dev/null | grep -q .; then
+            echo "⚠️  Warning: Found .git directories in packages (should be excluded)"
+          fi
+          
+          echo "✅ Symlink pattern check complete"
+
+      - name: Validate scripts syntax
+        run: |
+          echo "📝 Checking bash scripts syntax..."
+          bash -n stow-all.sh
+          bash -n stow-manager
+          echo "✅ Scripts syntax valid"
+
+  shellcheck:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: '.'
+          severity: warning
+          ignore_paths: |
+            .git
+            common
+            arch
+            ubuntu
+        env:
+          SHELLCHECK_OPTS: -e SC2312
