@@ -1,0 +1,14 @@
+#
+# Items inside arch/ that should NOT be treated as Stow packages.
+# Only directory names matter; non-directories are ignored anyway.
+#
+# This mirrors the old Arch EXCLUDED list.
+
+custom
+README.md
+pkglist.txt
+aurlist.txt
+.git
+.github
+.stow-local-ignore
+

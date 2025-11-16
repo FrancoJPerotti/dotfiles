@@ -1,0 +1,7 @@
+#
+# Items inside ubuntu/ that should NOT be treated as Stow packages.
+# Only directory names matter; non-directories are ignored anyway.
+#
+# Currently, every top-level directory in ubuntu/ is a real Stow package
+# (i3, polybar, picom, rofi, gtk-3.0, gtk-4.0, xkb, etc.), so nothing is
+# excluded here.

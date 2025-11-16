@@ -1,0 +1,8 @@
+#
+# Items inside common/ that should NOT be treated as Stow packages.
+# Only directory names matter; non-directories are ignored anyway.
+#
+# At the moment, every top-level directory in common/ (Code, nvim, vivaldi,
+# web_apps, yazi, zathura, zed, …) is a real package, so this list is empty.
+
+vivaldi
