@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# zellij-nvim-entry --- launch Neovim inside Zellij without remote sockets.
+
+set -euo pipefail
+
+resolve_nvim_bin() {
+  if command -v nvim >/dev/null 2>&1; then
+    command -v nvim
+    return 0
+  fi
+  printf 'Error: nvim binary not found in PATH.\n' >&2
+  exit 1
+}
+
+NVIM_BIN="$(resolve_nvim_bin)"
+
+if [[ -n "${ZELLIJ_NVIM_ARGS_BASE64:-}" ]]; then
+  mapfile -d '' argv < <(printf '%s' "$ZELLIJ_NVIM_ARGS_BASE64" | base64 --decode)
+  unset ZELLIJ_NVIM_ARGS_BASE64
+  if (( ${#argv[@]} )); then
+    last_index=$(( ${#argv[@]} - 1 ))
+    if [[ -z "${argv[last_index]}" ]]; then
+      unset 'argv[last_index]'
+    fi
+  fi
+  exec "$NVIM_BIN" "${argv[@]}"
+fi
+
+exec "$NVIM_BIN"

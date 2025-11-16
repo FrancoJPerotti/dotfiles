@@ -1,0 +1,127 @@
+* {
+  bg0:     #1F1F2F;   /* main background */
+  bg1:     #252A3A;   /* surface / pill background */
+  fg:      #F6E9FF;   /* normal text color (unselected) */
+  muted:   #C9AFD7;   /* secondary/placeholder text */
+  accent:  #FF79C6;   /* main pink */
+  accent2: #FFB3D6;   /* soft pink */
+  urgent:  #FF4D94;   /* alert */
+
+  border:  @accent;
+  sel-bg:  @accent;
+  sel-fg:  #120E1B;
+
+  font: "JetBrainsMonoNL Nerd Font 15";
+}
+
+window {
+  width: 30em;
+  height: 20em;
+  transparency: "real";
+  location: center;
+  border: 0px;
+  border-radius: 16px;
+  border-color: @border;
+  background-color: @bg0;
+}
+
+mainbox {
+  background-color: transparent;
+  padding: 16px;
+}
+
+inputbar {
+  background-color: @bg1;       
+  border: 0px;
+  border-color: @accent2;
+  border-radius: 10px;
+  padding: 6px 10px; 
+  spacing: 8px;
+}
+
+prompt,
+textbox-prompt-colon,
+case-indicator,
+num-rows {
+  background-color: transparent;
+  text-color: @accent;
+}
+
+entry,
+entry normal.normal,
+entry normal.active,
+entry selected.normal,
+entry selected.active,
+entry normal.urgent,
+entry selected.urgent {
+  background-color: transparent; 
+  text-color: @fg;              
+  placeholder-color: @muted;   
+  border: 0;
+  padding: 0;                 
+}
+
+entry textbox,
+textbox {
+  background-color: transparent;
+  text-color: inherit;
+}
+
+listview {
+  background-color: transparent;
+  lines: 12;
+  columns: 1;
+  padding: 7px 0px 0px 0px;
+  spacing: 6px;
+  fixed-height: true;
+  dynamic: true;
+  scrollbar: true;
+  border: 0;
+}
+
+element {
+  orientation: horizontal;
+  background-color: transparent;
+  text-color: @fg;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+element-icon {
+  size: 1.1em;
+  background-color: transparent;
+  margin: 0 8px 0 0;
+}
+
+element-text {
+  expand: true;
+  background-color: transparent;
+  text-color: @fg;
+}
+
+element-text.selected {
+  text-color: @bg0;
+}
+
+message {
+  background-color: @bg0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-color: @muted;
+}
+
+element normal.normal   { background-color: transparent; }
+element normal.active   { background-color: @bg1; }  
+element normal.urgent   { background-color: transparent; }
+element selected.normal { background-color: @sel-bg; }
+element selected.active { background-color: @sel-bg; }
+element selected.urgent { background-color: @sel-bg; }
+
+scrollbar {
+  handle-width: 2px;
+  border: 0;
+  handle-color: @accent2;
+  background-color: transparent;
+  padding: 0 4px;
+  radius: 4px;
+}

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Layout Picker
+Comment=Switch i3 layouts via rofi
+Exec=/bin/sh -c "$HOME/.local/bin/rofi_layout_picker.sh"
+Icon=keyboard
+Terminal=false
+Categories=Settings;
+Keywords=rofi;i3;layout;window manager;
+NoDisplay=false
+StartupNotify=false

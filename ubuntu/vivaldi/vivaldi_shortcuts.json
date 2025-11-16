@@ -1,0 +1,577 @@
+[
+  {
+    "COMMAND_ADD_BOOKMARK": {
+      "shortcuts": [
+        "ctrl+b"
+      ]
+    },
+    "COMMAND_APPEND_SELECTION_TO_NOTE": {
+      "shortcuts": []
+    },
+    "COMMAND_BREAKMODE_TOGGLE": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_CREATE_EVENT": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_GOTO_DATE": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_REFRESH": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_SEARCH": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_AGENDA": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_DAY": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_MONTH": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_MULTIWEEK": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_WEEK": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEWMODE_YEAR": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEW_NEXT_PERIOD": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEW_PREVIOUS_PERIOD": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEW_TODAY": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEW_ZOOM_IN": {
+      "shortcuts": []
+    },
+    "COMMAND_CALENDAR_VIEW_ZOOM_OUT": {
+      "shortcuts": []
+    },
+    "COMMAND_CLIPBOARD_COPY": {
+      "shortcuts": [
+        "ctrl+c"
+      ]
+    },
+    "COMMAND_CLIPBOARD_CUT": {
+      "shortcuts": [
+        "ctrl+x"
+      ]
+    },
+    "COMMAND_CLIPBOARD_PASTE": {
+      "shortcuts": [
+        "ctrl+v"
+      ]
+    },
+    "COMMAND_CLIPBOARD_PASTE_AS_PLAIN_TEXT": {
+      "shortcuts": []
+    },
+    "COMMAND_CLIPBOARD_PASTE_AS_PLAIN_TEXT_OR_PASTE_AND_GO": {
+      "shortcuts": [
+        "ctrl+shift+v"
+      ]
+    },
+    "COMMAND_CLIPBOARD_REDO": {
+      "shortcuts": [
+        "ctrl+y"
+      ]
+    },
+    "COMMAND_CLIPBOARD_SELECT_ALL": {
+      "shortcuts": [
+        "ctrl+a"
+      ]
+    },
+    "COMMAND_CLIPBOARD_UNDO": {
+      "shortcuts": [
+        "ctrl+z"
+      ]
+    },
+    "COMMAND_CLOSE_TAB": {
+      "gestures": [
+        "20"
+      ],
+      "shortcuts": [
+        "ctrl+q"
+      ]
+    },
+    "COMMAND_CLOSE_WINDOW": {
+      "shortcuts": []
+    },
+    "COMMAND_COPY_SELECTION_TO_NOTE": {
+      "shortcuts": []
+    },
+    "COMMAND_DEVELOPER_TOOLS": {
+      "shortcuts": [
+        "ctrl+shift+i",
+        "f12"
+      ]
+    },
+    "COMMAND_DEVTOOLS_CONSOLE": {
+      "shortcuts": [
+        "ctrl+shift+j"
+      ]
+    },
+    "COMMAND_DEVTOOLS_INSPECTOR": {
+      "shortcuts": []
+    },
+    "COMMAND_DISBAND_TILE_GROUP": {
+      "shortcuts": []
+    },
+    "COMMAND_EXIT": {},
+    "COMMAND_FIND_IN_PAGE": {
+      "shortcuts": [
+        "ctrl+f"
+      ]
+    },
+    "COMMAND_FIND_NEXT_IN_PAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_FIND_PREVIOUS_IN_PAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_ADDRESSFIELD": {
+      "shortcuts": [
+        "ctrl+l"
+      ]
+    },
+    "COMMAND_FOCUS_MAINMENU": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_NEXT": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_PREVIOUS": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_SEARCHFIELD": {
+      "shortcuts": []
+    },
+    "COMMAND_FOCUS_WEBVIEW": {
+      "shortcuts": []
+    },
+    "COMMAND_FULLSCREEN": {
+      "shortcuts": [
+        "ctrl+shift+f"
+      ]
+    },
+    "COMMAND_GO_TO_PARENT_DIRECTORY": {
+      "shortcuts": []
+    },
+    "COMMAND_HIBERNATE_INACTIVE_WORKSPACES": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_COMPOSER_CHOOSE_ATTACHMENTS": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_COMPOSER_DELETE_DRAFT": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_COMPOSE_NEW_MESSAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_DELETE_PERMANENTLY": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_ENABLE_SENDER_VIEW": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_ENABLE_THREADED_VIEW": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_FORWARD": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_LABEL_FLAG": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_JUNK": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_NOT_JUNK": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_READ": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_READ_AND_GOTO_NEXT_UNREAD": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_THREAD_READ": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_THREAD_UNREAD": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_MARK_UNREAD": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_QUEUE_MESSAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_REPLY": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_REPLY_ALL": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_REPLY_LIST": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_SEND_MESSAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_SHOW_MAIL_INFO": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIL_SHOW_QUICK_REPLY": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_TOGGLE_ADDRESS_BAR": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_TOGGLE_PANEL_TOGGLE": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_TOGGLE_TAB_BAR": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_TOGGLE_UI": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_ZOOM_DOUBLE": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_ZOOM_HALF": {
+      "shortcuts": []
+    },
+    "COMMAND_MAIN_ZOOM_IN": {
+      "shortcuts": [
+        "ctrl++",
+        "ctrl+="
+      ]
+    },
+    "COMMAND_MAIN_ZOOM_OUT": {
+      "shortcuts": [
+        "ctrl+-"
+      ]
+    },
+    "COMMAND_MAIN_ZOOM_RESET": {
+      "shortcuts": [
+        "ctrl+0"
+      ]
+    },
+    "COMMAND_NEW_BACKGROUND_TAB": {
+      "gestures": [
+        "26"
+      ]
+    },
+    "COMMAND_NEW_BACKGROUND_TAB_LINK": {
+      "gestures": [
+        "e26"
+      ]
+    },
+    "COMMAND_NEW_PRIVATE_WINDOW": {
+      "shortcuts": [
+        "ctrl+shift+p"
+      ]
+    },
+    "COMMAND_NEW_TAB": {
+      "gestures": [
+        "2"
+      ],
+      "shortcuts": [
+        "ctrl+n"
+      ]
+    },
+    "COMMAND_NEW_TAB_LINK": {
+      "gestures": [
+        "e2"
+      ]
+    },
+    "COMMAND_NEW_TAB_OUTSIDE_GROUP": {
+      "shortcuts": []
+    },
+    "COMMAND_NEW_WINDOW": {
+      "shortcuts": []
+    },
+    "COMMAND_OPEN_PAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_PAGE_BACK": {
+      "gestures": [
+        "4"
+      ],
+      "shortcuts": []
+    },
+    "COMMAND_PAGE_FAST_FORWARD": {
+      "gestures": [
+        "06"
+      ]
+    },
+    "COMMAND_PAGE_FORWARD": {
+      "gestures": [
+        "0"
+      ],
+      "shortcuts": []
+    },
+    "COMMAND_PAGE_REFRESH": {
+      "gestures": [
+        "62"
+      ],
+      "shortcuts": [
+        "ctrl+r",
+        "f5"
+      ]
+    },
+    "COMMAND_PAGE_RELOAD_NOCACHE": {
+      "shortcuts": [
+        "ctrl+shift+r",
+        "ctrl+f5"
+      ]
+    },
+    "COMMAND_PAGE_REWIND": {
+      "gestures": [
+        "42"
+      ]
+    },
+    "COMMAND_PRINT_PAGE": {
+      "shortcuts": [
+        "ctrl+p"
+      ]
+    },
+    "COMMAND_READERVIEW_TOGGLE": {
+      "shortcuts": []
+    },
+    "COMMAND_SAVE_PAGE": {
+      "shortcuts": [
+        "ctrl+w"
+      ]
+    },
+    "COMMAND_SHOW_BOOKMARKS": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_BOOKMARK_BAR": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_CLEAR_PRIVATE_DATA": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_DOWNLOADS_PANEL": {
+      "shortcuts": [
+        "ctrl+d"
+      ]
+    },
+    "COMMAND_SHOW_EXTENSIONS": {
+      "shortcuts": [
+        "ctrl+shift+e"
+      ]
+    },
+    "COMMAND_SHOW_HELP": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_HISTORY": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_HISTORY_PANEL": {
+      "shortcuts": [
+        "ctrl+h"
+      ]
+    },
+    "COMMAND_SHOW_HOMEPAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_KEYBOARDSHORTCUTS": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_MAIL_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_NEXT_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_NOTES_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_PREVIOUS_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_QUICK_COMMANDS": {
+      "shortcuts": [
+        "ctrl+t"
+      ]
+    },
+    "COMMAND_SHOW_SETTINGS": {
+      "shortcuts": [
+        "ctrl+s"
+      ]
+    },
+    "COMMAND_SHOW_TAB_BUTTON_POPOUT": {
+      "shortcuts": []
+    },
+    "COMMAND_SHOW_WORKSPACE_MENU": {
+      "shortcuts": []
+    },
+    "COMMAND_SPATNAV_DOWN": {
+      "shortcuts": []
+    },
+    "COMMAND_SPATNAV_LEFT": {
+      "shortcuts": []
+    },
+    "COMMAND_SPATNAV_RIGHT": {
+      "shortcuts": []
+    },
+    "COMMAND_SPATNAV_UP": {
+      "shortcuts": []
+    },
+    "COMMAND_STOP_PAGE": {
+      "gestures": [
+        "6"
+      ],
+      "shortcuts": [
+        "esc"
+      ]
+    },
+    "COMMAND_TAB_MOVE_BACKWARD": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_MOVE_FORWARD": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_REOPEN_RECENTLY_CLOSED": {
+      "gestures": [
+        "60"
+      ],
+      "shortcuts": [
+        "ctrl+z"
+      ]
+    },
+    "COMMAND_TAB_STACK_TILE_GRID": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_STACK_TILE_HORIZONTAL": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_STACK_TILE_VERTICAL": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_1": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_2": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_3": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_4": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_5": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_6": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_7": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_8": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_BACK_HISTORY": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_BACK_ORDER": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_BACK_SETTING": {
+      "shortcuts": [
+        "ctrl+i"
+      ]
+    },
+    "COMMAND_TAB_SWITCH_FORWARD_HISTORY": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_FORWARD_ORDER": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_SWITCH_FORWARD_SETTING": {
+      "shortcuts": [
+        "ctrl+e"
+      ]
+    },
+    "COMMAND_TAB_SWITCH_LAST": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_THUMBNAIL": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_TRANSLATE_PAGE": {
+      "shortcuts": []
+    },
+    "COMMAND_TAB_VIEW_PAGE_SOURCE": {
+      "shortcuts": [
+        "ctrl+u"
+      ]
+    },
+    "COMMAND_TASK_MANAGER": {
+      "shortcuts": []
+    },
+    "COMMAND_TOGGLE_FOOTER": {
+      "shortcuts": []
+    },
+    "COMMAND_TOGGLE_FORCE_DARK_MODE": {
+      "shortcuts": []
+    },
+    "COMMAND_TOGGLE_IMAGES": {
+      "shortcuts": []
+    },
+    "COMMAND_TOGGLE_MENU_POSITION": {
+      "shortcuts": []
+    },
+    "COMMAND_TOGGLE_PANEL": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_1": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_10": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_2": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_3": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_4": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_5": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_6": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_7": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_8": {
+      "shortcuts": []
+    },
+    "COMMAND_WORKSPACE_SWITCH_9": {
+      "shortcuts": []
+    }
+  }
+]

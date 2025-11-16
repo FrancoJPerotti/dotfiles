@@ -1,0 +1,40 @@
+name = "Dotfiles Workflow"
+session = "dotfiles_workflow"
+description = "Dotfiles editing workflow"
+
+[defaults]
+shell = "/bin/zsh"
+shell_args = ["-ic"]
+terminal_program = ["kitty", "--class", "nvim-workflow", "--name", "nvim-workflow"]
+terminal_args = ["zsh", "-lc"]
+
+[[tabs]]
+name = "Dotfiles"
+[tabs.root]
+split_direction = "vertical"
+
+[[tabs.root.children]]
+id = "nvim-pane"
+name = "Neovim"
+size = "70%"
+focus = true
+cwd = "$HOME/dotfiles"
+command = "zellij-nvim-entry"
+
+[[tabs.root.children]]
+id = "terminals-pane"
+name = "Terminals"
+size = "30%"
+stacked = true
+
+[[tabs.root.children.children]]
+name = "Dotfiles_1"
+cwd = "$HOME/dotfiles"
+
+[[tabs.root.children.children]]
+name = "Dotfiles_2"
+cwd = "$HOME/dotfiles"
+
+[[tabs.root.children.children]]
+name = "Dotfiles_3"
+cwd = "$HOME/dotfiles"

@@ -1,0 +1,59 @@
+name = "Dev Loop"
+session = "dev-loop"
+description = "Focused project loop with server, tests, and logs"
+
+[context]
+project_dir = "$home/repos/example_project"
+server_cmd = "npm run dev"
+test_cmd = "npm test -- --watch"
+log_file = "$project_dir/logs/app.log"
+git_cmd = "git status -sb"
+
+[defaults]
+shell = "/bin/zsh"
+shell_args = ["-ic"]
+terminal_program = ["kitty"]
+terminal_args = ["zsh", "-lc"]
+
+[[tabs]]
+name = "Editor"
+[tabs.root]
+cwd = "$project_dir"
+command = "nvim"
+
+[[tabs]]
+name = "Runner"
+[tabs.root]
+split_direction = "Vertical"
+
+[[tabs.root.children]]
+name = "Dev Server"
+cwd = "$project_dir"
+command = "$server_cmd"
+focus = true
+
+[[tabs.root.children]]
+name = "Test Watcher"
+cwd = "$project_dir"
+command = "$test_cmd"
+
+[[tabs]]
+name = "Git & Logs"
+[tabs.root]
+split_direction = "Vertical"
+
+[[tabs.root.children]]
+name = "Git Status"
+cwd = "$project_dir"
+command = "while true; do clear; $git_cmd; sleep 5; done"
+
+[[tabs.root.children]]
+name = "Logs"
+cwd = "$project_dir"
+command = "LOG=\"$log_file\"; if [ -f \"$LOG\" ]; then tail -f \"$LOG\"; else while true; do echo \"Log file not found: $LOG\"; sleep 5; done; fi"
+
+[[tabs]]
+name = "Scratch"
+[tabs.root]
+cwd = "$project_dir"
+

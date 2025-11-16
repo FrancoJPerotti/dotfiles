@@ -1,0 +1,8 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=Google AI Studio
+Exec=/opt/vivaldi/vivaldi --app=https://aistudio.google.com
+Icon=~/.local/share/applications/web_app_icons/aistudio.svg
+Keywords=google;ai;studio;artificial intelligence;machine learning;productivity;
+

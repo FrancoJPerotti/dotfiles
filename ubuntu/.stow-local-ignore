@@ -1,0 +1,5 @@
+^custom(/|$)
+^README\.md$
+^pkglist\.txt$
+^aurlist\.txt$
+^install\.sh$

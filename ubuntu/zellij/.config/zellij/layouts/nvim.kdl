@@ -1,0 +1,22 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=1 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+
+    tab name="Editor" {
+        pane split_direction="horizontal" {
+            pane name="nvim" size=3 focus=true {
+                command "zellij-nvim-entry"
+            }
+            pane name="shell" size=2 {
+                command "zsh"
+            }
+        }
+    }
+}

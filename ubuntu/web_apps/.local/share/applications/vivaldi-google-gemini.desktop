@@ -1,0 +1,8 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=Google Gemini
+Exec=/opt/vivaldi/vivaldi --app=https://gemini.google.com/app
+Icon=~/.local/share/applications/web_app_icons/gemini.svg
+Keywords=google;gemini;ai;artificial intelligence;machine learning;productivity;
+

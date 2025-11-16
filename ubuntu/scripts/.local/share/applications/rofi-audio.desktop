@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Audio Picker
+Comment=Select audio outputs and inputs via rofi
+Exec=/bin/sh -c "$HOME/.local/bin/rofi_audio_picker.sh"
+Icon=audio-card
+Terminal=false
+Categories=AudioVideo;Settings;Utility;
+Keywords=audio;rofi;sink;source;pipewire;pulse;
+NoDisplay=false
+StartupNotify=false

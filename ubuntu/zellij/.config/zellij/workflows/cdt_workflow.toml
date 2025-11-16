@@ -1,0 +1,52 @@
+name = "CDT Workflow"
+session = "cdt_workflow"
+description = "CDT rule development workflow"
+
+[context]
+tools_dir = "$HOME/tools"
+abram_dir = "$HOME/repos/abram_rules"
+
+[defaults]
+shell = "/bin/zsh"
+shell_args = ["-ic"]
+terminal_program = ["kitty", "--class", "nvim-workflow", "--name", "nvim-workflow"]
+terminal_args = ["zsh", "-lc"]
+
+[[tabs]]
+name = "Workspace"
+[tabs.root]
+split_direction = "vertical"
+
+[[tabs.root.children]]
+id = "nvim-pane"
+name = "Neovim"
+size = "70%"
+focus = true
+command = "zellij-nvim-entry"
+
+[[tabs.root.children]]
+id = "workspace-pane"
+name = "Terminals"
+size = "30%"
+stacked = true
+
+[[tabs.root.children.children]]
+name = "Project_1"
+
+[[tabs.root.children.children]]
+name = "Project_2"
+
+[[tabs.root.children.children]]
+name = "Project_3"
+
+[[tabs.root.children.children]]
+name = "ABRAM Rules Agent"
+cwd = "$abram_dir"
+
+[[foreach]]
+glob = "$tools_dir/*/*"
+directories = true
+target_pane = "workspace-pane"
+[foreach.pane]
+name = "${basename_spaces_upper} Agent"
+cwd = "$path"

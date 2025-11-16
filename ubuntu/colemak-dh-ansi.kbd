@@ -1,0 +1,86 @@
+;; Base layer: standard QWERTY layout with common modifiers
+(defsrc
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft   z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl     lmet lalt           spc            ralt rctl
+)
+
+;; Colemak layer aliases
+(defalias
+  fun  (layer-while-held function)                         ;; Hold for function layer
+  caps caps                                                ;; Caps Lock key
+  num  (tap-hold-press 150 150 tab (layer-while-held num)) ;; Tap: Tab, Hold: Num layer (150ms threshold)
+  lshz (tap-hold-press 150 150 b lsft)                     ;; Tap: 'b', Hold: Left Shift (150ms threshold)
+  rshz (tap-hold-press 150 150 y rsft)                     ;; Tap: 'y', Hold: Right Shift (150ms threshold)
+  tspc (tap-hold-press 170 170 spc lalt)                   ;; Tap: Space, Hold: Left Alt (150ms threshold)
+)
+
+;; function layer aliases
+(defalias
+  pw C-left                            ;; Move cursor to the previous word
+  nw C-right                           ;; Move cursor to the next word
+  mscl (layer-while-held mouse_scroll) ;; Activate mouse scroll layer while held
+)
+
+(defalias
+  msu (movemouse-up 1 1)    ;; Move mouse up by 1 unit
+  msl (movemouse-left 1 1)  ;; Move mouse left by 1 unit
+  msd (movemouse-down 1 1)  ;; Move mouse down by 1 unit
+  msr (movemouse-right 1 1) ;; Move mouse right by 1 unit
+)
+
+;; The first layer defined is the layer that will be active by default when kanata starts up.
+;; Set colemak as keyboard layer in tiling manager
+(deflayer colemak
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  @num   _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      -
+  @lshz  _      _      _      _      _      _      _      _      _      _      @rshz
+  _             @caps  ralt                 @tspc                @fun   _
+)
+
+;; Num layer
+;; This layer defines a numeric keypad layout, mapping number keys (0-9) to specific positions for quick access, similar to a standard numpad. Unused positions are marked as XX.
+(deflayer num
+  XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX
+  XX     XX     XX     XX     XX     XX     XX     XX     7      8      9      XX     XX     XX     
+  XX     XX     XX     XX     XX     XX     XX     XX     4      5      6      XX     XX     
+  XX     XX     XX     XX     XX     XX     XX     XX     1      2      3      XX     
+  XX            XX     XX                   _                    0      XX
+)
+
+;; Function layer: This layer defines key mappings for media controls (volume, mute, previous/next track, play/pause), navigation (home, end, arrow keys), and some custom actions (@pw, @nw, @mscl, mlft, mrgt).
+(deflayer function
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      brup   vold   mute   volu   _      _      _      home   @pw    @nw    end    _      _
+  _      brdwn  prev   pp     next   _      _      _      left   down   up     right  _      
+  _      _      _      _      _      _      _      _      mlft   mrgt   _      _      
+  _             _      _                    @mscl                _       _
+)
+
+;; Mouse scroll layer
+;; This layer defines key mappings for mouse scroll actions:
+;; - @msl, @msd, @msu, @msr: mouse scroll left, down, up, right (modifiers)
+;; - mwl, mwd, mwu, mwr: mouse wheel left, down, up, right
+(deflayer mouse_scroll
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      @msl   @msd   @msu   @msr   _      _
+  _      _      _      _      _      _      _      _      mwl    mwd    mwu    mwr    _      
+  _      _      _      _      _      _      _      _      _      _      _             _      
+  _             _      _                    _                           _      _
+)
+
+(defcfg concurrent-tap-hold yes)
+(defchordsv2
+  (s d) bspc 22 all-released ()                   ;; Backspace key
+  (w e) esc 22 all-released ()                    ;; Escape key
+  (l ;) ret 22 all-released ()                    ;; Enter/Return key
+  (o p) lmet 22 all-released ()                   ;; Caps Lock key
+  (d f) C-bspc 22 all-released ()                 ;; Delete previous word
+  (k l) S-ret 22 all-released ()                  ;; Shift+Enter (insert new line)
+  (a g) F12 22 all-released ()                    ;; Close current window
+  (s d f) (macro S-home bspc) 30 first-release () ;; Delete entire line
+  (. /) C-m 22 all-released ()                    ;; Press Control+K
+)

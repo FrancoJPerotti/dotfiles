@@ -1,0 +1,48 @@
+*  | g      | Google           | https://google.com/search?q=
+   | gi     | Google Images    | https://google.com/search?tbm=isch&q=
+  󰊪 | gt     | Google Translate | https://translate.google.com/?sl=en&tl=es&text=
+  󰚩 | chat   | ChatGPT          | https://chatgpt.com/?q=
+   | yg     | YouGlish         | https://youglish.com/pronounce/{q}/english/us
+   | w      | Wikipedia        | https://en.wikipedia.org/w/index.php?search=
+  󰣇 | aw     | Arch Wiki        | https://wiki.archlinux.org/index.php?search=
+   | y      | YouTube          | https://youtube.com/results?search_query=
+   | so     | Stack Overflow   | https://stackoverflow.com/search?q=
+   | gh     | GitHub           | https://github.com/search?q=
+   | r      | Reddit           | https://reddit.com/search/?q=
+   | mdn    | MDN Web Docs     | https://developer.mozilla.org/en-US/search?q=
+   | pypi   | PyPI             | https://pypi.org/search/?q=
+   | npm    | npm              | https://npmjs.com/search?q=
+  󰡨 | dkr    | Docker Hub       | https://hub.docker.com/search?q=
+   | pg     | PostgreSQL Docs  | https://postgresql.org/search/?q=
+   | my     | MySQL Docs       | https://dev.mysql.com/search/?q=
+   | an     | Android Docs     | https://developer.android.com/s/results?q=
+   | go     | Go Packages      | https://pkg.go.dev/search?q=
+   | aws    | AWS Docs         | https://docs.aws.amazon.com/search/doc-search.html?searchPath=all&q=
+   | k8s    | Kubernetes Docs  | https://kubernetes.io/search/?q=
+   | rust   | Rust Docs        | https://doc.rust-lang.org/std/index.html?search=
+  󰢱 | lua    | LuaRocks         | https://luarocks.org/search?q=
+   | tw     | Twitter/X        | https://x.com/search?q=
+   | imdb   | IMDb             | https://imdb.com/find/?q=
+   | libg   | LibGen           | https://libgen.is/search.php?req=
+   | zlib   | Z-Library        | https://singlelogin.me/s/?q=
+   | scih   | Sci-Hub          | https://sci-hub.se/
+   | gsch   | Google Scholar   | https://scholar.google.com/scholar?q=
+  󰊫 | gm     | Gmail            | https://mail.google.com/mail/u/0/#search/
+  󰴢 | out    | Outlook          | https://outlook.live.com/mail/0/search/id/AAMk?q=
+   | amz    | Amazon           | https://amazon.com/s?k=
+   | ali    | Aliexpress       | https://aliexpress.com/wholesale?SearchText=
+   | ml     | MercadoLibre     | https://listado.mercadolibre.com.ar/
+  󰗵 | map    | Google Maps      | https://google.com/maps/search/
+   | do     | DevDocs          | https://devdocs.io/#q=
+   | gl     | GitLab           | https://gitlab.com/search?search=
+   | sf     | SourceForge      | https://sourceforge.net/directory/?q=
+   | hn     | Hacker News      | https://hn.algolia.com/?q=
+   | fcc    | FreeCodeCamp     | https://freecodecamp.org/news/search/?q=
+   | cp     | CodePen          | https://codepen.io/search/pens?q=
+   | lc     | LeetCode         | https://leetcode.com/search/?q=
+   | gfg    | GeeksforGeeks    | https://geeksforgeeks.org/search/?q=
+   | se     | Stack Exchange   | https://stackexchange.com/search?q=
+   | w3s    | W3Schools        | https://w3schools.com/#gsc.tab=0&gsc.q=
+   | csdn   | CSDN             | https://so.csdn.net/so/search?q=
+   | rc     | Rosetta Code     | https://rosettacode.org/wiki/Special:Search?search
+   | conan  | Conan Center     | https://conan.io/center/recipes?value=

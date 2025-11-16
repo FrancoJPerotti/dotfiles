@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Autorandr Picker
+Comment=Switch display profiles using autorandr and rofi
+Exec=/bin/sh -c "$HOME/.local/bin/rofi_autorandr_picker.sh"
+Icon=video-display
+Terminal=false
+Categories=Settings;HardwareSettings;
+Keywords=rofi;autorandr;display;screen;monitor;xrandr;
+NoDisplay=false
+StartupNotify=false
