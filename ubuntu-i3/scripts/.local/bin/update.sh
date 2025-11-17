@@ -139,7 +139,7 @@ run_task() {
     start=$(date +%s)
 
     if ((DRY_RUN)); then
-        printf "${C_YELLOW}[DRY-RUN] Would execute:${C_RESET} "
+        printf '%s[DRY-RUN] Would execute:%s ' "${C_YELLOW}" "${C_RESET}"
         printf '%q ' "$@"
         printf '\n'
         printf '%s %s %s\n' "$S_TICK" "$msg" "${C_DIM}(0s)${C_RESET}"
