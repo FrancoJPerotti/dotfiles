@@ -19,7 +19,9 @@ This document tracks potential improvements, enhancements, and fixes for the dot
   - Generated SHELLCHECK_REPORT.md with findings
   - **ALL 31 ISSUES FIXED - 100% SHELLCHECK CLEAN!** 🎉
   - 14 files modified, 34/34 scripts now pass shellcheck
-- [ ] Make all `.sh` scripts executable (`chmod +x`)
+- [x] Make all `.sh` scripts executable (`chmod +x`) ✅ (2025-11-17)
+  - All 32 active scripts are now executable
+  - Removed obsolete hyde/stow-all.sh wrapper (was calling deleted script)
 - [x] Decide on deprecation path: either remove `stow-all.sh` or `stow-manager` (they duplicate functionality) ✅ (2025-11-17)
   - Removed stow-all.sh in favor of stow-manager
 - [x] Consolidate `install.sh` and `install_v2.sh` in ubuntu/ (having two install scripts is confusing) ✅ (2025-11-17)
