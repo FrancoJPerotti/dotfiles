@@ -83,6 +83,6 @@ fi
 echo "}" >> "$LAYOUT_FILE"
 
 echo "Launching zellij workspace in new terminal..."
-LAYOUT_FILE="$LAYOUT_FILE" SESSION_NAME="$SESSION_NAME" exec kitty zsh -c '
-    zellij --new-session-with-layout "$LAYOUT_FILE" --session "$SESSION_NAME" || { echo "Zellij failed!"; read; }
-'
+LAYOUT_FILE="$LAYOUT_FILE" SESSION_NAME="$SESSION_NAME" exec kitty zsh -c "
+    zellij --new-session-with-layout \"\$LAYOUT_FILE\" --session \"\$SESSION_NAME\" || { echo 'Zellij failed!'; read; }
+"
