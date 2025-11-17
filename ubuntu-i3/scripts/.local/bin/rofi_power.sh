@@ -4,7 +4,7 @@ set -euo pipefail
 CURRENT_LOCK_WALLPAPER="$HOME/.local/share/wallpapers/current_lock_wallpaper"
 
 # -------- settings --------
-LOCK_CMD="i3lock -i "$CURRENT_LOCK_WALLPAPER" -n" # solid black background
+LOCK_CMD="i3lock -i \"$CURRENT_LOCK_WALLPAPER\" -n" # solid black background
 
 ROFI_BASE=(rofi -dmenu -i -markup-rows -p "  power"
   -show-icons false
