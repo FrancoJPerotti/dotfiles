@@ -20,10 +20,17 @@ This document tracks potential improvements, enhancements, and fixes for the dot
   - **ALL 31 ISSUES FIXED - 100% SHELLCHECK CLEAN!** 🎉
   - 14 files modified, 34/34 scripts now pass shellcheck
 - [ ] Make all `.sh` scripts executable (`chmod +x`)
-- [ ] Decide on deprecation path: either remove `stow-all.sh` or `stow-manager` (they duplicate functionality)
-- [ ] Consolidate `install.sh` and `install_v2.sh` in ubuntu/ (having two install scripts is confusing)
-- [ ] Add error handling and logging to installation scripts
-- [ ] Create unified logging function across all scripts
+- [x] Decide on deprecation path: either remove `stow-all.sh` or `stow-manager` (they duplicate functionality) ✅ (2025-11-17)
+  - Removed stow-all.sh in favor of stow-manager
+- [x] Consolidate `install.sh` and `install_v2.sh` in ubuntu/ (having two install scripts is confusing) ✅ (2025-11-17)
+  - Merged into single install.sh with best features of both
+  - Added error handling, progress tracking, and repair functionality
+  - Old version preserved as install_old.sh for reference
+- [x] Add error handling and logging to installation scripts ✅ (2025-11-17)
+  - Implemented err_trap for automatic error handling
+  - Added modular logging functions (log_step, log_ok, log_skip, log_err)
+- [x] Create unified logging function across all scripts ✅ (2025-11-17)
+  - Consolidated install.sh now has consistent logging patterns
 
 ### Script Improvements
 - [ ] Add rollback functionality to installation scripts in case of failure
