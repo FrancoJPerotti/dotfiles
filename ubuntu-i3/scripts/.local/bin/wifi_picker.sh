@@ -56,7 +56,8 @@ show_status_menu() {
 build_menu() {
     local entries=()
     declare -A seen=()
-    local current="$(active_ssid)"
+    local current
+    current="$(active_ssid)"
 
     entries+=("  Toggle Wi-Fi")
     entries+=("󰌺  Disconnect")
@@ -116,7 +117,11 @@ case "$choice" in
         $NOTIFY "Wi-Fi" "No Wi-Fi device found."
         exit 0
     fi
-    nmcli device disconnect "$dev" && $NOTIFY "Wi-Fi" "Disconnected $dev." || $NOTIFY "Wi-Fi" "Failed to disconnect."
+    if nmcli device disconnect "$dev"; then
+        $NOTIFY "Wi-Fi" "Disconnected $dev."
+    else
+        $NOTIFY "Wi-Fi" "Failed to disconnect."
+    fi
     exit 0
     ;;
 *"Status"*)

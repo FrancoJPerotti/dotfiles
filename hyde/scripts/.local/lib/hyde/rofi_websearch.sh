@@ -24,8 +24,6 @@
 #     - hyprctl: For window focusing on the Hyprland compositor.
 #     - vivaldi: The target browser for this script's launch logic.
 #
-# shellcheck disable=SC2155,SC2001
-
 # Exit immediately if a command exits with a non-zero status.
 # Exit immediately if a pipeline fails.
 # Treat unset variables as an error.
@@ -284,7 +282,8 @@ rebuild_webapps_cache() {
         done <"$file"
         # If a valid app URL was found, process and cache it.
         if [[ -n "$appurl" ]]; then
-            local host="$(strip_www "$(host_of "$appurl")")"
+            local host
+            host="$(strip_www "$(host_of "$appurl")")"
             [[ -n "$host" ]] && printf "%s|%s\n" "$host" "${name:-$host}" >>"$WEBAPP_CACHE_TXT"
         fi
     done
@@ -300,7 +299,8 @@ ensure_webapps_cache() {
         echo "${WEBAPPS_DIR}"
     ) | cksum | awk '{print $1}')"
 
-    local old_sig="$(cat "$WEBAPP_DIR_SIG" 2>/dev/null || true)"
+    local old_sig
+    old_sig="$(cat "$WEBAPP_DIR_SIG" 2>/dev/null || true)"
     # If the signature has changed or the cache file is empty, rebuild it.
     if [[ "$sig" != "$old_sig" ]] || [[ ! -s "$WEBAPP_CACHE_TXT" ]]; then
         rebuild_webapps_cache
@@ -349,7 +349,9 @@ remember_engine() {
 
 # Adds the typed query to the top of the history for that specific engine.
 remember_query() {
-    local alias="$1" query="$2" history_file="${CACHE_DIR}/${alias}.txt"
+    local alias="$1"
+    local query="$2"
+    local history_file="${CACHE_DIR}/${alias}.txt"
     # Same logic as remember_engine: prepend and filter duplicates.
     {
         printf "%s\n" "$query"
@@ -372,7 +374,8 @@ engine_picker_screen() {
 
 # Displays the query prompt for a selected search engine.
 query_prompt() {
-    local alias="$1" history_file="${CACHE_DIR}/${alias}.txt"
+    local alias="$1"
+    local history_file="${CACHE_DIR}/${alias}.txt"
     touch "$history_file" # Ensure the history file exists.
     rofi -dmenu -i -p "${NAME[$alias]} → query" \
         -config "$ROFI_THEME_NAME" -theme-str "$R_OVERRIDE" -theme-str "$FONT_OVERRIDE" \
@@ -404,8 +407,8 @@ perform_search() {
     else
         # If there is a query, save it to history and construct the final URL.
         remember_query "$alias" "$query"
-        # SC2318: It is safe to combine declaration and assignment here.
-        local encoded_query="$(urlencode "$query")"
+        local encoded_query
+        encoded_query="$(urlencode "$query")"
         if [[ "$base_url" == *"{q}"* ]]; then
             final_url="${base_url//\{q\}/$encoded_query}"
         else
@@ -415,9 +418,10 @@ perform_search() {
 
     # Check if this URL corresponds to a known web app.
     ensure_webapps_cache
-    # SC2318: It is safe to combine declaration and assignment here.
-    local engine_host_raw="$(strip_www "$(host_of "$base_url")")"
-    local app_name="$(webapp_name_for_host "$engine_host_raw")"
+    local engine_host_raw
+    engine_host_raw="$(strip_www "$(host_of "$base_url")")"
+    local app_name
+    app_name="$(webapp_name_for_host "$engine_host_raw")"
 
     # Launch in app mode or a new tab, then focus the window.
     if [[ -n "$app_name" ]]; then

@@ -28,7 +28,8 @@ trap err_trap ERR
 
 # ========== Configuration & Constants ==========
 readonly TARGET_USER="${SUDO_USER:-$USER}"
-readonly USER_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+USER_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+readonly USER_HOME
 
 # UI/UX Helpers
 readonly C_RESET=$'\033[0m'

@@ -53,9 +53,7 @@ get_shortcuts() {
     mkdir -p "$(dirname "$dest_file")"
 
     # Use jq to extract the '.vivaldi.actions' object
-    jq '.vivaldi.actions' "$source_file" > "$dest_file"
-
-    if [ $? -eq 0 ]; then
+    if jq '.vivaldi.actions' "$source_file" > "$dest_file"; then
         echo "Success! Shortcuts saved."
     else
         echo "Error: Failed to extract shortcuts. Is the source file a valid Vivaldi Preferences file?"
@@ -94,14 +92,13 @@ apply_shortcuts() {
         exit 1
     fi
 
-    local backup_file="${dest_file}.bak.$(date +%Y%m%d_%H%M%S)"
+    local backup_file
+    backup_file="${dest_file}.bak.$(date +%Y%m%d_%H%M%S)"
     echo "Creating a backup at '$backup_file'"
     cp "$dest_file" "$backup_file"
 
     # Use jq to merge the shortcuts into the destination file
-    jq --argjson shortcuts "$(cat "$source_file")" '.vivaldi.actions = $shortcuts' "$backup_file" > "$dest_file"
-
-    if [ $? -eq 0 ]; then
+    if jq --argjson shortcuts "$(cat "$source_file")" '.vivaldi.actions = $shortcuts' "$backup_file" > "$dest_file"; then
         echo "Success! Shortcuts have been restored."
     else
         echo "Error: Failed to apply shortcuts. Your original settings are safe in '$backup_file'."
