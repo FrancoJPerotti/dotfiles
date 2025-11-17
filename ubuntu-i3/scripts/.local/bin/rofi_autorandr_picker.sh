@@ -20,8 +20,11 @@ run_rofi() {
     "$@"
 }
 
-NOTIFY="notify-send -u low -t 2500 autorandr"
-have notify-send || NOTIFY="printf '%s\n'"
+if have notify-send; then
+  NOTIFY=(notify-send -u low -t 2500 autorandr)
+else
+  NOTIFY=(printf '%s\n')
+fi
 
 declare -a menu_entries=()
 declare -a entry_actions=()
@@ -101,7 +104,7 @@ if ((${#menu_entries[@]} == 0)); then
 fi
 
 if ((${#menu_entries[@]} == 0)); then
-  $NOTIFY "No autorandr profiles found."
+  "${NOTIFY[@]}" "No autorandr profiles found."
   exit 0
 fi
 
@@ -124,7 +127,7 @@ case "$selected_action" in
     [[ -z "$profile" ]] && exit 0
 
     if autorandr --load "$profile"; then
-      $NOTIFY "Loaded profile: $profile"
+      "${NOTIFY[@]}" "Loaded profile: $profile"
       if [[ -x "$HOME/.local/bin/launch_polybar.sh" ]]; then
         "$HOME/.local/bin/launch_polybar.sh"
       else
@@ -136,7 +139,7 @@ case "$selected_action" in
         "$HOME/dotfiles/scripts/.local/bin/apply_wallpaper.sh" 2>/dev/null || true
       fi
     else
-      $NOTIFY "Failed to load profile: $profile"
+      "${NOTIFY[@]}" "Failed to load profile: $profile"
       exit 1
     fi
     ;;
@@ -146,9 +149,9 @@ case "$selected_action" in
     [[ -z "$name_prompt" ]] && exit 0
 
     if autorandr --save "$name_prompt"; then
-      $NOTIFY "Saved profile: $name_prompt"
+      "${NOTIFY[@]}" "Saved profile: $name_prompt"
     else
-      $NOTIFY "Failed to save profile: $name_prompt"
+      "${NOTIFY[@]}" "Failed to save profile: $name_prompt"
       exit 1
     fi
     ;;
