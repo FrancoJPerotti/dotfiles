@@ -1,0 +1,627 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Stow Manager - Unified stow/unstow tool for dotfiles management.
+# - Stows or unstows packages from common/ + a profile directory.
+# - In dry-run mode, shows a tree view of planned changes.
+# - Idempotent: safe to run multiple times without side effects.
+#
+# Usage:
+#   ./stow-manager --stow [profile] [-n|--dry-run]
+#   ./stow-manager --unstow [profile] [-n|--dry-run]
+#   ./stow-manager -s arch -n
+#   ./stow-manager -u ubuntu
+
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+TARGET_PROFILE=""
+DRY_RUN=false
+ACTION=""
+
+usage() {
+  cat <<EOF
+Usage:
+  $0 <action> [profile] [options]
+
+Actions:
+  -s, --stow     Create symlinks for dotfiles (default if no action specified)
+  -u, --unstow   Remove symlinks for dotfiles
+
+Examples:
+  $0 --stow arch -n          # Preview stowing arch profile
+  $0 -s ubuntu               # Stow ubuntu profile
+  $0 --unstow arch           # Unstow arch profile
+  $0 -u -n                   # Preview unstowing current profile
+  $0 -s                      # Stow auto-detected profile
+
+Options:
+  -n, --dry-run  Preview only – do not make changes.
+  -h, --help     Show this help message.
+
+Behaviour:
+  - Operates on two domains: common/ and <profile>/.
+  - Profiles can represent different distros, window managers, work configs, etc.
+  - For each domain, every top-level directory is treated as a Stow package,
+    except those listed in that domain's .stow-exclude file or built-in
+    ignores (.git, .github, .stow-local-ignore, .stow-exclude).
+  - Shows a tree visualization of all planned changes.
+  - Idempotent operation: running multiple times has no adverse effects.
+    Conflicts are intelligently detected and only non-stowed files are removed.
+EOF
+}
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  -s | --stow)
+    ACTION="stow"
+    shift
+    ;;
+  -u | --unstow)
+    ACTION="unstow"
+    shift
+    ;;
+  -n | --dry-run)
+    DRY_RUN=true
+    shift
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -*)
+    echo "❌ Unknown option: $1" >&2
+    usage
+    exit 1
+    ;;
+  *)
+    # Non-option argument is the profile name
+    if [[ -z "$TARGET_PROFILE" ]]; then
+      TARGET_PROFILE="$1"
+      shift
+    else
+      echo "❌ Unexpected argument: $1" >&2
+      usage
+      exit 1
+    fi
+    ;;
+  esac
+done
+
+# Default action is stow
+if [[ -z "$ACTION" ]]; then
+  ACTION="stow"
+fi
+
+# Auto-detect profile based on distro if not explicitly provided
+if [[ -z "${TARGET_PROFILE}" && -r /etc/os-release ]]; then
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  case "${ID:-}" in
+  arch | endeavouros | manjaro) TARGET_PROFILE="arch" ;;
+  ubuntu | pop | linuxmint | neon | zorin) TARGET_PROFILE="ubuntu" ;;
+  esac
+fi
+
+if [[ -z "${TARGET_PROFILE}" ]]; then
+  echo "❌ Unable to determine target profile. Please specify one explicitly." >&2
+  profiles=""
+  for d in "$SCRIPT_DIR"/*/; do
+    dirname="${d%/}"
+    dirname="${dirname##*/}"
+    [[ "$dirname" != "common" ]] && profiles="$profiles$dirname "
+  done
+  echo "   Available profiles: $profiles" >&2
+  usage
+  exit 1
+fi
+
+info() { printf "ℹ️  %s\n" "$*"; }
+warn() { printf "⚠️  %s\n" "$*"; }
+error() { printf "❌ %s\n" "$*" >&2; }
+
+check_prerequisites() {
+  local has_error=false
+
+  # Check if stow is installed
+  if ! command -v stow &>/dev/null; then
+    error "GNU Stow is not installed."
+    echo "   Install with: sudo pacman -S stow  (Arch)" >&2
+    echo "            or: sudo apt install stow  (Ubuntu)" >&2
+    has_error=true
+  fi
+
+  # Check if target profile directory exists
+  if [[ ! -d "${SCRIPT_DIR}/${TARGET_PROFILE}" ]]; then
+    error "Profile directory not found: ${SCRIPT_DIR}/${TARGET_PROFILE}"
+    local profiles="" dirname
+    for d in "$SCRIPT_DIR"/*/; do
+      dirname="${d%/}"
+      dirname="${dirname##*/}"
+      [[ "$dirname" != "common" ]] && profiles="$profiles$dirname "
+    done
+    echo "   Available profiles: $profiles" >&2
+    has_error=true
+  fi
+
+  # Check if common directory exists
+  if [[ ! -d "${SCRIPT_DIR}/common" ]]; then
+    warn "Common directory not found: ${SCRIPT_DIR}/common"
+  fi
+
+  if $has_error; then
+    exit 1
+  fi
+}
+
+check_prerequisites
+
+declare -a EXCLUDED=()
+declare -a CONFLICT_PATHS=()
+declare -a CONFLICT_RECORDS=()
+declare -a LINK_RECORDS=()
+
+extract_conflict_from_line() {
+  local line="$1"
+  local rel=""
+
+  # Pattern 1: "existing target is not owned by stow: <path>"
+  if [[ $line =~ existing[[:space:]]target.*:[[:space:]](.+)$ ]]; then
+    rel="${BASH_REMATCH[1]}"
+  # Pattern 2: "existing target is a directory: <path>"
+  elif [[ $line =~ existing[[:space:]]target[[:space:]]is[[:space:]]a[[:space:]]directory:[[:space:]](.+)$ ]]; then
+    rel="${BASH_REMATCH[1]}"
+  # Pattern 3: "CONFLICT: <path>"
+  elif [[ $line =~ CONFLICT:[[:space:]](.+)$ ]]; then
+    rel="${BASH_REMATCH[1]}"
+  # Pattern 4: "cannot stow X over existing target <path> since …"
+  elif [[ $line =~ cannot[[:space:]]stow[[:space:]].*over[[:space:]]existing[[:space:]]target[[:space:]]([^[:space:]]+) ]]; then
+    rel="${BASH_REMATCH[1]}"
+  fi
+
+  echo "$rel"
+}
+
+is_stowed_package() {
+  local target="$1"
+  local domain_dir="$2"
+  local pkg_name="$3"
+  
+  # Check if target is a symlink pointing to our package
+  if [[ -L "$target" ]]; then
+    local link_dest
+    link_dest="$(readlink "$target")"
+    # Check if it points to our domain/package
+    if [[ "$link_dest" == "$domain_dir/$pkg_name"* ]] || [[ "$link_dest" == *"/$domain_dir/$pkg_name"* ]]; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+cleanup_conflicts() {
+  local domain_dir="$1"
+  local pkg_name="$2"
+  local -a conflicts=()
+  local domain="${domain_dir##*/}"
+
+  # Run stow simulation; capture output (exit 2 is expected when conflicts).
+  local sim_out
+  if ! sim_out=$(stow -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
+    :
+  fi
+
+  # Extract conflicting target paths
+  while IFS= read -r line; do
+    local rel
+    rel=$(extract_conflict_from_line "$line")
+
+    if [[ -n "$rel" ]]; then
+      local full_path="$HOME/$rel"
+      
+      # Skip if already a symlink to our package (idempotent check)
+      if is_stowed_package "$full_path" "$domain_dir" "$pkg_name"; then
+        continue
+      fi
+      
+      conflicts+=("$full_path")
+      CONFLICT_PATHS+=("$rel")
+      CONFLICT_RECORDS+=("$rel|$domain|$pkg_name")
+    fi
+  done <<<"$sim_out"
+
+  # Report / remove conflicts
+  for f in "${conflicts[@]}"; do
+    if $DRY_RUN; then
+      :
+    else
+      if [[ -e $f || -L $f ]]; then
+        echo "🗑️  Removing: $f"
+        rm -rf -- "$f"
+      fi
+    fi
+  done
+
+  if ! $DRY_RUN; then
+    echo "$sim_out"
+  fi
+}
+
+load_excludes() {
+  local domain_dir="$1"
+  EXCLUDED=()
+
+  local cfg="${domain_dir}/.stow-exclude"
+  if [[ -r "$cfg" ]]; then
+    mapfile -t EXCLUDED < <(grep -vE '^\s*(#|$)' "$cfg")
+  fi
+}
+
+is_excluded() {
+  local name="$1"
+
+  # Built-in exclusions
+  local -a builtin_exclusions=(.git .github .stow-local-ignore .stow-exclude)
+
+  for builtin in "${builtin_exclusions[@]}"; do
+    [[ "$name" == "$builtin" ]] && return 0
+  done
+
+  # User-defined exclusions
+  for e in "${EXCLUDED[@]}"; do
+    [[ "$name" == "$e" ]] && return 0
+  done
+
+  return 1
+}
+
+stow_domain() {
+  local domain="$1"
+  local domain_dir="${SCRIPT_DIR}/${domain}"
+
+  if [[ ! -d "$domain_dir" ]]; then
+    warn "Domain directory not found, skipping: $domain_dir"
+    return
+  fi
+
+  load_excludes "$domain_dir"
+
+  # Discover which packages will be processed vs skipped.
+  local -a included=()
+  local -a skipped=()
+
+  for pkg_path in "$domain_dir"/*; do
+    local pkg_name
+    pkg_name="$(basename "$pkg_path")"
+
+    [[ -d $pkg_path ]] || continue
+
+    if is_excluded "$pkg_name"; then
+      skipped+=("$pkg_name")
+    else
+      included+=("$pkg_name")
+    fi
+  done
+
+  # Summarize the plan for this domain in a single line.
+  if ((${#included[@]} > 0)); then
+    if ((${#skipped[@]} > 0)); then
+      echo "• ${domain}: ${included[*]} (excluded: ${skipped[*]})"
+    else
+      echo "• ${domain}: ${included[*]}"
+    fi
+  else
+    echo "• ${domain}: (no packages)"
+  fi
+
+  # Now actually process the included packages.
+  for pkg_name in "${included[@]}"; do
+    # Always record links for tree view (both stow and unstow)
+    while IFS= read -r rel; do
+      # rel is path relative to domain_dir, e.g. "nvim/.config/nvim/init.lua"
+      # Strip the leading "<pkg_name>/" so we end up with the final
+      # destination relative to $HOME, e.g. ".config/nvim/init.lua".
+      # shellcheck disable=SC2295
+      rel="${rel#${pkg_name}/}"
+      LINK_RECORDS+=("$rel|$domain|$pkg_name")
+    done < <(cd "$domain_dir" && find "$pkg_name" \( -type f -o -type l \) -printf '%P\n')
+
+    if [[ "$ACTION" == "stow" ]]; then
+      # STOW: Detect conflicts and (optionally) remove them before real stow.
+      cleanup_conflicts "$domain_dir" "$pkg_name"
+
+      # Perform the actual stow (stow itself is idempotent when no conflicts exist)
+      if ! $DRY_RUN; then
+        local stow_output
+        if stow_output=$(stow -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
+          echo "  ✓ Stowed: $domain/$pkg_name"
+        else
+          # Check if the "error" is just because it's already stowed
+          if echo "$stow_output" | grep -q "already stowed\|existing target is owned by stow"; then
+            echo "  ✓ Already stowed: $domain/$pkg_name"
+          else
+            warn "Stow reported issues for $domain/$pkg_name — continuing with next package."
+            if [[ -n "$stow_output" ]]; then
+              echo "$stow_output" | head -3
+            fi
+          fi
+        fi
+      fi
+    else
+      # UNSTOW: Remove symlinks (stow -D is idempotent)
+      if $DRY_RUN; then
+        echo "  🔗 Would unstow: $domain/$pkg_name"
+      else
+        local unstow_output
+        if unstow_output=$(stow -d "$domain_dir" -t "$HOME" -D "$pkg_name" 2>&1); then
+          echo "  ✓ Unstowed: $domain/$pkg_name"
+        else
+          # Check if it's just already unstowed
+          if echo "$unstow_output" | grep -q "not stowed\|cannot unstow"; then
+            echo "  ✓ Already unstowed: $domain/$pkg_name"
+          else
+            warn "Stow reported issues unstowing $domain/$pkg_name — continuing with next package."
+            if [[ -n "$unstow_output" ]]; then
+              echo "$unstow_output" | head -3
+            fi
+          fi
+        fi
+      fi
+    fi
+  done
+}
+
+print_link_tree() {
+  if [[ "${#LINK_RECORDS[@]}" -eq 0 ]]; then
+    echo
+    echo "📁 No links found."
+    return
+  fi
+
+  # Normalize and de-duplicate records.
+  mapfile -t link_records < <(printf '%s\n' "${LINK_RECORDS[@]}" | sort -u)
+  mapfile -t conflict_records < <(printf '%s\n' "${CONFLICT_RECORDS[@]}" | sort -u)
+
+  echo
+  if [[ "$ACTION" == "stow" ]]; then
+    echo "📁 Planned link tree (relative to \$HOME):"
+  else
+    echo "📁 Links to be removed (relative to \$HOME):"
+  fi
+
+  python3 - "$ACTION" "${link_records[@]}" -- "${conflict_records[@]}" <<'PY'
+"""
+Print a tree visualization of stow/unstow operations.
+
+This script receives:
+- action: "stow" or "unstow"
+- link_records: paths managed by stow (format: "path|domain|pkg")
+- conflict_records: paths that conflict with existing files (format: "path|domain|pkg")
+
+The tree collapses directories into single entries when stow will create a directory
+symlink (vs placing individual file symlinks inside an existing directory).
+"""
+import os
+import sys
+from typing import Dict, Set, Tuple
+
+# ANSI color codes
+RED = "\033[31m"
+GREEN = "\033[32m"
+BLUE = "\033[34m"
+RESET = "\033[0m"
+
+def parse_args():
+    """Parse command line arguments: action, records, --, conflict_records."""
+    args = sys.argv[1:]
+    if not args:
+        return "stow", [], []
+    
+    action = args[0]
+    remaining = args[1:]
+    
+    if "--" in remaining:
+        idx = remaining.index("--")
+        return action, remaining[:idx], remaining[idx+1:]
+    return action, remaining, []
+
+def parse_records(records):
+    """Parse pipe-delimited records into a mapping."""
+    mapping = {}
+    for rec in records:
+        if not rec:
+            continue
+        parts = rec.split("|", 2)
+        if len(parts) == 3:
+            rel, domain, pkg = parts
+            mapping[rel] = (domain, pkg)
+    return mapping
+
+def build_tree(paths):
+    """Build a nested dict tree from file paths."""
+    root = {}
+    for path in paths:
+        parts = path.split("/")
+        node = root
+        for part in parts:
+            node = node.setdefault(part, {})
+    return root
+
+def collect_packages_by_path(node, domain_pkg_by_rel, cur_path=""):
+    """
+    Recursively collect all (domain, pkg) pairs that appear under each path.
+    Returns: (packages_under_this_node, mapping_of_all_paths_to_packages)
+    """
+    mapping = {}
+    packages = set()
+    
+    for name, children in node.items():
+        path = name if not cur_path else f"{cur_path}/{name}"
+        child_packages = set()
+        
+        if path in domain_pkg_by_rel:
+            child_packages.add(domain_pkg_by_rel[path])
+        
+        if children:
+            child_pkgs, child_mapping = collect_packages_by_path(
+                children, domain_pkg_by_rel, path
+            )
+            child_packages |= child_pkgs
+            mapping.update(child_mapping)
+        
+        mapping[path] = child_packages
+        packages |= child_packages
+    
+    return packages, mapping
+
+def subtree_fully_managed(path, all_managed_paths, home):
+    """Check if all existing files under path are managed by stow."""
+    target_abspath = os.path.join(home, path)
+    
+    if not os.path.lexists(target_abspath):
+        return True
+    
+    if not os.path.isdir(target_abspath):
+        return True
+
+    for dirpath, dirnames, filenames in os.walk(target_abspath):
+        rel_dir = os.path.relpath(dirpath, home)
+        if rel_dir == ".":
+            rel_dir = ""
+        
+        for name in filenames + dirnames:
+            rel = name if rel_dir == "" else f"{rel_dir}/{name}"
+            if not any(rel == r or rel.startswith(r + "/") for r in all_managed_paths):
+                return False
+    
+    return True
+
+def will_be_dir_symlink(path, home):
+    """
+    Determine if stow will create a directory symlink.
+    
+    Stow creates a directory symlink when the target either doesn't exist
+    or is already a symlink. If a real directory exists, stow places
+    individual file symlinks inside it.
+    """
+    target_abspath = os.path.join(home, path)
+    
+    if not os.path.lexists(target_abspath):
+        return True
+    
+    if os.path.islink(target_abspath):
+        return True
+    
+    if os.path.isdir(target_abspath):
+        return False
+    
+    return False
+
+def format_label(name, domain, pkg, path, exists, is_dir=False, action="stow"):
+    """Format a tree label with color coding."""
+    old_label_text = name + ("/" if is_dir else "")
+    
+    if action == "stow":
+        # Stow mode: show old -> new
+        old_label = f"{RED}{old_label_text}{RESET}" if exists else old_label_text
+        new_label_text = f"{domain}/{pkg}/{path}" + ("/" if is_dir else "")
+        new_label = f"{GREEN}{new_label_text}{RESET}"
+        return f"{old_label} -> {new_label}"
+    else:
+        # Unstow mode: show what will be removed
+        if exists:
+            source_text = f"{domain}/{pkg}/{path}" + ("/" if is_dir else "")
+            source_label = f"{BLUE}{source_text}{RESET}"
+            return f"{RED}{old_label_text}{RESET} <- {source_label}"
+        else:
+            return f"{old_label_text} (already removed)"
+
+def print_tree_recursive(node, domain_pkg_by_rel, domain_pkgs_by_path, 
+                        conflict_set, all_managed_paths, home, action,
+                        prefix="", cur_path=""):
+    """Recursively print the tree structure."""
+    items = sorted(node.items())
+    
+    for i, (name, children) in enumerate(items):
+        path = name if not cur_path else f"{cur_path}/{name}"
+        connector = "└── " if i == len(items) - 1 else "├── "
+        
+        packages = domain_pkgs_by_path.get(path, set())
+        is_conflict = path in conflict_set
+        target_exists = os.path.lexists(os.path.join(home, path))
+        
+        # Case 1: Conflict directory being fully replaced (stow mode only)
+        if (action == "stow" and is_conflict and packages and len(packages) == 1 and 
+            subtree_fully_managed(path, all_managed_paths, home)):
+            domain, pkg = next(iter(packages))
+            label = format_label(name, domain, pkg, path, target_exists, action=action)
+            print(prefix + connector + label)
+            continue
+        
+        # Case 2: Directory symlink (stow creates one symlink for whole dir)
+        if (children and packages and len(packages) == 1 and 
+            will_be_dir_symlink(path, home)):
+            domain, pkg = next(iter(packages))
+            label = format_label(name, domain, pkg, path, target_exists, is_dir=True, action=action)
+            print(prefix + connector + label)
+            continue
+        
+        # Case 3: Individual file/symlink
+        if path in domain_pkg_by_rel:
+            domain, pkg = domain_pkg_by_rel[path]
+            label = format_label(name, domain, pkg, path, target_exists, action=action)
+            print(prefix + connector + label)
+        else:
+            # Directory node (not a symlink target itself)
+            print(prefix + connector + name)
+        
+        # Recurse into children
+        if children:
+            extension = "    " if i == len(items) - 1 else "│   "
+            print_tree_recursive(
+                children, domain_pkg_by_rel, domain_pkgs_by_path,
+                conflict_set, all_managed_paths, home, action,
+                prefix + extension, path
+            )
+
+def main():
+    action, link_recs, conflict_recs = parse_args()
+    
+    domain_pkg_by_rel = parse_records(link_recs)
+    conflict_set = {rec.split("|", 2)[0] for rec in conflict_recs if rec}
+    all_managed_paths = set(domain_pkg_by_rel.keys())
+    
+    root = build_tree(domain_pkg_by_rel.keys())
+    _, domain_pkgs_by_path = collect_packages_by_path(root, domain_pkg_by_rel)
+    
+    home = os.environ.get("HOME", "~")
+    print(home)
+    print_tree_recursive(root, domain_pkg_by_rel, domain_pkgs_by_path,
+                        conflict_set, all_managed_paths, home, action)
+
+if __name__ == "__main__":
+    main()
+PY
+}
+
+if [[ "$ACTION" == "stow" ]]; then
+  echo "▶ Action: Stow"
+else
+  echo "▶ Action: Unstow"
+fi
+echo "▶ Target profile: ${TARGET_PROFILE}"
+$DRY_RUN && echo "▶ Mode: Dry-run (preview only)"
+echo
+
+stow_domain "common"
+stow_domain "${TARGET_PROFILE}"
+
+# Always show tree view
+print_link_tree
+
+echo
+if $DRY_RUN; then
+  echo "✅ Preview complete. No changes made."
+else
+  echo "✅ Done."
+fi
