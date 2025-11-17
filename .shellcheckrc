@@ -1,0 +1,16 @@
+# ShellCheck configuration for dotfiles repository
+# See: https://www.shellcheck.net/wiki/
+
+# Disable specific checks that are intentional or acceptable
+# SC1091: Not following external files (like /etc/os-release)
+disable=SC1091
+
+# SC2312: Consider invoking this command separately to avoid masking its return value
+# This is acceptable in many cases where we don't care about the return value
+# disable=SC2312
+
+# Set shell dialect (bash is default but explicit is better)
+shell=bash
+
+# Enable optional checks
+# enable=all
