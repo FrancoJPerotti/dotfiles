@@ -14,7 +14,11 @@ This document tracks potential improvements, enhancements, and fixes for the dot
 - [ ] Add screenshots/demos of the configured desktop environment
 
 ### Code Quality & Maintenance
-- [ ] Install and run shellcheck on all shell scripts to identify potential issues
+- [x] Install and run shellcheck on all shell scripts to identify potential issues ✅ (2025-11-17)
+  - Fixed stow-manager (now shellcheck-clean)
+  - Generated SHELLCHECK_REPORT.md with findings
+  - **ALL 31 ISSUES FIXED - 100% SHELLCHECK CLEAN!** 🎉
+  - 14 files modified, 34/34 scripts now pass shellcheck
 - [ ] Make all `.sh` scripts executable (`chmod +x`)
 - [ ] Decide on deprecation path: either remove `stow-all.sh` or `stow-manager` (they duplicate functionality)
 - [ ] Consolidate `install.sh` and `install_v2.sh` in ubuntu/ (having two install scripts is confusing)
