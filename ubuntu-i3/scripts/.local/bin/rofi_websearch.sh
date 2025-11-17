@@ -206,7 +206,9 @@ remember_engine() {
     } | awk 'NF && !seen[$0]++' >"$f.tmp" && mv "$f.tmp" "$f"
 }
 remember_query() {
-    local a="$1" q="$2" f="$CACHE_DIR/${a}.txt"
+    local a="$1"
+    local q="$2"
+    local f="$CACHE_DIR/${a}.txt"
     {
         printf "%s\n" "$q"
         cat "$f" 2>/dev/null
@@ -214,7 +216,8 @@ remember_query() {
 }
 engine_picker() { cat "$EMC" | "${ROFI_BASE[@]}"; }
 query_prompt() {
-    local a="$1" f="$CACHE_DIR/${a}.txt"
+    local a="$1"
+    local f="$CACHE_DIR/${a}.txt"
     touch "$f"
     "${ROFI_BASE[@]}" -p "${NAME[$a]} → query" <"$f"
 }
