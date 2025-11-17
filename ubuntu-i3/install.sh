@@ -219,7 +219,7 @@ if [ -d "$ZSH_DIR" ]; then
     # Ensure ZSH_CUSTOM is exported in the user's shell (only if missing)
     if ! grep -q '^[[:space:]]*export[[:space:]]\+ZSH_CUSTOM=' "$ZSHRC" 2>/dev/null; then
         log "Declaring ZSH_CUSTOM in ~/.zshrc"
-        echo 'export ZSH_CUSTOM="${ZSH_CUSTOM:-$ZSH/custom}"' >>"$ZSHRC"
+        echo "export ZSH_CUSTOM=\"\${ZSH_CUSTOM:-\$ZSH/custom}\"" >>"$ZSHRC"
         chown "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$ZSHRC"
     fi
 
@@ -256,7 +256,7 @@ EOF
         fi
         chown "${SUDO_USER:-$USER}":"${SUDO_USER:-$USER}" "$ZSHRC"
     else
-        err "~/.zshrc not found; create one to load oh-my-zsh and plugins."
+        err "$HOME/.zshrc not found; create one to load oh-my-zsh and plugins."
     fi
 else
     warn "Oh-My-Zsh directory not found at $ZSH_DIR; skipping plugin install step."
@@ -315,6 +315,8 @@ USER_HOME="/home/$TARGET_USER"
 GC_BIN="/usr/local/bin/greenclip"
 GC_CFG_DIR="$USER_HOME/.config"
 GC_CFG_FILE="$GC_CFG_DIR/greenclip.toml"
+# USR_SD_UNIT is defined for future use (systemd service setup)
+# shellcheck disable=SC2034
 USR_SD_UNIT="$USER_HOME/.config/systemd/user/greenclip.service"
 
 # 1) Install binary (pinned version, adjust if you want newer)
@@ -332,9 +334,9 @@ fi
 if [ ! -f "$GC_CFG_FILE" ]; then
     log "Creating ~/.config/greenclip.toml with sane defaults"
     sudo -u "$TARGET_USER" mkdir -p "$GC_CFG_DIR"
-    cat >"$GC_CFG_FILE" <<'EOF'
+    cat >"$GC_CFG_FILE" <<EOF
 max_history_length = 200
-history_file = "~/.cache/greenclip.history"
+history_file = "$USER_HOME/.cache/greenclip.history"
 use_primary_selection_as_input = true
 trim_space_from_selection = true
 image_support = true
