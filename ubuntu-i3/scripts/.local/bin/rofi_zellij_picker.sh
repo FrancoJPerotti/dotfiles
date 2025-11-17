@@ -163,6 +163,8 @@ pick_session() {
 
   for line in "${session_lines[@]}"; do
     [[ -z "$line" ]] && continue
+    # wf_key is used in the read but not referenced later
+    # shellcheck disable=SC2034
     IFS=$'\t' read -r session status wf_key wf_name <<<"$line"
     [[ -n "$session" ]] || continue
     local label="${wf_name:-$session}"
