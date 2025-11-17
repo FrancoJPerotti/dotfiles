@@ -524,9 +524,11 @@ else
       return 1
     fi
 
-    pw-dump "$card_id" 2>/dev/null | "$PYTHON_BIN" - <<'PY'
-import sys, json
-data = json.load(sys.stdin)
+    "$PYTHON_BIN" - "$card_id" <<'PY'
+import sys, json, subprocess
+card_id = sys.argv[1]
+result = subprocess.run(['pw-dump', card_id], capture_output=True, text=True, check=False)
+data = json.loads(result.stdout) if result.returncode == 0 and result.stdout else None
 if not data:
     sys.exit(0)
 info = data[0].get("info", {})
@@ -660,6 +662,7 @@ show_device_menu() {
   declare -a actions=()
   declare -A desc_map=()
 
+  # shellcheck disable=SC2034
   while IFS=$'\t' read -r dtype name desc is_default index; do
     [[ -z "${name:-}" ]] && continue
     [[ "$dtype" != "$type" ]] && continue
