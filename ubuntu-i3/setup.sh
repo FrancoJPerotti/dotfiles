@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 #
-# Ubuntu Desktop Setup Script
+# Ubuntu Desktop Setup/Uninstall Script
 #
-# Description: A comprehensive script to provision a new Ubuntu desktop.
+# Description: A comprehensive script to install or uninstall Ubuntu desktop environment.
 #              Installs essential packages, configures the development environment,
 #              and sets up i3 window manager with all dependencies.
 #
 # Features:
+#   - Install or uninstall mode
 #   - Automatically repairs broken APT configurations
 #   - Modular installation with progress tracking
 #   - Comprehensive error handling
 #   - Idempotent: safe to run multiple times
 #
-# Usage:       sudo ./install.sh
+# Usage:       sudo ./setup.sh --install
+#              sudo ./setup.sh --uninstall [--keep-configs]
 #
 set -uo pipefail
 
@@ -36,6 +38,9 @@ trap err_trap ERR
 readonly TARGET_USER="${SUDO_USER:-$USER}"
 USER_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
 readonly USER_HOME
+
+MODE=""
+KEEP_CONFIGS=false
 
 # UI/UX Helpers
 readonly C_RESET=$'\033[0m'
@@ -65,6 +70,59 @@ log_err() {
     exit 1
 }
 have() { command -v "$1" >/dev/null 2>&1; }
+
+usage() {
+    cat <<EOF
+Usage: sudo $0 <action> [options]
+
+Actions:
+  --install         Install packages and configure system
+  --uninstall       Remove packages and configurations
+
+Options (uninstall only):
+  --keep-configs    Keep user configuration files (~/.config, ~/.zshrc, etc.)
+  -h, --help        Show this help message
+
+Examples:
+  sudo $0 --install                    # Install everything
+  sudo $0 --uninstall                  # Full uninstall
+  sudo $0 --uninstall --keep-configs   # Remove packages but keep configs
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+        --install)
+            MODE="install"
+            shift
+            ;;
+        --uninstall)
+            MODE="uninstall"
+            shift
+            ;;
+        --keep-configs)
+            KEEP_CONFIGS=true
+            shift
+            ;;
+        -h | --help)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage
+            exit 1
+            ;;
+        esac
+    done
+    
+    if [[ -z "$MODE" ]]; then
+        echo "Error: Must specify --install or --uninstall" >&2
+        usage
+        exit 1
+    fi
+}
 
 # ========== Installation Modules ==========
 
@@ -412,8 +470,234 @@ print_summary() {
     echo "    sudo reboot"
 }
 
+# ========== Uninstall Modules ==========
+
+remove_apt_packages() {
+    log_step "Removing APT packages"
+    
+    local core_pkgs=(
+        brightnessctl btop cliphist dunst eog evince eza feh firefox flameshot
+        fzf lxappearance picom playerctl python3.12-venv rofi imagemagick
+        i3-wm i3lock polybar stow wmctrl xclip xdotool zathura zathura-pdf-poppler zsh
+    )
+    
+    local repo_pkgs=(
+        gh code vivaldi-stable docker-ce docker-ce-cli containerd.io
+        docker-buildx-plugin docker-compose-plugin docker-desktop
+    )
+    
+    local all_pkgs=("${core_pkgs[@]}" "${repo_pkgs[@]}")
+    local installed_pkgs=()
+    
+    for pkg in "${all_pkgs[@]}"; do
+        if dpkg-query -W -f='${Status}' "$pkg" 2>/dev/null | grep -q "install ok installed"; then
+            installed_pkgs+=("$pkg")
+        fi
+    done
+    
+    if [[ ${#installed_pkgs[@]} -gt 0 ]]; then
+        apt-get purge -yq "${installed_pkgs[@]}"
+        log_ok "Removed ${#installed_pkgs[@]} packages"
+    else
+        log_skip "No packages to remove"
+    fi
+}
+
+remove_snap_packages() {
+    log_step "Removing Snap packages"
+    
+    if have snap; then
+        local removed=0
+        for pkg in nvim yazi; do
+            if snap list "$pkg" &>/dev/null; then
+                snap remove "$pkg"
+                log_ok "Removed snap: $pkg"
+                ((removed++))
+            fi
+        done
+        
+        if [[ $removed -eq 0 ]]; then
+            log_skip "No snap packages to remove"
+        fi
+    else
+        log_skip "Snapd not installed"
+    fi
+}
+
+remove_standalone_tools() {
+    log_step "Removing standalone tools"
+    
+    if have starship; then
+        rm -f "$(command -v starship)"
+        log_ok "Removed Starship"
+    else
+        log_skip "Starship not installed"
+    fi
+    
+    if have zellij; then
+        rm -f "$(command -v zellij)"
+        log_ok "Removed Zellij"
+    else
+        log_skip "Zellij not installed"
+    fi
+    
+    if have greenclip; then
+        rm -f /usr/local/bin/greenclip
+        log_ok "Removed Greenclip"
+    else
+        log_skip "Greenclip not installed"
+    fi
+    
+    local kitty_dir="$USER_HOME/.local/kitty.app"
+    if [ -d "$kitty_dir" ]; then
+        sudo -u "$TARGET_USER" rm -rf "$kitty_dir"
+        rm -f "$USER_HOME/.local/bin/kitty"
+        update-alternatives --remove x-terminal-emulator "$USER_HOME/.local/bin/kitty" 2>/dev/null || true
+        log_ok "Removed Kitty terminal"
+    else
+        log_skip "Kitty not installed"
+    fi
+}
+
+remove_repositories() {
+    log_step "Removing custom APT repositories"
+    
+    local repo_files=(
+        "/etc/apt/sources.list.d/vscode.list"
+        "/etc/apt/sources.list.d/github-cli.list"
+        "/etc/apt/sources.list.d/vivaldi-archive.list"
+        "/etc/apt/sources.list.d/docker.list"
+    )
+    
+    local keyring_files=(
+        "/usr/share/keyrings/packages.microsoft.gpg"
+        "/usr/share/keyrings/githubcli-archive-keyring.gpg"
+        "/usr/share/keyrings/vivaldi-browser.gpg"
+        "/etc/apt/keyrings/docker.gpg"
+    )
+    
+    local removed=0
+    for file in "${repo_files[@]}" "${keyring_files[@]}"; do
+        if [ -f "$file" ]; then
+            rm -f "$file"
+            ((removed++))
+        fi
+    done
+    
+    if [[ $removed -gt 0 ]]; then
+        apt-get update -qq
+        log_ok "Removed $removed repository files"
+    else
+        log_skip "No repository files to remove"
+    fi
+}
+
+remove_user_configs() {
+    if $KEEP_CONFIGS; then
+        log_skip "Keeping user configurations (--keep-configs flag)"
+        return
+    fi
+    
+    log_step "Removing user configurations"
+    
+    if [ -d "$USER_HOME/.oh-my-zsh" ]; then
+        sudo -u "$TARGET_USER" rm -rf "$USER_HOME/.oh-my-zsh"
+        log_ok "Removed Oh-My-Zsh"
+    fi
+    
+    if [ -f "$USER_HOME/.zshrc" ]; then
+        if [ -f "$USER_HOME/.zshrc.bak.setup" ]; then
+            sudo -u "$TARGET_USER" mv "$USER_HOME/.zshrc.bak.setup" "$USER_HOME/.zshrc"
+            log_ok "Restored original .zshrc from backup"
+        else
+            sudo -u "$TARGET_USER" rm -f "$USER_HOME/.zshrc"
+            log_ok "Removed .zshrc"
+        fi
+    fi
+    
+    if [ -d "$USER_HOME/.nvm" ]; then
+        sudo -u "$TARGET_USER" rm -rf "$USER_HOME/.nvm"
+        log_ok "Removed NVM and Node.js"
+    fi
+    
+    if sudo -u "$TARGET_USER" bash -c "fc-list | grep -qi 'JetBrainsMono Nerd Font'"; then
+        local font_files
+        font_files=$(sudo -u "$TARGET_USER" bash -c "fc-list | grep -i 'JetBrainsMono Nerd Font' | cut -d: -f1 | sort -u")
+        while IFS= read -r font_file; do
+            [ -f "$font_file" ] && sudo -u "$TARGET_USER" rm -f "$font_file"
+        done <<<"$font_files"
+        sudo -u "$TARGET_USER" fc-cache -f -v >/dev/null 2>&1
+        log_ok "Removed JetBrainsMono Nerd Font"
+    fi
+    
+    if [ -f "$USER_HOME/.config/greenclip.toml" ]; then
+        sudo -u "$TARGET_USER" rm -f "$USER_HOME/.config/greenclip.toml"
+        log_ok "Removed Greenclip configuration"
+    fi
+    
+    if [ -f "$USER_HOME/.cache/greenclip.history" ]; then
+        sudo -u "$TARGET_USER" rm -f "$USER_HOME/.cache/greenclip.history"
+        log_ok "Removed Greenclip history"
+    fi
+}
+
+restore_defaults() {
+    log_step "Restoring system defaults"
+    
+    local current_shell
+    current_shell=$(getent passwd "$TARGET_USER" | cut -d: -f7)
+    if [[ "$current_shell" == *"zsh"* ]]; then
+        chsh -s /bin/bash "$TARGET_USER"
+        log_ok "Restored default shell to bash"
+    else
+        log_skip "Shell was not changed to zsh"
+    fi
+    
+    if have nvim && update-alternatives --list editor 2>/dev/null | grep -q nvim; then
+        update-alternatives --remove editor "$(command -v nvim)" 2>/dev/null || true
+        log_ok "Removed Neovim from editor alternatives"
+    else
+        log_skip "Neovim was not set as default editor"
+    fi
+}
+
+remove_docker_group() {
+    log_step "Removing user from docker group"
+    
+    if getent group docker | grep -q "\b$TARGET_USER\b"; then
+        gpasswd -d "$TARGET_USER" docker
+        log_ok "Removed '$TARGET_USER' from docker group"
+    else
+        log_skip "User not in docker group"
+    fi
+}
+
+uninstall_cleanup() {
+    log_step "Cleaning up system"
+    apt-get -yq autoremove --purge
+    apt-get -yq clean
+    log_ok "System cleaned up"
+}
+
+print_uninstall_summary() {
+    printf "\n%s%s" "$C_BOLD" "$C_GREEN"
+    echo "========================================="
+    echo "      Uninstall Complete!"
+    echo "========================================="
+    printf "%s" "$C_RESET"
+    echo "  ${S_TICK} Tasks Completed: $TASKS_COMPLETED"
+    echo "  ${S_SKIP} Tasks Skipped:   $TASKS_SKIPPED"
+    
+    if ! $KEEP_CONFIGS; then
+        printf "\n%s%sNOTE:%s User configurations were removed.\n" "$C_BOLD" "$C_YELLOW" "$C_RESET"
+    fi
+    
+    printf "\n%s%sACTION REQUIRED:%s A reboot is recommended for all changes to take effect.\n" "$C_BOLD" "$C_YELLOW" "$C_RESET"
+    echo "    sudo reboot"
+}
+
 # ========== Main Execution ==========
-main() {
+main_install() {
     initialize_system
     install_apt_packages
     install_kitty
@@ -424,6 +708,47 @@ main() {
     set_system_defaults
     final_cleanup
     print_summary
+}
+
+main_uninstall() {
+    if [[ "$EUID" -ne 0 ]]; then
+        log_err "This script must be run as root. Please use 'sudo'."
+    fi
+    
+    printf "\n%s%sWARNING:%s This will remove packages and configurations installed by this script\n" "$C_BOLD" "$C_RED" "$C_RESET"
+    if ! $KEEP_CONFIGS; then
+        echo "         User configurations will also be removed."
+        echo "         Use --keep-configs to preserve them."
+    else
+        echo "         User configurations will be preserved."
+    fi
+    
+    printf "\n%sContinue? (y/N):%s " "$C_BOLD" "$C_RESET"
+    read -r response
+    if [[ ! "$response" =~ ^[Yy]$ ]]; then
+        echo "Aborted."
+        exit 0
+    fi
+    
+    remove_docker_group
+    remove_snap_packages
+    remove_standalone_tools
+    remove_apt_packages
+    remove_repositories
+    remove_user_configs
+    restore_defaults
+    uninstall_cleanup
+    print_uninstall_summary
+}
+
+main() {
+    parse_args "$@"
+    
+    if [[ "$MODE" == "install" ]]; then
+        main_install
+    elif [[ "$MODE" == "uninstall" ]]; then
+        main_uninstall
+    fi
 }
 
 main "$@"
