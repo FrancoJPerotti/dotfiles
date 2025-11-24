@@ -5,11 +5,8 @@ This document tracks potential improvements, enhancements, and fixes for the dot
 ## 🔥 High Priority
 
 ### Documentation
-- [ ] Update README.md author information (replace placeholder `[Your Name]` with actual name)
-- [ ] Add CONTRIBUTING.md with detailed guidelines for contributors
-- [ ] Create a CHANGELOG.md to track version history and changes
-- [ ] Document the difference between `stow-all.sh` and `stow-manager` (they seem redundant)
-- [ ] Add troubleshooting section to README for common issues
+- [x] Update README.md author information (replace placeholder `[Your Name]` with actual name) ✅ (2025-11-17)
+- [x] Add troubleshooting section to README for common issues ✅ (2025-11-17)
 - [ ] Document dependencies and prerequisites more clearly per profile
 - [ ] Add screenshots/demos of the configured desktop environment
 
@@ -38,7 +35,10 @@ This document tracks potential improvements, enhancements, and fixes for the dot
 - [ ] Add rollback functionality to installation scripts in case of failure
 - [ ] Implement idempotent installation (safe to run multiple times)
 - [ ] Add version checking for installed tools to avoid reinstalling
-- [ ] Create uninstall/removal scripts for packages and configurations
+- [x] Create uninstall/removal scripts for packages and configurations ✅ (2025-11-17)
+  - Renamed install.sh to setup.sh
+  - Added --install and --uninstall modes
+  - Added --keep-configs option to preserve user configurations
 
 ## 📦 Medium Priority
 

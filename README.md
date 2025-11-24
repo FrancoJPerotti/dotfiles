@@ -12,7 +12,7 @@ It solves the problem of manually configuring each new machine by treating confi
 
 ### Key Features
 
-*   **Modular Structure**: Configurations are split into a `common` base and distro-specific profiles (`arch`, `ubuntu`).
+*   **Modular Structure**: Configurations are split into a `common` base and profile directories (for example `ubuntu-i3`, `hyde`).
 *   **Profile-Based Management**: Easily apply or remove entire configurations based on the host OS or desired setup.
 *   **Automated Management**: Includes a `stow-manager` script to intelligently preview, apply, and revert configurations.
 *   **Validated and Tested**: The repository structure and stow operations are automatically validated via GitHub Actions.
@@ -22,12 +22,21 @@ It solves the problem of manually configuring each new machine by treating confi
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Profiles](#profiles)
+- [Dependencies & Prerequisites](#dependencies--prerequisites)
+  - [Core Requirements](#core-requirements-all-profiles)
+  - [Common Profile Dependencies](#common-profile-dependencies)
+  - [Profile-Specific Dependencies](#profile-specific-dependencies)
+  - [Optional Dependencies](#optional-dependencies)
+  - [Font Requirements](#font-requirements)
+  - [Checking Dependencies](#checking-dependencies)
 - [Configuration](#configuration)
   - [Directory Structure](#directory-structure)
   - [Creating a New Profile](#creating-a-new-profile)
   - [Managing Packages](#managing-packages)
 - [Development](#development)
 - [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [License](#license)
 - [Authors & Acknowledgments](#authors--acknowledgments)
@@ -56,7 +65,7 @@ sudo apt install stow git
     ```
 
 2.  **Review the packages:**
-    Look through the `common/`, `arch/`, and `ubuntu/` directories to see which configurations will be applied. You can exclude packages by adding their names to the `.stow-exclude` file within a profile directory.
+    Look through the `common/`, `ubuntu-i3/`, and `hyde/` directories to see which configurations will be applied. You can exclude packages by adding their names to the `.stow-exclude` file within a profile directory.
 
 3.  **Preview the changes (Dry Run):**
     It is **highly recommended** to perform a dry run first. This will show you exactly what changes will be made without actually creating any symlinks.
@@ -77,24 +86,18 @@ The `stow-manager` script is the primary interface for managing your dotfiles.
 
 ### Applying Configurations (Stowing)
 
-The script automatically detects your OS and applies the `common` profile plus the relevant OS-specific profile.
-
 ```bash
-# Preview what will be stowed (recommended)
-./stow-manager -s -n
+# Preview the 'ubuntu-i3' profile
+./stow-manager -s ubuntu-i3 -n
 
-# Apply the configuration
-./stow-manager -s
-```
+# Apply the 'ubuntu-i3' profile
+./stow-manager -s ubuntu-i3
 
-You can also explicitly specify a profile:
+# Preview the 'hyde' profile (Arch + Hyprland)
+./stow-manager -s hyde -n
 
-```bash
-# Preview the 'arch' profile
-./stow-manager -s arch -n
-
-# Apply the 'ubuntu' profile
-./stow-manager -s ubuntu
+# Apply the 'hyde' profile
+./stow-manager -s hyde
 ```
 
 ### Removing Configurations (Unstowing)
@@ -109,6 +112,82 @@ You can just as easily remove all symlinks.
 ./stow-manager -u
 ```
 
+## Profiles
+
+This repository is organized into a shared base profile and environment-specific profiles:
+
+- **common/** – Shared configuration that is always applied.
+- **ubuntu-i3/** – Ubuntu-based desktop profile using the i3 window manager. See [ubuntu-i3/README.md](ubuntu-i3/README.md) for full setup instructions and package lists.
+- **hyde/** – Arch Linux Hyprland profile. See [hyde/README.md](hyde/README.md) for full setup instructions and package lists.
+
+## Dependencies & Prerequisites
+
+This section details the dependencies required for each profile and package configuration. The dotfiles are designed to work with multiple Linux distributions, but certain features require specific software.
+
+### Core Requirements (All Profiles)
+
+These are required for basic dotfiles management:
+
+- **git** - Version control system
+- **stow** - GNU Stow for symlink management
+- **bash** - Shell (for running management scripts)
+
+### Common Profile Dependencies
+
+The `common/` profile contains cross-platform configurations. Install these packages based on your needs:
+
+| Package | Required Software | Installation |
+|---------|------------------|--------------|
+| **nvim** | Neovim ≥ 0.9.0 | `sudo pacman -S neovim` (Arch)<br>`sudo snap install nvim --classic` (Ubuntu) |
+| **yazi** | Yazi file manager | `sudo pacman -S yazi` (Arch)<br>`sudo snap install yazi --classic` (Ubuntu) |
+| **zathura** | Zathura PDF viewer<br>zathura-pdf-poppler | `sudo pacman -S zathura zathura-pdf-poppler` (Arch)<br>`sudo apt install zathura zathura-pdf-poppler` (Ubuntu) |
+| **Code** | Visual Studio Code | `yay -S visual-studio-code-bin` (Arch)<br>`sudo snap install code --classic` (Ubuntu) |
+| **zed** | Zed editor | `yay -S zed` (Arch)<br>`curl -f https://zed.dev/install.sh \| sh` (Ubuntu) |
+| **vivaldi** | Vivaldi browser | `yay -S vivaldi` (Arch)<br>Install from [vivaldi.com](https://vivaldi.com/) (Ubuntu) |
+| **web_apps** | Modern web browser | Any browser (Firefox, Chrome, Vivaldi, etc.) |
+
+### Profile-Specific Dependencies
+
+Each profile has its own detailed package list and installation flow:
+
+- **Ubuntu i3** – see [ubuntu-i3/README.md](ubuntu-i3/README.md) for the full window manager stack, extra tools, and the `setup.sh` installer.
+- **Hyde (Arch + Hyprland)** – see [hyde/README.md](hyde/README.md) for `pkglist.txt`, `aurlist.txt`, and profile-specific notes.
+
+### Optional Dependencies
+
+Some features require additional software not automatically installed:
+
+- **Starship prompt** - Modern shell prompt (installed via `curl -sS https://starship.rs/install.sh | sh`)
+- **NVM** - Node Version Manager (for Node.js development)
+- **Docker Desktop** - GUI for Docker (Ubuntu only, installed via deb package)
+- **Python venv** - For Python development (`python3.12-venv` on Ubuntu)
+
+### Font Requirements
+
+Some configurations (especially terminal and status bars) work best with nerd fonts:
+
+```bash
+# Ubuntu
+sudo apt install fonts-firacode fonts-font-awesome
+
+# Arch
+sudo pacman -S ttf-firacode-nerd ttf-font-awesome
+```
+
+### Checking Dependencies
+
+After installation, verify your dependencies:
+```bash
+# Check if required binaries are available
+command -v stow git nvim yazi zsh kitty
+
+# For i3 users
+command -v i3 polybar rofi picom
+
+# For Hyprland users  
+command -v hyprland waybar
+```
+
 ## Configuration
 
 ### Directory Structure
@@ -120,17 +199,17 @@ dotfiles/
 ├── common/              # Shared configs for all profiles
 │   ├── nvim/
 │   └── zsh/
-├── arch/                # Arch Linux specific (e.g., Hyprland)
-│   ├── hypr/
-│   └── waybar/
-├── ubuntu/              # Ubuntu specific (e.g., i3)
+├── ubuntu-i3/           # Ubuntu-based desktop (i3)
 │   ├── i3/
 │   └── polybar/
+├── hyde/                # Arch Linux Hyprland profile
+│   ├── hypr/
+│   └── waybar/
 └── stow-manager         # The management script
 ```
 
 -   `common/`: Contains configurations that are shared across all systems (e.g., `nvim`, `zsh`).
--   `arch/`, `ubuntu/`: Contain configurations specific to that environment. These are applied *in addition* to `common`.
+-   `ubuntu-i3/`, `hyde/`: Contain configurations specific to that environment. These are applied *in addition* to `common`.
 -   Each package (e.g., `nvim`) mirrors the structure of the `$HOME` directory. For example, `common/nvim/.config/nvim/init.lua` will be symlinked to `~/.config/nvim/init.lua`.
 
 ### Creating a New Profile
@@ -148,7 +227,7 @@ dotfiles/
     ```
 
 3.  **Apply the new profile:**
-    You can apply it alongside the auto-detected profiles.
+    You can apply it alongside your existing profiles.
     ```bash
     ./stow-manager -s work
     ```
@@ -187,11 +266,10 @@ To work on the dotfiles or the management scripts:
 
     ```bash
     # Check script syntax
-bash -n stow-manager
-bash -n stow-all.sh
+    bash -n stow-manager
 
-# Run ShellCheck for deeper script analysis
-shellcheck stow-manager stow-all.sh
+    # Run ShellCheck for deeper script analysis
+    shellcheck stow-manager
     ```
 4.  **Use dry-run mode**: Always test your changes with the `-n` flag to prevent unintended side effects.
 
@@ -201,7 +279,7 @@ This project includes an automated validation workflow that runs on every push a
 
 The following checks are performed:
 -   **Structure Validation**: Ensures that the `common` directory and at least one profile exist.
--   **Stow Dry-Run**: Simulates stowing and unstowing for both `arch` and `ubuntu` profiles to catch any conflicts or errors.
+-   **Stow Dry-Run**: Simulates stowing and unstowing for each profile to catch any conflicts or errors.
 -   **Script Syntax Check**: Validates the Bash syntax of the management scripts.
 -   **ShellCheck Analysis**: Statically analyzes the scripts for potential bugs and bad practices.
 
@@ -219,15 +297,59 @@ Contributions are welcome! Whether it's improving a configuration, fixing a bug 
 6.  Push to the branch (`git push origin feature/my-new-feature`).
 7.  Open a new Pull Request.
 
+## Troubleshooting
+
+### Common Issues
+
+#### Stow Conflicts
+If you see errors about existing files when running `stow-manager --stow`:
+- **Backup existing files**: Move conflicting files to a backup location
+- **Use dry-run first**: Always run `./stow-manager -s -n` to preview changes
+- **Check for existing symlinks**: Run `ls -la ~` to identify existing dotfiles
+
+#### Missing Dependencies
+If `stow-manager` fails to run:
+```bash
+# Install GNU Stow
+sudo apt install stow        # Ubuntu/Debian
+sudo pacman -S stow          # Arch Linux
+```
+
+#### Symlinks Not Working
+If configurations aren't taking effect after stowing:
+- **Reload your shell**: Run `exec $SHELL` or restart your terminal
+- **Check symlink paths**: Run `ls -la ~/.config` to verify symlinks were created
+- **Verify package structure**: Ensure your package mirrors the `$HOME` directory structure
+
+#### Profile Not Detected
+If `stow-manager` doesn't detect your OS correctly:
+```bash
+# Manually specify your profile
+./stow-manager -s ubuntu-i3    # For Ubuntu-based systems
+./stow-manager -s hyde         # For Arch-based systems
+```
+
+#### Permission Errors
+If you encounter permission denied errors:
+- **Don't run as root**: Run `stow-manager` as your regular user, not with `sudo`
+- **Check directory ownership**: Ensure `~/dotfiles` is owned by your user
+
+#### Unstow Doesn't Remove Files
+If `./stow-manager -u` doesn't remove symlinks:
+- **Verify stow database**: Stow tracks what it manages; manually created symlinks won't be removed
+- **Use verbose mode**: Add `-v` flag for detailed output: `./stow-manager -u -v`
+
+For additional help, please open an issue on the [GitHub issue tracker](https://github.com/franco/dotfiles_ubuntu/issues).
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
-Copyright (c) 2025 [Your Name]
+Copyright (c) 2025 Franco
 
 ## Authors & Acknowledgments
 
--   **[Your Name]** - *Initial work & maintenance*
+-   **Franco** - *Initial work & maintenance*
 
 Special thanks to the creators and maintainers of all the open-source tools configured in this repository.
 

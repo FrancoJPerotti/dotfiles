@@ -1,133 +1,103 @@
-# 🛠️ My Dotfiles
+# Hyde Profile (Arch + Hyprland)
 
-These are my personal dotfiles, managed with [GNU Stow](https://www.gnu.org/software/stow/). This setup allows me to symlink configuration files and folders into my home directory in a modular and scalable way.
+This directory contains the Arch Linux profile built around the Hyprland compositor. It is meant to be used together with the shared `common/` profile from the repository root.
 
----
+For the overall dotfiles architecture and `stow-manager` usage, see `../README.md`.
 
-## 📦 Structure
+## Structure
 
-Each configuration is placed in its own directory following this structure:
+At a high level:
 
 ```
 dotfiles/
-├── zsh/
-│   └── .zshrc
-├── nvim/
-│   └── .config/nvim/...
-├── kitty/
-│   └── .config/kitty/...
-├── Code/
-│   └── .config/Code/User/...
-├── zed/
-│   └── .config/zed/...
-└── ...
+├── common/
+│   ├── nvim/
+│   ├── zsh/
+│   └── ...
+├── hyde/
+│   ├── hypr/
+│   ├── waybar/
+│   ├── kitty/
+│   ├── zellij/
+│   ├── zsh/
+│   ├── web_apps/
+│   └── ...
+└── stow-manager
 ```
 
-Each of these is a standalone [GNU Stow](https://www.gnu.org/software/stow/manual/stow.html) "package".
+Each top-level directory inside `common/` and `hyde/` is a standalone [GNU Stow](https://www.gnu.org/software/stow/manual/stow.html) package.
 
----
+## Dependencies
 
-## ⚙️ Requirements
+### Official repository packages
 
-* [GNU Stow](https://www.gnu.org/software/stow/)
-* A Unix-like environment (Linux/macOS)
-
-Install Stow (if not already):
-
-```bash
-# On Arch
-sudo pacman -S stow
-
-# On Debian/Ubuntu
-sudo apt install stow
-```
-
----
-
-## 🚀 Usage
-
-Clone the repo:
-
-```bash
-git clone git@github.com:yourusername/dotfiles.git ~/dotfiles
-cd ~/dotfiles
-```
-
-Then use the included script to stow all packages:
-
-```bash
-./stow-all.sh
-```
-
-### 🧪 Dry Run
-
-To preview the symlinks that would be created:
-
-```bash
-./stow-all.sh --dry-run
-```
-
----
-
-## 🪚 Unstowing (removing symlinks)
-
-To remove a stowed package (e.g., `nvim`):
-
-```bash
-cd ~/dotfiles/nvim
-stow -D -t ~ .
-```
-
-This safely removes the symlinks created by Stow.
-
----
-
-## 📁 Installing Packages
-
-This repo includes two lists of packages:
-
-* `pkglist.txt` → Official packages (from the Arch \[extra]/\[community]/\[core] repos)
-* `aurlist.txt` → AUR packages (community-contributed packages)
-
-### 🛠️ Install Official Packages (pacman)
+Install base packages from `pkglist.txt`:
 
 ```bash
 sudo pacman -S --needed - < pkglist.txt
 ```
 
-* `--needed`: skips packages that are already installed
-* `- < pkglist.txt`: reads package names from the file
+Key groups include:
 
-### 🧪 Install AUR Packages (yay)
+- **Hyprland stack:** Hyprland compositor and related Wayland utilities.
+- **Terminal/Shell:** `kitty`, `zsh`, `zellij`.
+- **Development:** `git`, `neovim`, `gcc`, `make`, `docker`, `github-cli`.
+- **Tools:** `btop`, `yazi`, `evince`, `stow`, `tmux`.
+- **Java tooling:** `jdk8-openjdk`, `jdk17-openjdk`, `jdk21-openjdk`, `maven`.
+- **PDF:** `zathura`, `zathura-pdf-poppler`.
 
-Make sure you have [yay](https://github.com/Jguer/yay) installed.
+### AUR packages
+
+Install AUR packages from `aurlist.txt` (requires [`yay`](https://github.com/Jguer/yay)):
 
 ```bash
 yay -S --needed - < aurlist.txt
 ```
 
-Or, if that doesn’t work (due to shell behavior), use:
+Notable AUR tools:
+
+- `kanata` – advanced keyboard remapping.
+- `wl-kbptr` – keyboard-driven mouse pointer for Wayland.
+- `conan` – C/C++ package manager.
+- `unity-test` – C unit testing framework.
+- `vial-appimage` – keyboard configuration tool.
+
+### Fonts
+
+Some parts of the setup assume Nerd Fonts and icon fonts:
 
 ```bash
-xargs -a aurlist.txt yay -S --needed
+sudo pacman -S ttf-firacode-nerd ttf-font-awesome
 ```
 
-### 📌 Tip
+## Installation
 
-After cloning and stowing dotfiles, you can quickly bootstrap your system like this:
+1. **Clone the repository and change into it (one level up from this folder):**
 
-```bash
-cd ~/dotfiles
-./stow-all.sh
-sudo pacman -S --needed - < pkglist.txt
-xargs -a aurlist.txt yay -S --needed
-```
+   ```bash
+   git clone https://github.com/franco/dotfiles_ubuntu.git ~/dotfiles
+   cd ~/dotfiles
+   ```
 
----
+2. **Install packages for the Hyde profile:**
 
-## 🧠 Philosophy
+   ```bash
+   cd hyde
+   sudo pacman -S --needed - < pkglist.txt
+   yay -S --needed - < aurlist.txt
+   cd ..
+   ```
 
-* ✅ Keep each config isolated in its own folder
-* ✅ Symlink only what you need
-* ✅ Make onboarding and restoration simple
+3. **Stow the `common` and `hyde` profiles using `stow-manager`:**
 
+   ```bash
+   ./stow-manager -s hyde
+   ```
+
+   The script automatically applies the `common/` base plus the `hyde/` profile.
+
+## Philosophy
+
+- Keep each config isolated in its own folder.
+- Symlink only what you need.
+- Make onboarding and restoration simple and repeatable.
