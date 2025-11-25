@@ -24,6 +24,7 @@ return {
 		mason_tool_installer.setup({
 			ensure_installed = {
 				"clangd",
+				"bash-language-server",
 				"lua-language-server",
 				"pyright",
 				"rust-analyzer",
