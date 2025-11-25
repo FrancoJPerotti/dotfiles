@@ -385,8 +385,10 @@ configure_shell() {
         log_skip "Antidote already installed"
     fi
 
-    # Desired plugin list (Oh My Zsh libs/plugins + extras)
-    cat >"$zsh_plugins_txt" <<'EOF'
+    # Desired plugin list (Oh My Zsh libs/plugins + extras).
+    # If user already has one (e.g., via stow), keep it.
+    if [ ! -f "$zsh_plugins_txt" ]; then
+        cat >"$zsh_plugins_txt" <<'EOF'
 getantidote/use-omz
 ohmyzsh/ohmyzsh path:lib
 ohmyzsh/ohmyzsh path:plugins/git
@@ -396,8 +398,11 @@ zsh-users/zsh-syntax-highlighting
 chrissicool/zsh-256color
 romkatv/powerlevel10k
 EOF
-    chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_txt"
-    log_ok "Wrote plugin bundle list to $zsh_plugins_txt"
+        chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_txt"
+        log_ok "Created default plugin bundle list at $zsh_plugins_txt"
+    else
+        log_skip "Existing plugin bundle list found at $zsh_plugins_txt"
+    fi
 
     # Build (or rebuild) the cached bundle file
     sudo -u "$TARGET_USER" bash -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_txt' >'$zsh_plugins_cache'"
