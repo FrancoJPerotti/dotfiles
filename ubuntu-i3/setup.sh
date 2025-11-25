@@ -372,51 +372,39 @@ EOF
 
 configure_shell() {
     log_step "Configuring Zsh and plugins for user '$TARGET_USER'"
-    local oh_my_zsh_dir="$USER_HOME/.oh-my-zsh"
-    local zsh_custom_dir="$oh_my_zsh_dir/custom"
-    local installed_via=""
-
-    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
-        log_step "Oh My Zsh not found; installing via git clone for '$TARGET_USER'"
-        sudo -u "$TARGET_USER" rm -rf "$oh_my_zsh_dir"
-        if sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir" >/dev/null 2>&1; then
-            installed_via="git"
-        else
-            log_err "Failed to install Oh My Zsh for '$TARGET_USER'. Check network access and rerun."
-        fi
-    else installed_via="existing"; fi
-
-    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
-        log_err "Oh My Zsh is still missing at $oh_my_zsh_dir; aborting shell configuration."
-    fi
-
-    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
-        log_err "Oh My Zsh is still missing at $oh_my_zsh_dir; aborting shell configuration."
-    fi
-
-    case "$installed_via" in
-        git)      log_ok "Installed Oh-My-Zsh via git clone" ;;
-        existing) log_skip "Oh-My-Zsh already installed" ;;
-        *)        log_skip "Oh-My-Zsh install status unknown (continuing)" ;;
-    esac
-
-    chown -R "$TARGET_USER":"$TARGET_USER" "$oh_my_zsh_dir"
-    install_plugin() {
-        local name="$1" repo="$2"
-        local dest="$zsh_custom_dir/plugins/$name"
-        if [ ! -d "$dest" ]; then
-            sudo -u "$TARGET_USER" git clone --depth=1 "$repo" "$dest" >/dev/null 2>&1
-            log_ok "Installed Zsh plugin: $name"
-        else log_skip "Zsh plugin '$name' already installed"; fi
-    }
-    install_plugin "zsh-autosuggestions" "https://github.com/zsh-users/zsh-autosuggestions"
-    install_plugin "zsh-syntax-highlighting" "https://github.com/zsh-users/zsh-syntax-highlighting"
-    install_plugin "zsh-256color" "https://github.com/chrissicool/zsh-256color"
-    if [ ! -d "$zsh_custom_dir/themes/powerlevel10k" ]; then
-        sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$zsh_custom_dir/themes/powerlevel10k" >/dev/null 2>&1
-        log_ok "Installed Powerlevel10k theme"
-    else log_skip "Powerlevel10k theme already installed"; fi
+    local antidote_dir="$USER_HOME/.antidote"
+    local zsh_plugins_txt="$USER_HOME/.zsh_plugins.txt"
+    local zsh_plugins_cache="$USER_HOME/.zsh_plugins.zsh"
     local zshrc_path="$USER_HOME/.zshrc"
+
+    # Install Antidote (fast, cached plugin manager)
+    if [ ! -d "$antidote_dir" ]; then
+        sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/mattmc3/antidote "$antidote_dir" >/dev/null 2>&1
+        log_ok "Installed Antidote plugin manager"
+    else
+        log_skip "Antidote already installed"
+    fi
+
+    # Desired plugin list (Oh My Zsh libs/plugins + extras)
+    cat >"$zsh_plugins_txt" <<'EOF'
+getantidote/use-omz
+ohmyzsh/ohmyzsh path:lib
+ohmyzsh/ohmyzsh path:plugins/git
+ohmyzsh/ohmyzsh path:plugins/sudo
+zsh-users/zsh-autosuggestions
+zsh-users/zsh-syntax-highlighting
+chrissicool/zsh-256color
+romkatv/powerlevel10k
+EOF
+    chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_txt"
+    log_ok "Wrote plugin bundle list to $zsh_plugins_txt"
+
+    # Build (or rebuild) the cached bundle file
+    sudo -u "$TARGET_USER" bash -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_txt' >'$zsh_plugins_cache'"
+    chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_cache"
+    log_ok "Generated Antidote cache at $zsh_plugins_cache"
+
+    # Manage .zshrc
     if [ -f "$zshrc_path" ]; then
         if [ ! -f "$zshrc_path.bak.setup" ]; then
             cp "$zshrc_path" "$zshrc_path.bak.setup"
@@ -426,16 +414,18 @@ configure_shell() {
         sed -i '/# >>> MANAGED ZSH CONFIG >>>/,/# <<< MANAGED ZSH CONFIG <<</d' "$zshrc_path"
         cat >>"$zshrc_path" <<EOF
 # >>> MANAGED ZSH CONFIG >>>
-ZSH_THEME="powerlevel10k/powerlevel10k"
-plugins=(git sudo zsh-256color zsh-autosuggestions zsh-syntax-highlighting)
+source "$zsh_plugins_cache"
+autoload -Uz compinit; compinit -C
 eval "\$(starship init zsh)"
 export EDITOR="nvim"
 export VISUAL="nvim"
 # <<< MANAGED ZSH CONFIG <<<
 EOF
         chown "$TARGET_USER":"$TARGET_USER" "$zshrc_path"
-        log_ok "Configured .zshrc with managed settings"
-    else log_skip ".zshrc not found, skipping configuration"; fi
+        log_ok "Configured .zshrc with Antidote-managed plugins"
+    else
+        log_skip ".zshrc not found, skipping configuration"
+    fi
 }
 
 install_user_environment() {
