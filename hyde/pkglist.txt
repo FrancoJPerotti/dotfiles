@@ -1,5 +1,4 @@
 act
-alsautils
 boost
 btop
 cppcheck
@@ -7,6 +6,7 @@ docker
 docker-compose
 doxygen
 evince
+eza
 gcovr
 git
 github-cli
@@ -31,6 +31,7 @@ usbutils
 valgrind
 vivaldi
 wlsunset
+yarn
 yazi
 zathura
 zathura-pdf-poppler
