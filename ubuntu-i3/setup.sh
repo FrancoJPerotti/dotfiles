@@ -374,25 +374,61 @@ configure_shell() {
     log_step "Configuring Zsh and plugins for user '$TARGET_USER'"
     local oh_my_zsh_dir="$USER_HOME/.oh-my-zsh"
     local zsh_custom_dir="$oh_my_zsh_dir/custom"
+    local installed_via=""
 
     if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
         log_step "Oh My Zsh not found; installing for '$TARGET_USER'"
-        if sudo -u "$TARGET_USER" sh -c 'RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'; then
-            log_ok "Installed Oh-My-Zsh via official installer"
-        else
-            log_step "Primary installer failed; attempting git clone fallback"
-            sudo -u "$TARGET_USER" rm -rf "$oh_my_zsh_dir"
-            if sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir" >/dev/null 2>&1; then
-                log_ok "Installed Oh-My-Zsh via git clone fallback"
+
+        # Download installer separately so we can catch HTTP 429/other curl failures
+        local installer_tmp
+        installer_tmp="$(mktemp -t ohmyzsh-install-XXXX.sh)"
+
+        if curl -fsSL \
+            --retry 4 \
+            --retry-delay 2 \
+            --retry-all-errors \
+            -A "oh-my-zsh-setup" \
+            -o "$installer_tmp" \
+            "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"; then
+
+            if sudo -u "$TARGET_USER" env RUNZSH=no CHSH=no KEEP_ZSHRC=yes bash "$installer_tmp"; then
+                # Verify install actually produced the expected files
+                if [ -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
+                    installed_via="official"
+                else
+                    log_skip "Official installer finished but Oh My Zsh is missing; will try git clone fallback"
+                fi
             else
-                log_err "Failed to install Oh My Zsh for '$TARGET_USER'. Check network access and rerun."
+                log_skip "Official installer failed to run; will try git clone fallback"
             fi
+        else
+            log_skip "Download of official installer failed (possible rate limit); will try git clone fallback"
         fi
-    else log_skip "Oh-My-Zsh already installed"; fi
+
+        rm -f "$installer_tmp"
+    else installed_via="existing"; fi
+
+    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
+        log_step "Attempting git clone fallback for Oh My Zsh"
+        sudo -u "$TARGET_USER" rm -rf "$oh_my_zsh_dir"
+        if sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir" >/dev/null 2>&1; then
+            installed_via="git"
+        else
+            log_err "Failed to install Oh My Zsh for '$TARGET_USER'. Check network access and rerun."
+        fi
+    fi
 
     if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
         log_err "Oh My Zsh is still missing at $oh_my_zsh_dir; aborting shell configuration."
     fi
+
+    case "$installed_via" in
+        official) log_ok "Installed Oh-My-Zsh via official installer" ;;
+        git)      log_ok "Installed Oh-My-Zsh via git clone fallback" ;;
+        existing) log_skip "Oh-My-Zsh already installed" ;;
+        *)        log_skip "Oh-My-Zsh install status unknown (continuing)" ;;
+    esac
+
     chown -R "$TARGET_USER":"$TARGET_USER" "$oh_my_zsh_dir"
     install_plugin() {
         local name="$1" repo="$2"
