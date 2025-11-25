@@ -38,6 +38,8 @@ trap err_trap ERR
 readonly TARGET_USER="${SUDO_USER:-$USER}"
 USER_HOME=$(getent passwd "$TARGET_USER" | cut -d: -f6)
 readonly USER_HOME
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
 
 MODE=""
 KEEP_CONFIGS=false
@@ -373,7 +375,7 @@ EOF
 configure_shell() {
     log_step "Configuring Zsh and plugins for user '$TARGET_USER'"
     local antidote_dir="$USER_HOME/.antidote"
-    local zsh_plugins_txt="$USER_HOME/.zsh_plugins.txt"
+    local zsh_plugins_src="$SCRIPT_DIR/zsh/.zsh_plugins.txt"
     local zsh_plugins_cache="$USER_HOME/.zsh_plugins.zsh"
     local zshrc_path="$USER_HOME/.zshrc"
 
@@ -385,27 +387,15 @@ configure_shell() {
         log_skip "Antidote already installed"
     fi
 
-    # Desired plugin list (Oh My Zsh libs/plugins + extras).
-    # If user already has one (e.g., via stow), keep it.
-    if [ ! -f "$zsh_plugins_txt" ]; then
-        cat >"$zsh_plugins_txt" <<'EOF'
-getantidote/use-omz
-ohmyzsh/ohmyzsh path:lib
-ohmyzsh/ohmyzsh path:plugins/git
-ohmyzsh/ohmyzsh path:plugins/sudo
-zsh-users/zsh-autosuggestions
-zsh-users/zsh-syntax-highlighting
-chrissicool/zsh-256color
-romkatv/powerlevel10k
-EOF
-        chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_txt"
-        log_ok "Created default plugin bundle list at $zsh_plugins_txt"
+    # Require plugin list in repo; do not duplicate it elsewhere.
+    if [ ! -f "$zsh_plugins_src" ]; then
+        log_err "Plugin list missing at $zsh_plugins_src. Ensure the repo file exists."
     else
-        log_skip "Existing plugin bundle list found at $zsh_plugins_txt"
+        log_skip "Using plugin list at $zsh_plugins_src"
     fi
 
     # Build (or rebuild) the cached bundle file
-    sudo -u "$TARGET_USER" bash -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_txt' >'$zsh_plugins_cache'"
+    sudo -u "$TARGET_USER" bash -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_src' >'$zsh_plugins_cache'"
     chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_cache"
     log_ok "Generated Antidote cache at $zsh_plugins_cache"
 
@@ -419,8 +409,13 @@ EOF
         sed -i '/# >>> MANAGED ZSH CONFIG >>>/,/# <<< MANAGED ZSH CONFIG <<</d' "$zshrc_path"
         cat >>"$zshrc_path" <<EOF
 # >>> MANAGED ZSH CONFIG >>>
-source "$zsh_plugins_cache"
+# Keep plugin list in repo; rebuild cache automatically if it changes.
 autoload -Uz compinit; compinit -C
+if [ ! -f "$zsh_plugins_cache" ] || [ "$zsh_plugins_src" -nt "$zsh_plugins_cache" ]; then
+  source "$antidote_dir/antidote.zsh"
+  antidote bundle <"$zsh_plugins_src" >"$zsh_plugins_cache"
+fi
+source "$zsh_plugins_cache"
 eval "\$(starship init zsh)"
 export EDITOR="nvim"
 export VISUAL="nvim"
