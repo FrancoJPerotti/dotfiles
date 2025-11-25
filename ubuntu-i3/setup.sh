@@ -395,7 +395,7 @@ configure_shell() {
     fi
 
     # Build (or rebuild) the cached bundle file
-    sudo -u "$TARGET_USER" bash -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_src' >'$zsh_plugins_cache'"
+    sudo -u "$TARGET_USER" zsh -lc "source '$antidote_dir/antidote.zsh'; antidote bundle <'$zsh_plugins_src' >'$zsh_plugins_cache'"
     chown "$TARGET_USER":"$TARGET_USER" "$zsh_plugins_cache"
     log_ok "Generated Antidote cache at $zsh_plugins_cache"
 
@@ -412,8 +412,10 @@ configure_shell() {
 # Keep plugin list in repo; rebuild cache automatically if it changes.
 autoload -Uz compinit; compinit -C
 if [ ! -f "$zsh_plugins_cache" ] || [ "$zsh_plugins_src" -nt "$zsh_plugins_cache" ]; then
-  source "$antidote_dir/antidote.zsh"
-  antidote bundle <"$zsh_plugins_src" >"$zsh_plugins_cache"
+  if [ -f "$antidote_dir/antidote.zsh" ]; then
+    source "$antidote_dir/antidote.zsh"
+    antidote bundle <"$zsh_plugins_src" >"$zsh_plugins_cache"
+  fi
 fi
 source "$zsh_plugins_cache"
 eval "\$(starship init zsh)"
