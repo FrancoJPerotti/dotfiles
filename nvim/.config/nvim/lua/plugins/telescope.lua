@@ -10,72 +10,8 @@ return {
 	config = function()
 		local telescope = require("telescope")
 		local actions = require("telescope.actions")
-		local pickers = require("telescope.pickers")
-		local finders = require("telescope.finders")
-		local conf = require("telescope.config").values
-		local action_state = require("telescope.actions.state")
 		local smart_delete = require("telescope.buffer_utils").smart_delete
-		local themes = require("telescope.themes")
-
-		-- Abbreviate path by shortening intermediate dirs
-		local function abbreviate_path(path)
-			local home = vim.fn.getenv("HOME")
-			path = path:gsub("^" .. home .. "/", "") -- remove ~/ entirely
-			local parts = vim.split(path, "/")
-			for i = 1, #parts - 1 do
-				parts[i] = parts[i]:sub(1, 4)
-			end
-			return table.concat(parts, "/")
-		end
-
-		-- Preload project directories on startup using your find command
-		local project_dirs = vim.fn.systemlist([[
-      find ~ -type d -name .git -prune 2>/dev/null |
-      sed 's|/\.git||' |
-      grep -v '/\.[^/]\+'
-    ]])
-
-		-- Custom picker uses pre-loaded dirs
-		local function project_folder_picker()
-			pickers
-				.new(
-					themes.get_dropdown({
-						prompt_title = " Git Projects",
-					}),
-					{
-						finder = finders.new_table({
-							results = vim.tbl_map(function(path)
-								return {
-									display = abbreviate_path(path),
-									value = path,
-								}
-							end, project_dirs),
-							entry_maker = function(entry)
-								return {
-									value = entry.value,
-									display = entry.display,
-									ordinal = entry.display,
-								}
-							end,
-						}),
-						sorter = conf.generic_sorter({}),
-						attach_mappings = function(prompt_bufnr, _)
-							actions.select_default:replace(function()
-								local selection = action_state.get_selected_entry().value
-								actions.close(prompt_bufnr)
-								vim.cmd("cd " .. vim.fn.fnameescape(selection))
-								vim.notify("Changed cwd to: " .. selection, vim.log.levels.INFO)
-								local ok, tree = pcall(require, "nvim-tree.api")
-								if ok then
-									tree.tree.change_root(selection)
-								end
-							end)
-							return true
-						end,
-					}
-				)
-				:find()
-		end
+		local project_finder = require("telescope.project_finder")
 
 		telescope.setup({
 			defaults = {
@@ -183,7 +119,7 @@ return {
 		keymap.set("n", "<leader>ft", "<cmd>TodoTelescope theme=dropdown<cr>", { desc = "Find todos" })
 
 		-- Fuzzy find git projects
-		keymap.set("n", "<leader>fp", project_folder_picker, { desc = "Switch project folder (cwd)" })
+		keymap.set("n", "<leader>fp", project_finder.open, { desc = "Switch project folder (cwd)" })
 
 		-- Fuzzy find references
 		keymap.set("n", "gr", "<cmd>Telescope lsp_references theme=dropdown<cr>", { desc = "Find references" })
