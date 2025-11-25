@@ -40,7 +40,7 @@ local options = {
 	whichwrap = "bs<>[]hl", -- which "horizontal" keys are allowed to travel to prev/next line
 
 	spelllang = "en,es",
-	spell = true,
+	spell = false,
 }
 
 for k, v in pairs(options) do

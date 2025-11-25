@@ -27,7 +27,7 @@ return {
 		},
 		auto_attach = true,
 		attach_to_untracked = false,
-		current_line_blame = true, -- Toggle with `:Gitsigns toggle_current_line_blame`
+		current_line_blame = false, -- Toggle with `:Gitsigns toggle_current_line_blame`
 		current_line_blame_opts = {
 			virt_text = true,
 			virt_text_pos = "eol", -- 'eol' | 'overlay' | 'right_align'
@@ -73,6 +73,7 @@ return {
 			end, "Prev Hunk")
 			-- map("n", "]H", function() gs.nav_hunk("last") end, "Last Hunk")
 			-- map("n", "[H", function() gs.nav_hunk("first") end, "First Hunk")
+			map("n", "<leader>gb", gs.toggle_current_line_blame, "Toggle line blame")
 			-- map({ "n", "v" }, "<leader>gs", ":Gitsigns stage_hunk<CR>", "Stage Hunk")
 			-- map({ "n", "v" }, "<leader>gr", ":Gitsigns reset_hunk<CR>", "Reset Hunk")
 			-- map("n", "<leader>gS", gs.stage_buffer, "Stage Buffer")

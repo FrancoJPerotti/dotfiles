@@ -13,6 +13,7 @@ return {
 		treesitter.setup({ -- enable syntax highlighting
 			highlight = {
 				enable = true,
+				disable = { "dockerfile" },
 			},
 			-- enable indentation
 			indent = { enable = true },
@@ -37,7 +38,7 @@ return {
 				"bash",
 				"lua",
 				"vim",
-				"dockerfile",
+				-- "dockerfile",
 				"gitignore",
 				"query",
 				"vimdoc",
