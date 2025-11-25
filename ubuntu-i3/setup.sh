@@ -372,11 +372,28 @@ EOF
 
 configure_shell() {
     log_step "Configuring Zsh and plugins for user '$TARGET_USER'"
-    local zsh_custom_dir="$USER_HOME/.oh-my-zsh/custom"
-    if [ ! -d "$USER_HOME/.oh-my-zsh" ]; then
-        sudo -u "$TARGET_USER" sh -c 'RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
-        log_ok "Installed Oh-My-Zsh"
+    local oh_my_zsh_dir="$USER_HOME/.oh-my-zsh"
+    local zsh_custom_dir="$oh_my_zsh_dir/custom"
+
+    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
+        log_step "Oh My Zsh not found; installing for '$TARGET_USER'"
+        if sudo -u "$TARGET_USER" sh -c 'RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'; then
+            log_ok "Installed Oh-My-Zsh via official installer"
+        else
+            log_step "Primary installer failed; attempting git clone fallback"
+            sudo -u "$TARGET_USER" rm -rf "$oh_my_zsh_dir"
+            if sudo -u "$TARGET_USER" git clone --depth=1 https://github.com/ohmyzsh/ohmyzsh.git "$oh_my_zsh_dir" >/dev/null 2>&1; then
+                log_ok "Installed Oh-My-Zsh via git clone fallback"
+            else
+                log_err "Failed to install Oh My Zsh for '$TARGET_USER'. Check network access and rerun."
+            fi
+        fi
     else log_skip "Oh-My-Zsh already installed"; fi
+
+    if [ ! -f "$oh_my_zsh_dir/oh-my-zsh.sh" ]; then
+        log_err "Oh My Zsh is still missing at $oh_my_zsh_dir; aborting shell configuration."
+    fi
+    chown -R "$TARGET_USER":"$TARGET_USER" "$oh_my_zsh_dir"
     install_plugin() {
         local name="$1" repo="$2"
         local dest="$zsh_custom_dir/plugins/$name"
