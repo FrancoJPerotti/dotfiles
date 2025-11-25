@@ -6,3 +6,4 @@ zsh-users/zsh-autosuggestions
 zsh-users/zsh-syntax-highlighting
 chrissicool/zsh-256color
 romkatv/powerlevel10k
+Aloxaf/fzf-tab
