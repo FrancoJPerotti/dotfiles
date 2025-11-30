@@ -17,6 +17,8 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 TARGET_PROFILE=""
 DRY_RUN=false
 ACTION=""
+# Avoid directory symlinks so multiple packages can safely share subpaths.
+STOW_OPTS=(--no-folding)
 
 usage() {
   cat <<EOF
@@ -207,7 +209,7 @@ cleanup_conflicts() {
 
   # Run stow simulation; capture output (exit 2 is expected when conflicts).
   local sim_out
-  if ! sim_out=$(stow -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
+  if ! sim_out=$(stow "${STOW_OPTS[@]}" -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
     :
   fi
 
@@ -333,7 +335,7 @@ stow_domain() {
       # Perform the actual stow (stow itself is idempotent when no conflicts exist)
       if ! $DRY_RUN; then
         local stow_output
-        if stow_output=$(stow -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
+        if stow_output=$(stow "${STOW_OPTS[@]}" -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
           echo "  ✓ Stowed: $domain/$pkg_name"
         else
           # Check if the "error" is just because it's already stowed
@@ -353,7 +355,7 @@ stow_domain() {
         echo "  🔗 Would unstow: $domain/$pkg_name"
       else
         local unstow_output
-        if unstow_output=$(stow -d "$domain_dir" -t "$HOME" -D "$pkg_name" 2>&1); then
+        if unstow_output=$(stow "${STOW_OPTS[@]}" -d "$domain_dir" -t "$HOME" -D "$pkg_name" 2>&1); then
           echo "  ✓ Unstowed: $domain/$pkg_name"
         else
           # Check if it's just already unstowed
