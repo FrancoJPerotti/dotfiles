@@ -19,7 +19,7 @@ return {
 		}
 		dashboard.section.buttons.val = {
 			dashboard.button("e", "  New file", ":ene <BAR> startinsert <CR>"),
-			dashboard.button("<leader> <leader>", "󰈞  Find file", ":Telescope find_files theme=dropdown<CR>"),
+			dashboard.button("<leader> <leader>", "󰈞  Find file", ":lua require('fff').find_files()<CR>"),
 			dashboard.button("<leader> f p", "󰈞  Find Git Project"),
 			dashboard.button("q", "󰅚  Quit NVIM", ":qa<CR>"),
 		}

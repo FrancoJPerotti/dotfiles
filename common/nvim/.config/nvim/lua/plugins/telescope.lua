@@ -49,12 +49,12 @@ return {
 						return { "--hidden" }
 					end,
 				},
-				find_files = {
-					follow = true,
-					file_ignore_patterns = { "node_modules", ".git", ".venv" },
-					hidden = true,
-					previewer = true, -- enable preview
-				},
+				-- find_files = {
+				-- 	follow = true,
+				-- 	file_ignore_patterns = { "node_modules", ".git", ".venv" },
+				-- 	hidden = true,
+				-- 	previewer = true, -- enable preview
+				-- },
 				buffers = {
 					entry_maker = require("telescope.custom_buffers").gen_with_dot(),
 					previewer = false,
@@ -69,25 +69,6 @@ return {
 		telescope.load_extension("fzf")
 
 		local keymap = vim.keymap
-
-		-- Fuzzy find files with PREVIEW on the RIGHT
-		keymap.set("n", "<leader><leader>", function()
-			require("telescope.builtin").find_files({
-				layout_strategy = "flex",
-				layout_config = {
-					width = 0.90,
-					height = 0.85,
-					prompt_position = "bottom",
-					preview_cutoff = 1,
-					horizontal = {
-						preview_width = 0.55,
-						mirror = false,
-					},
-				},
-				hidden = true,
-				follow = true,
-			})
-		end, { desc = "Fuzzy find files in cwd (preview on right)" })
 
 		-- Fuzzy find recent files
 		keymap.set(
