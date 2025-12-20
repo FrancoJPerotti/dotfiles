@@ -12,6 +12,7 @@ local servers = {
 	"pyright",
 	"rust_analyzer",
 	"bash-language-server",
+	"kotlin_language_server",
 }
 
 local function load_server_config(name)

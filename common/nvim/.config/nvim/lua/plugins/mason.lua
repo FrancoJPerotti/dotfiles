@@ -33,6 +33,7 @@ return {
 				"black",
 				"prettier",
 				"shfmt",
+				"ktfmt",
 			},
 		})
 	end,
