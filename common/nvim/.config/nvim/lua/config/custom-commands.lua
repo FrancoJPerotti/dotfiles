@@ -35,10 +35,3 @@ end, {
 		return { "txt", "lua", "py", "md", "c", "cpp", "java" }
 	end,
 })
-
-vim.api.nvim_create_autocmd("TermOpen", {
-	pattern = "*",
-	callback = function()
-		vim.keymap.set("t", "<Esc>", [[<C-\><C-n>]], { buffer = 0 })
-	end,
-})

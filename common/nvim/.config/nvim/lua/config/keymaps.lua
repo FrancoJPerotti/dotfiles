@@ -1,13 +1,15 @@
--- Space as leader
-vim.g.mapleader = " "
-
 local keymap = vim.keymap
 
 -- Define mappings for command-line mode
 keymap.set("c", "<Up>", [[wildmenumode() ? "\<left>" : "\<up>"]], { expr = true, noremap = true })
 keymap.set("c", "<Down>", [[wildmenumode() ? "\<right>" : "\<down>"]], { expr = true, noremap = true })
 keymap.set("c", "<Left>", [[wildmenumode() ? "\<up>" : "\<left>"]], { expr = true, noremap = true })
-keymap.set("c", "<Right>", [[wildmenumode() ? " \<bs>\<C-Z>" : "\<right>"]], { expr = true, noremap = true })
+keymap.set(
+	"c",
+	"<Right>",
+	[[pumvisible() ? "\<C-y>" : (wildmenumode() ? " \<bs>\<C-Z>" : "\<right>")]],
+	{ expr = true, noremap = true, silent = true }
+)
 keymap.set("c", "<C-BS>", "<C-w>", { noremap = true })
 
 -- Move up
@@ -84,12 +86,6 @@ keymap.set("n", "<C-o>", "<C-w>l", { desc = "Focus right", silent = true })
 keymap.set("n", "<M-i>", "<C-b>", { silent = true })
 keymap.set("n", "<M-e>", "<C-f>", { silent = true })
 
--- Navigate wildmenu with arrow keys in command-line mode
-keymap.set("c", "<Down>", "<C-n>", { noremap = true })
-keymap.set("c", "<Up>", "<C-p>", { noremap = true })
-
--- Use <Right> to select a recommendation without executing it
-keymap.set("c", "<Right>", 'pumvisible() ? "\\<C-y>" : "\\<Right>"', { noremap = true, expr = true, silent = true })
 
 -- Close
 keymap.set("n", "<C-q><C-q>", "<cmd>bd<CR>", { noremap = true, silent = true, desc = "Close Buffer" })
