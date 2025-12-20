@@ -8,8 +8,8 @@ return {
 				prompt = "Prompt ", -- Prompt used for interactive LLM calls
 				provider = "snacks", -- Can be "default", "telescope", "fzf_lua", "mini_pick" or "snacks". If not specified, the plugin will autodetect installed providers.
 				opts = {
-					show_default_actions = true, -- Show the default actions in the action palette?
-					show_default_prompt_library = true, -- Show the default prompt library in the action palette?
+					show_preset_actions = true, -- Show the preset actions in the action palette?
+					show_preset_prompts = true, -- Show the preset prompt library in the action palette?
 					title = "CodeCompanion actions", -- The title of the action palette
 				},
 			},
@@ -19,7 +19,7 @@ return {
 				},
 			},
 		},
-		strategies = {
+		interactions = {
 			inline = {
 				keymaps = {
 					accept_change = {
@@ -35,42 +35,9 @@ return {
 			},
 		},
 		prompt_library = {
-			["Commit Message"] = {
-				strategy = "inline",
-				description = "Generate a commit message",
-				opts = {
-					short_name = "commit_message",
-					auto_submit = true,
-					placement = "before",
-					is_slash_command = true,
-				},
-				prompts = {
-					{
-						role = "user",
-						content = function()
-							return string.format(
-								[[You are an expert at following the Conventional Commit specification. Given the git diff listed below, please generate a commit message for me:
-
-` ` `diff
-%s
-` ` `
-
-When unsure about the module names to use in the commit message, you can refer to the last 20 commit messages in this repository:
-
-` ` `
-%s
-` ` `
-
-Output only the commit message without any explanations and follow-up suggestions.
-]],
-								vim.fn.system("git diff --no-ext-diff --staged"),
-								vim.fn.system('git log --pretty=format:"%s" -n 20')
-							)
-						end,
-						opts = {
-							contains_code = true,
-						},
-					},
+			markdown = {
+				dirs = {
+					vim.fn.stdpath("config") .. "/prompts/codecompanion",
 				},
 			},
 		},
