@@ -7,13 +7,41 @@
 // custom settings, run `zed: open default settings` from the
 // command palette (cmd-shift-p / ctrl-shift-p)
 {
-  "show_edit_predictions": true,
+  /* Duplicated key auto-commented: "agent": {
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "always_allow": [
+            {
+              "pattern": "^conan\\s"
+            },
+            {
+              "pattern": "^set\\s"
+            }
+          ],
+          "default_mode": "allow"
+        }
+      }
+    },
+    "default_model": {
+      "provider": "copilot_chat",
+      "model": "gpt-5.2-codex"
+    },
+    "favorite_models": [],
+    "model_parameters": []
+  }, */
+  "agent_servers": {
+    "opencode": {
+      "type": "registry"
+    }
+  },
   "languages": {
     "C++": {
       "show_edit_predictions": true
     }
   },
   "edit_predictions": {
+    "provider": "copilot",
     "mode": "eager",
     "copilot": {
       "proxy": null,
@@ -22,13 +50,10 @@
     },
     "enabled_in_text_threads": false
   },
-  "features": {
-    "edit_prediction_provider": "copilot"
-  },
   "project_panel": {
     "dock": "left"
   },
-  "show_inline_completions": false,
+  "show_edit_predictions": false,
   "chat_panel": {
     "dock": "left"
   },
@@ -36,8 +61,8 @@
     "dock": "left"
   },
   "vim_mode": true,
-  "relative_line_numbers": true,
-  "assistant": {
+  "relative_line_numbers": "enabled",
+  "agent": {
     "inline_assistant_model": {
       "provider": "copilot_chat",
       "model": "gpt-5"
@@ -46,7 +71,6 @@
       "provider": "copilot_chat",
       "model": "gpt-5"
     },
-    "version": "2"
   },
   "ui_font_size": 18,
   "buffer_font_size": 18,

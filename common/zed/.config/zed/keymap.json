@@ -44,7 +44,6 @@
       "ctrl-f11": "debugger::StepInto",
       "shift-f11": "debugger::StepOut",
       "f11": "zed::ToggleFullScreen",
-      "ctrl-alt-z": "edit_prediction::RateCompletions",
       "ctrl-shift-i": "edit_prediction::ToggleMenu",
       "ctrl-alt-l": "lsp_tool::ToggleMenu"
     }
@@ -249,21 +248,18 @@
       "ctrl-alt-p": "agent::OpenRulesLibrary",
       "ctrl-i": "agent::ToggleProfileSelector",
       "ctrl-alt-/": "agent::ToggleModelSelector",
-      "ctrl-shift-a": "agent::ToggleContextPicker",
       "ctrl-shift-j": "agent::ToggleNavigationMenu",
       "ctrl-shift-i": "agent::ToggleOptionsMenu",
       "shift-alt-escape": "agent::ExpandMessageEditor",
       "ctrl->": "assistant::QuoteSelection",
-      "ctrl-alt-e": "agent::RemoveAllContext",
       "ctrl-shift-enter": "agent::ContinueThread",
-      "super-ctrl-b": "agent::ToggleBurnMode",
-      "alt-enter": "agent::ContinueWithBurnMode"
+      "alt-enter": "menu::Confirm"
     }
   },
   {
     "context": "AgentPanel > NavigationMenu",
     "bindings": {
-      "shift-backspace": "agent::DeleteRecentlyOpenThread"
+      "shift-backspace": null
     }
   },
   {
@@ -284,7 +280,6 @@
     "context": "AgentPanel && acp_thread",
     "use_key_equivalents": true,
     "bindings": {
-      "ctrl-n": "agent::NewAcpThread",
       "ctrl-alt-t": "agent::NewThread"
     }
   },
@@ -321,9 +316,7 @@
       "up": "agent::FocusUp",
       "right": "agent::FocusRight",
       "left": "agent::FocusLeft",
-      "down": "agent::FocusDown",
-      "backspace": "agent::RemoveFocusedContext",
-      "enter": "agent::AcceptSuggestedContext"
+      "down": "agent::FocusDown"
     }
   },
   {
@@ -331,8 +324,6 @@
     "use_key_equivalents": true,
     "bindings": {
       "enter": "agent::Chat",
-      "up": "agent::PreviousHistoryMessage",
-      "down": "agent::NextHistoryMessage",
       "shift-ctrl-r": "agent::OpenAgentDiff"
     }
   },
@@ -609,7 +600,7 @@
       "ctrl-shift-f": "pane::DeploySearch",
       "ctrl-shift-h": ["pane::DeploySearch", { "replace_enabled": true }],
       "ctrl-shift-t": "pane::ReopenClosedItem",
-      "ctrl-k ctrl-s": "zed::OpenKeymapEditor",
+      "ctrl-k ctrl-s": "zed::OpenKeymap",
       "ctrl-k ctrl-t": "theme_selector::Toggle",
       // "ctrl-t": "project_symbols::Toggle",
       "ctrl-tab": "tab_switcher::Toggle",
@@ -786,8 +777,7 @@
     "context": "PromptEditor",
     "bindings": {
       "ctrl-[": "agent::CyclePreviousInlineAssist",
-      "ctrl-]": "agent::CycleNextInlineAssist",
-      "ctrl-alt-e": "agent::RemoveAllContext"
+      "ctrl-]": "agent::CycleNextInlineAssist"
     }
   },
   {

@@ -166,4 +166,5 @@
   "github.copilot.nextEditSuggestions.enabled": true,
   "workbench.colorTheme": "GitHub Dark Dimmed",
   "window.commandCenter": false,
+  "explorer.confirmDelete": false,
 }
