@@ -80,11 +80,12 @@ sudo apt install fonts-firacode fonts-font-awesome
 
    ```bash
    cd ubuntu-i3
-   sudo ./setup.sh --install
-   cd ..
-   ```
+    sudo ./setup.sh --install
+    cd ..
+    ```
 
-   This installs i3-wm, polybar, rofi, picom, kitty, neovim, Docker, VS Code, Vivaldi, and the other dependencies listed above.
+    This installs i3-wm, polybar, rofi, picom, kitty, neovim, Docker, VS Code, Vivaldi, and the other dependencies listed above.
+    It also installs global npm-based agent CLIs (Codex, OpenCode, Claude Code, Gemini CLI, OpenChamber, etc.) after setting up NVM/Node.
 
 3. **Stow the `common` and `ubuntu-i3` profiles using `stow-manager`:**
 

@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ai-tools check
+  ai-tools install
+  ai-tools link-nvm-defaults
+
+Environment:
+  AI_TOOLS_NPM_LIST  Override the npm global tools list file.
+EOF
+}
+
+config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+list_file="${AI_TOOLS_NPM_LIST:-$config_home/ai-tools/npm-global.txt}"
+
+# Convenience: if running from the dotfiles repo (not stowed yet), fall back
+# to the list shipped next to this script.
+if [[ -z "${AI_TOOLS_NPM_LIST:-}" && ! -r "$list_file" ]]; then
+  script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+  script_root="$(cd -- "$script_dir/../.." && pwd)"
+  fallback_list="$script_root/.config/ai-tools/npm-global.txt"
+  if [[ -r "$fallback_list" ]]; then
+    list_file="$fallback_list"
+  fi
+fi
+
+die() { printf 'ai-tools: %s\n' "$*" >&2; exit 1; }
+note() { printf '%s\n' "$*"; }
+
+ensure_node_env() {
+  # Prefer NVM if present; otherwise rely on PATH node/npm.
+  local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+  if [[ -s "$nvm_dir/nvm.sh" ]]; then
+    # shellcheck disable=SC1091
+    . "$nvm_dir/nvm.sh"
+    nvm use --silent default >/dev/null 2>&1 || true
+  fi
+
+  command -v npm >/dev/null 2>&1 || die "npm not found (install node/npm or NVM first)"
+}
+
+ensure_user_prefix() {
+  # If npm is configured to use a root-owned prefix, switch to a user prefix.
+  local prefix
+  prefix="$(npm config get prefix 2>/dev/null || true)"
+  [[ -n "$prefix" ]] || return 0
+
+  if [[ "$prefix" == "/usr" || "$prefix" == "/usr/local" ]]; then
+    if [[ ! -w "$prefix" ]]; then
+      npm config set prefix "$HOME/.local" >/dev/null 2>&1 || true
+      mkdir -p "$HOME/.local/bin" >/dev/null 2>&1 || true
+      export PATH="$HOME/.local/bin:$PATH"
+    fi
+  fi
+}
+
+read_list() {
+  [[ -r "$list_file" ]] || die "list not found: $list_file"
+
+  # Print package names, ignoring blank lines and comments.
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    line="${line%%$'\r'}"
+    [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+    [[ "$line" =~ ^[[:space:]]*# ]] && continue
+    # Trim leading/trailing whitespace
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line%"${line##*[![:space:]]}"}"
+    [[ -n "$line" ]] && printf '%s\n' "$line"
+  done <"$list_file"
+}
+
+cmd_check() {
+  ensure_node_env
+  ensure_user_prefix
+
+  local missing=0 pkg
+  while IFS= read -r pkg; do
+    if npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
+      note "OK  $pkg"
+    else
+      note "MISS $pkg"
+      missing=1
+    fi
+  done < <(read_list)
+  return "$missing"
+}
+
+cmd_link_nvm_defaults() {
+  local nvm_dir="${NVM_DIR:-$HOME/.nvm}"
+  [[ -d "$nvm_dir" ]] || die "NVM dir not found: $nvm_dir"
+  [[ -r "$list_file" ]] || die "list not found: $list_file"
+
+  mkdir -p "$nvm_dir" >/dev/null 2>&1 || true
+  # Copy (not symlink) so bootstrap scripts can run before stow.
+  cp -f "$list_file" "$nvm_dir/default-packages"
+  note "Wrote $nvm_dir/default-packages"
+}
+
+cmd_install() {
+  ensure_node_env
+  ensure_user_prefix
+
+  local pkg
+  while IFS= read -r pkg; do
+    if npm ls -g --depth=0 "$pkg" >/dev/null 2>&1; then
+      note "OK  $pkg"
+      continue
+    fi
+    note "ADD $pkg"
+    npm install -g "$pkg"
+  done < <(read_list)
+
+  if [[ -d "${NVM_DIR:-$HOME/.nvm}" ]]; then
+    cmd_link_nvm_defaults || true
+  fi
+}
+
+main() {
+  local cmd="${1:-}"
+  case "$cmd" in
+    check) cmd_check ;;
+    install) cmd_install ;;
+    link-nvm-defaults) cmd_link_nvm_defaults ;;
+    -h|--help|help|'') usage; exit 0 ;;
+    *) usage; die "unknown command: $cmd" ;;
+  esac
+}
+
+main "$@"

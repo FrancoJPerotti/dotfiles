@@ -162,6 +162,15 @@ Some features require additional software not automatically installed:
 - **Docker Desktop** - GUI for Docker (Ubuntu only, installed via deb package)
 - **Python venv** - For Python development (`python3.12-venv` on Ubuntu)
 
+### AI / Agent CLIs (Global npm tools)
+
+This repo also tracks a small set of global npm-based CLIs (Codex, OpenCode, Claude Code, Gemini CLI, OpenChamber, etc.).
+
+- **List:** `common/ai_tools/.config/ai-tools/npm-global.txt`
+- **Installer:** `common/ai_tools/.local/bin/ai-tools`
+- **Ubuntu:** `ubuntu-i3/setup.sh` installs these automatically after setting up NVM/Node.
+- **Other systems:** stow your profile, then run `ai-tools install`.
+
 ### Font Requirements
 
 Some configurations (especially terminal and status bars) work best with nerd fonts:

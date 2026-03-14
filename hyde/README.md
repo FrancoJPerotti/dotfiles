@@ -91,10 +91,19 @@ sudo pacman -S ttf-firacode-nerd ttf-font-awesome
 3. **Stow the `common` and `hyde` profiles using `stow-manager`:**
 
    ```bash
-   ./stow-manager -s hyde
-   ```
+    ./stow-manager -s hyde
+    ```
 
-   The script automatically applies the `common/` base plus the `hyde/` profile.
+    The script automatically applies the `common/` base plus the `hyde/` profile.
+
+4. **Install global AI/agent CLIs (npm):**
+
+   Requires Node.js + npm (NVM works well if you want per-user installs).
+   Install the repo-managed global tools list:
+
+   ```bash
+   ai-tools install
+   ```
 
 ## Philosophy
 

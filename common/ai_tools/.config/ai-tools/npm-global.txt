@@ -1,0 +1,21 @@
+# Global npm CLI tools to install (one per line).
+# Lines starting with # are ignored.
+
+# OpenAI / OpenCode
+@openai/codex
+opencode-ai
+
+# Anthropic
+@anthropic-ai/claude-code
+
+# Google
+@google/gemini-cli
+
+# OpenChamber (OpenCode GUI)
+@openchamber/web
+
+# GitHub Copilot CLI
+@github/copilot
+
+# Misc (optional)
+dotenv-cli

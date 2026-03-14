@@ -441,6 +441,46 @@ install_user_environment() {
         sudo -u "$TARGET_USER" bash -lc "source $nvm_dir/nvm.sh && nvm install node && nvm alias default node"
         log_ok "Installed latest Node.js and set as default"
     else log_skip "NVM already installed"; fi
+
+    # Install global npm CLI tools (codex, opencode, claude, gemini, etc.).
+    # Keep the canonical list in the repo; do not depend on stow having run.
+    local npm_list
+    npm_list="$SCRIPT_DIR/../common/ai_tools/.config/ai-tools/npm-global.txt"
+    if [ -r "$npm_list" ]; then
+        log_step "Installing global npm CLI tools"
+        sudo -u "$TARGET_USER" bash -lc "set -euo pipefail
+export NVM_DIR=\"\$HOME/.nvm\"
+if [ -s \"\$NVM_DIR/nvm.sh\" ]; then
+  . \"\$NVM_DIR/nvm.sh\"
+  nvm use --silent default >/dev/null 2>&1 || { nvm install node; nvm alias default node; }
+fi
+command -v npm >/dev/null 2>&1
+
+# Copy list into NVM defaults so future node installs auto-restore tools.
+mkdir -p \"\$NVM_DIR\" >/dev/null 2>&1 || true
+cp -f \"$npm_list\" \"\$NVM_DIR/default-packages\"
+
+while IFS= read -r pkg || [ -n \"\$pkg\" ]; do
+  pkg=\"\${pkg%%$'\\r'}\"
+  # Trim
+  pkg=\"\${pkg#\${pkg%%[![:space:]]*}}\"
+  pkg=\"\${pkg%\${pkg##*[![:space:]]}}\"
+  case \"\$pkg\" in
+    ''|\#*) continue ;;
+  esac
+  [ -n \"\$pkg\" ] || continue
+
+  if npm ls -g --depth=0 \"\$pkg\" >/dev/null 2>&1; then
+    :
+  else
+    npm install -g \"\$pkg\"
+  fi
+done < \"$npm_list\""
+        log_ok "Installed global npm CLI tools"
+    else
+        log_skip "npm tool list not found at $npm_list"
+    fi
+
     if ! sudo -u "$TARGET_USER" bash -c "fc-list | grep -qi 'JetBrainsMono Nerd Font'"; then
         log_step "Installing JetBrainsMono Nerd Font for user '$TARGET_USER'..."
         sudo -u "$TARGET_USER" bash -c '
