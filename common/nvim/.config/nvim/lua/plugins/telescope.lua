@@ -12,6 +12,38 @@ return {
 		local actions = require("telescope.actions")
 		local smart_delete = require("telescope.buffer_utils").smart_delete
 		local project_finder = require("telescope.project_finder")
+		local winpick = require("config.winpick")
+
+		local ok_parsers, ts_parsers = pcall(require, "nvim-treesitter.parsers")
+		if ok_parsers then
+			local ts_lang = vim.treesitter and vim.treesitter.language
+			if not ts_parsers.ft_to_lang and ts_lang and ts_lang.get_lang then
+				ts_parsers.ft_to_lang = ts_lang.get_lang
+			end
+			if not ts_parsers.get_parser and vim.treesitter and vim.treesitter.get_parser then
+				ts_parsers.get_parser = vim.treesitter.get_parser
+			end
+		end
+		local ok_configs, ts_configs = pcall(require, "nvim-treesitter.configs")
+		if ok_configs then
+			if not ts_configs.is_enabled then
+				ts_configs.is_enabled = function(_, lang, bufnr)
+					if not lang or lang == "" then
+						return false
+					end
+					return pcall(vim.treesitter.get_parser, bufnr, lang)
+				end
+			end
+			if not ts_configs.get_module then
+				ts_configs.get_module = function()
+					return { additional_vim_regex_highlighting = false }
+				end
+			end
+		end
+		local select_edit = winpick.telescope_select("edit")
+		local select_split = winpick.telescope_select("split")
+		local select_vsplit = winpick.telescope_select("vsplit")
+		local select_tab = winpick.telescope_select("tab")
 
 		telescope.setup({
 			defaults = {
@@ -29,10 +61,18 @@ return {
 				mappings = {
 					i = {
 						["<Esc>"] = actions.close,
+						["<CR>"] = select_edit,
+						["<C-x>"] = select_split,
+						["<C-v>"] = select_vsplit,
+						["<C-t>"] = select_tab,
 						["<C-e>"] = actions.cycle_history_next,
 						["<C-i>"] = actions.cycle_history_prev,
 					},
 					n = {
+						["<CR>"] = select_edit,
+						["<C-x>"] = select_split,
+						["<C-v>"] = select_vsplit,
+						["<C-t>"] = select_tab,
 						["<C-e>"] = actions.cycle_history_next,
 						["<C-i>"] = actions.cycle_history_prev,
 					},

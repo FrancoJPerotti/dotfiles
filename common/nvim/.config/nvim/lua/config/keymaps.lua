@@ -1,15 +1,5 @@
 local keymap = vim.keymap
 
--- Define mappings for command-line mode
-keymap.set("c", "<Up>", [[wildmenumode() ? "\<left>" : "\<up>"]], { expr = true, noremap = true })
-keymap.set("c", "<Down>", [[wildmenumode() ? "\<right>" : "\<down>"]], { expr = true, noremap = true })
-keymap.set("c", "<Left>", [[wildmenumode() ? "\<up>" : "\<left>"]], { expr = true, noremap = true })
-keymap.set(
-	"c",
-	"<Right>",
-	[[pumvisible() ? "\<C-y>" : (wildmenumode() ? " \<bs>\<C-Z>" : "\<right>")]],
-	{ expr = true, noremap = true, silent = true }
-)
 keymap.set("c", "<C-BS>", "<C-w>", { noremap = true })
 
 -- Move up
@@ -62,20 +52,6 @@ keymap.set("n", "<C-Left>", "b", { noremap = true, silent = true })
 keymap.set("v", "<C-Left>", "b", { noremap = true, silent = true })
 keymap.set("x", "<C-Left>", "b", { noremap = true, silent = true })
 
--- Go to the next paragraph
-keymap.set("n", "<S-Down>", "}", { noremap = true, silent = true })
-keymap.set("v", "<S-Down>", "}", { noremap = true, silent = true })
-keymap.set("x", "<S-Down>", "}", { noremap = true, silent = true })
-
--- Go to the previous paragraph
-keymap.set("n", "<S-Up>", "{", { noremap = true, silent = true })
-keymap.set("v", "<S-Up>", "{", { noremap = true, silent = true })
-keymap.set("x", "<S-Up>", "{", { noremap = true, silent = true })
-
--- Move through buffers
-keymap.set("n", "<C-l>", "<cmd>bprevious<CR>", { desc = "Previous buffer", silent = true })
-keymap.set("n", "<C-ñ>", "<cmd>bnext<CR>", { desc = "Next buffer", silent = true })
-
 -- Remap split navigation with leader key
 keymap.set("n", "<C-n>", "<C-w>h", { desc = "Focus left", silent = true })
 keymap.set("n", "<C-e>", "<C-w>j", { desc = "Focus down", silent = true })
@@ -85,7 +61,6 @@ keymap.set("n", "<C-o>", "<C-w>l", { desc = "Focus right", silent = true })
 -- Move one page up/down
 keymap.set("n", "<M-i>", "<C-b>", { silent = true })
 keymap.set("n", "<M-e>", "<C-f>", { silent = true })
-
 
 -- Close
 keymap.set("n", "<C-q><C-q>", "<cmd>bd<CR>", { noremap = true, silent = true, desc = "Close Buffer" })
@@ -104,6 +79,7 @@ keymap.set("n", "<leader>ai", "<cmd>CtxIngest<CR>", { desc = "Copy LLM context t
 
 -- Delete word backward
 keymap.set("i", "<C-BS>", "<C-W>", { noremap = true, silent = true })
+keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })
 
 -- Hot Reload Config
 keymap.set(
@@ -112,15 +88,6 @@ keymap.set(
 	"<cmd>luafile ~/.config/nvim/init.lua<CR>",
 	{ desc = "Reload config", noremap = true, silent = true }
 )
-
-keymap.set("n", "?", function()
-	local float_buf, float_win = vim.diagnostic.open_float(nil, { focus = true })
-	if float_buf and float_win then
-		vim.api.nvim_buf_set_keymap(float_buf, "n", "<Esc>", "<Cmd>close<CR>", { noremap = true, silent = true })
-	end
-end, { desc = "Open diagnostics float" })
-
-keymap.set("t", "<C-BS>", "<C-w>", { noremap = true, silent = true })
 
 -- Move to next diagnostic
 keymap.set("n", "<leader>dn", vim.diagnostic.goto_next, { desc = "Go to next diagnostic" })

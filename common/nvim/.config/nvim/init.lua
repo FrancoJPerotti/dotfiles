@@ -1,3 +1,6 @@
+vim.g.mapleader = " "
+vim.g.maplocalleader = "\\"
+
 -- Autocmds
 require("config.autocmds")
 
@@ -18,3 +21,7 @@ require("core.lazy")
 
 -- LSP
 require("core.lsp")
+
+vim.cmd(
+	[[command! TidyCurrent execute "cexpr system('clang-tidy -p build/lint/build/Debug ' ..shellescape(expand('%:p')))" | copen]]
+)

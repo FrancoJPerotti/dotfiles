@@ -1,5 +1,5 @@
 return {
-	"ggandor/leap.nvim",
+	"https://codeberg.org/andyg/leap.nvim",
 	opts = {
 		preview_filter = function()
 			return false
