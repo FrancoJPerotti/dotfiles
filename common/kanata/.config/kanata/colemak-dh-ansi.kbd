@@ -1,9 +1,10 @@
-;; Base layer: standard QWERTY layout with common modifiers
+;; Base layer: ISO keyboard matrix with the extra <LSGT> key between
+;; left Shift and Z.
 (defsrc
   grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
   caps a    s    d    f    g    h    j    k    l    ;    '    ret
-  lsft   z    x    c    v    b    n    m    ,    .    /    rsft
+  lsft lsgt z    x    c    v    b    n    m    ,    .    /    rsft
   lctl     lmet lalt           spc            ralt rctl
 )
 
@@ -12,8 +13,10 @@
   fun  (layer-while-held function)                         ;; Hold for function layer
   caps caps                                                ;; Caps Lock key
   num  (tap-hold-press 150 150 tab (layer-while-held num)) ;; Tap: Tab, Hold: Num layer (150ms threshold)
-  lshz (tap-hold-press 150 150 b lsft)                     ;; Tap: 'b', Hold: Left Shift (150ms threshold)
-  rshz (tap-hold-press 150 150 y rsft)                     ;; Tap: 'y', Hold: Right Shift (150ms threshold)
+  osl  (one-shot-press-pcancel 2000 lsft)                  ;; One-shot Left Shift
+  osr  (one-shot-press-pcancel 2000 rsft)                  ;; One-shot Right Shift
+  lshz (tap-hold-press 200 200 @osl lsft)                  ;; Tap: one-shot Left Shift, Hold: Left Shift
+  rshz (tap-hold-press 200 200 @osr rsft)                  ;; Tap: one-shot Right Shift, Hold: Right Shift
   tspc (tap-hold-press 170 170 spc lalt)                   ;; Tap: Space, Hold: Left Alt (150ms threshold)
 )
 
@@ -36,9 +39,9 @@
 (deflayer colemak
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   @num   _      _      _      _      _      _      _      _      _      _      _      _      _
-  _      _      _      _      _      _      _      _      _      _      _      _      -
-  @lshz  _      _      _      _      _      _      _      _      _      _      @rshz
-  _             @caps  ralt                 @tspc                @fun   _
+  lmet   _      _      _      _      _      _      _      _      _      _      _      -
+  @lshz  _    _      _      _      _      _      _      _      _      _      _      @rshz
+  _             caps  ralt                 @tspc                @fun   _
 )
 
 ;; Num layer
@@ -47,7 +50,7 @@
   XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX     XX
   XX     XX     XX     XX     XX     XX     XX     XX     7      8      9      XX     XX     XX     
   XX     XX     XX     XX     XX     XX     XX     XX     4      5      6      XX     XX     
-  XX     XX     XX     XX     XX     XX     XX     XX     1      2      3      XX     
+  XX     XX   XX     XX     XX     XX     XX     XX     XX     1      2      3      XX     
   XX            XX     XX                   _                    0      XX
 )
 
@@ -56,7 +59,7 @@
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   _      brup   vold   mute   volu   _      _      _      home   @pw    @nw    end    _      _
   _      brdwn  prev   pp     next   _      _      _      left   down   up     right  _      
-  _      _      _      _      _      _      _      _      mlft   mrgt   _      _      
+  _      _    _      _      _      _      _      _      _      mlft   mrgt   _      _      
   _             _      _                    @mscl                _       _
 )
 
@@ -68,7 +71,7 @@
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   _      _      _      _      _      _      _      _      @msl   @msd   @msu   @msr   _      _
   _      _      _      _      _      _      _      _      mwl    mwd    mwu    mwr    _      
-  _      _      _      _      _      _      _      _      _      _      _             _      
+  _      _    _      _      _      _      _      _      _      _      _      _             _      
   _             _      _                    _                           _      _
 )
 
@@ -77,7 +80,7 @@
   (s d) bspc 22 all-released ()                   ;; Backspace key
   (w e) esc 22 all-released ()                    ;; Escape key
   (l ;) ret 22 all-released ()                    ;; Enter/Return key
-  (o p) lmet 22 all-released ()                   ;; Caps Lock key
+  (o p) caps 22 all-released ()                   ;; Caps Lock key
   (d f) C-bspc 22 all-released ()                 ;; Delete previous word
   (k l) S-ret 22 all-released ()                  ;; Shift+Enter (insert new line)
   (a g) F12 22 all-released ()                    ;; Close current window

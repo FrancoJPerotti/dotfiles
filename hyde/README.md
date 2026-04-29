@@ -62,6 +62,11 @@ Notable AUR tools:
 - `unity-test` – C unit testing framework.
 - `vial-appimage` – keyboard configuration tool.
 
+After stowing the profile, `kanata` can be toggled with `Super+F11` or by
+running `~/.local/bin/kanata_up.sh`. The helper switches Hyprland between the
+default `us-intl` layout and the custom `cdhwic` layout while starting or
+stopping `kanata` as needed.
+
 ### Fonts
 
 Some parts of the setup assume Nerd Fonts and icon fonts:
