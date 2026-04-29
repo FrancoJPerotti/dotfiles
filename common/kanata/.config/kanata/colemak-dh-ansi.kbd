@@ -13,6 +13,7 @@
   fun  (layer-while-held function)                         ;; Hold for function layer
   caps caps                                                ;; Caps Lock key
   num  (tap-hold-press 150 150 tab (layer-while-held num)) ;; Tap: Tab, Hold: Num layer (150ms threshold)
+  sup  (multi lmet (layer-while-held super_nav))           ;; Hold: Super + temporary navigation overlay
   osl  (one-shot-press-pcancel 2000 lsft)                  ;; One-shot Left Shift
   osr  (one-shot-press-pcancel 2000 rsft)                  ;; One-shot Right Shift
   lshz (tap-hold-press 200 200 @osl lsft)                  ;; Tap: one-shot Left Shift, Hold: Left Shift
@@ -39,7 +40,7 @@
 (deflayer colemak
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   @num   _      _      _      _      _      _      _      _      _      _      _      _      _
-  lmet   _      _      _      _      _      _      _      _      _      _      _      -
+  @sup   _      _      _      _      _      _      _      _      _      _      _      -
   @lshz  _    _      _      _      _      _      _      _      _      _      _      @rshz
   _             caps  ralt                 @tspc                @fun   _
 )
@@ -61,6 +62,16 @@
   _      brdwn  prev   pp     next   _      _      _      left   down   up     right  _      
   _      _    _      _      _      _      _      _      _      mlft   mrgt   _      _      
   _             _      _                    @mscl                _       _
+)
+
+;; Super overlay: while physical Caps is held, physical Right Shift emits the
+;; keycode for the AD06 position so Hyprland sees Super+dead_grave immediately.
+(deflayer super_nav
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _      _      _      _      _      _      _      _      _      _      _      _
+  _      _    _      _      _      _      _      _      _      _      _      _      y
+  _             _      _                    _                    _      _
 )
 
 ;; Mouse scroll layer
