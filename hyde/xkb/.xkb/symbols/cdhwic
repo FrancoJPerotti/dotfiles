@@ -4,7 +4,6 @@ default partial alphanumeric_keys modifier_keys
 xkb_symbols "cdhwic" {
 
     name[Group1]= "Colemak-DH Wide ISO Custom";
-    key.type[Group1] = "EIGHT_LEVEL";
 
     key <TLDE> { [    semicolon,        colon,      dead_tilde,       asciitilde ] };
     key <AE01> { [            1,       exclam,      exclamdown,      onesuperior ] };

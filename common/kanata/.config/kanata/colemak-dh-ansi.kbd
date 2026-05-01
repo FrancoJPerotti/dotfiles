@@ -14,6 +14,7 @@
   caps caps                                                ;; Caps Lock key
   num  (tap-hold-press 150 150 tab (layer-while-held num)) ;; Tap: Tab, Hold: Num layer (150ms threshold)
   sup  (multi lmet (layer-while-held super_nav))           ;; Hold: Super + temporary navigation overlay
+  sgrv (tap-hold-press 200 200 y rsft)                     ;; Tap: workspace-4 key, Hold: Right Shift
   osl  (one-shot-press-pcancel 2000 lsft)                  ;; One-shot Left Shift
   osr  (one-shot-press-pcancel 2000 rsft)                  ;; One-shot Right Shift
   lshz (tap-hold-press 200 200 @osl lsft)                  ;; Tap: one-shot Left Shift, Hold: Left Shift
@@ -64,13 +65,14 @@
   _             _      _                    @mscl                _       _
 )
 
-;; Super overlay: while physical Caps is held, physical Right Shift emits the
-;; keycode for the AD06 position so Hyprland sees Super+dead_grave immediately.
+;; Super overlay: while physical Caps is held, physical Right Shift taps the
+;; AD06-position key for workspace 4, but still works as a real held Shift in
+;; longer Super+Shift combos.
 (deflayer super_nav
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   _      _      _      _      _      _      _      _      _      _      _      _      _      _
   _      _      _      _      _      _      _      _      _      _      _      _      _
-  _      _    _      _      _      _      _      _      _      _      _      _      y
+  _      _    _      _      _      _      _      _      _      _      _      _      @sgrv
   _             _      _                    _                    _      _
 )
 

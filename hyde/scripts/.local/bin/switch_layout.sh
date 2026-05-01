@@ -21,20 +21,20 @@ current_state() {
     fi
 }
 
-set_layout_index() {
-    local index="$1"
-    hyprctl switchxkblayout all "${index}" >/dev/null
+set_layout() {
+    local layout="$1"
+    hyprctl keyword input:kb_layout "${layout}" >/dev/null
 }
 
 switch_to_us_intl() {
-    echo "Switching to US International..."
-    set_layout_index 0
-    write_state "us-intl"
+    echo "Switching to US layout..."
+    set_layout us
+    write_state "us"
 }
 
 switch_to_cdhwic() {
     echo "Switching to CDHWIC layout..."
-    set_layout_index 1
+    set_layout cdhwic
     write_state "cdhwic"
 }
 
