@@ -47,6 +47,20 @@ for k, v in pairs(options) do
 	vim.opt[k] = v
 end
 
+if vim.treesitter and vim.treesitter.start and not vim.g._treesitter_start_guarded then
+	vim.g._treesitter_start_guarded = true
+	local treesitter_start = vim.treesitter.start
+
+	vim.treesitter.start = function(bufnr, lang)
+		local ok, result = pcall(treesitter_start, bufnr, lang)
+		if ok then
+			return result
+		end
+
+		return nil, result
+	end
+end
+
 -- vim.opt.shortmess = "ilmnrx"                        -- flags to shorten vim messages, see :help 'shortmess'
 vim.opt.shortmess:append("c") -- don't give |ins-completion-menu| messages
 vim.opt.iskeyword:append("-") -- hyphenated words recognized by searches

@@ -92,28 +92,90 @@ function M.open_path(winid, action, path)
 		vim.api.nvim_set_current_win(winid)
 	end
 
-	local escaped = vim.fn.fnameescape(path)
 	if action == "split" then
-		vim.cmd.split({ args = { escaped }, mods = { keepalt = false } })
+		vim.cmd.split({ args = { path }, mods = { keepalt = false } })
 	elseif action == "vsplit" then
-		vim.cmd.vsplit({ args = { escaped }, mods = { keepalt = false } })
+		vim.cmd.vsplit({ args = { path }, mods = { keepalt = false } })
 	elseif action == "tab" then
-		vim.cmd.tabedit({ args = { escaped }, mods = { keepalt = false } })
+		vim.cmd.tabedit({ args = { path }, mods = { keepalt = false } })
 	else
-		vim.cmd.edit({ args = { escaped }, mods = { keepalt = false } })
+		vim.cmd.edit({ args = { path }, mods = { keepalt = false } })
 	end
+end
+
+local function resolve_fff_path(item, base_path)
+	if not item then
+		return nil
+	end
+
+	local path = item.path or item.filename or item.relative_path
+	if not path or path == "" then
+		return nil
+	end
+
+	if vim.startswith(path, "\\\\?\\") then
+		path = path:sub(5)
+	end
+
+	if vim.fn.fnamemodify(path, ":p") == path then
+		return path
+	end
+
+	if base_path and base_path ~= "" then
+		return vim.fs.normalize(base_path .. "/" .. path)
+	end
+
+	return path
+end
+
+local function fff_item_tracking_path(item)
+	if not item then
+		return nil
+	end
+
+	return item.relative_path or item.path or item.filename
+end
+
+local function fff_location_from_item(snapshot)
+	local location = snapshot.location
+	local item = snapshot.item or {}
+	local is_grep_item = snapshot.mode == "grep" or snapshot.suggestion_source == "grep"
+
+	if is_grep_item and item.line_number and item.line_number > 0 then
+		location = { line = item.line_number }
+		if item.col and item.col > 0 then
+			location.col = item.col + 1
+		end
+	end
+
+	if not location and snapshot.query and snapshot.query ~= "" then
+		local line, col = snapshot.query:match(":(%d+):(%d+)$")
+		if line then
+			location = { line = tonumber(line), col = tonumber(col) }
+		else
+			line = snapshot.query:match(":(%d+)$")
+			if line then
+				location = { line = tonumber(line) }
+			end
+		end
+	end
+
+	return location
 end
 
 local function snapshot_fff(picker_ui)
 	local state = picker_ui.state or {}
 	local items = state.filtered_items or {}
+	local config = state.config or {}
 	return {
 		query = state.query or "",
 		cursor = state.cursor or 1,
-		item = items[state.cursor],
+		item = vim.deepcopy(items[state.cursor]),
 		location = state.location,
-		config = state.config or {},
-		base_path = require("fff.file_picker").state.base_path,
+		mode = state.mode,
+		suggestion_source = state.suggestion_source,
+		config = config,
+		base_path = config.base_path or require("fff.file_picker").state.base_path or require("fff.conf").get().base_path,
 	}
 end
 
@@ -163,17 +225,19 @@ local function restore_fff(picker_ui, snapshot)
 end
 
 local function open_fff_item(snapshot, action, winid)
-	if not snapshot.item or not snapshot.item.path then
+	local abs_path = resolve_fff_path(snapshot.item, snapshot.base_path)
+	if not abs_path then
 		return
 	end
 
-	local path = vim.fn.fnamemodify(snapshot.item.path, ":.")
+	local path = vim.fn.fnamemodify(abs_path, ":.")
 	local open_action = action or "edit"
 	M.open_path(action == "tab" and nil or winid, open_action, path)
 
-	if snapshot.location then
+	local location = fff_location_from_item(snapshot)
+	if location then
 		vim.schedule(function()
-			require("fff.location_utils").jump_to_location(snapshot.location)
+			require("fff.location_utils").jump_to_location(location)
 		end)
 	end
 
@@ -181,7 +245,11 @@ local function open_fff_item(snapshot, action, winid)
 		local config = require("fff.conf").get()
 		if config.history and config.history.enabled then
 			local fff = require("fff.core").ensure_initialized()
-			pcall(fff.track_query_completion, snapshot.query, snapshot.item.path)
+			if snapshot.mode == "grep" then
+				pcall(fff.track_grep_query, snapshot.query)
+			else
+				pcall(fff.track_query_completion, snapshot.query, fff_item_tracking_path(snapshot.item))
+			end
 		end
 	end
 end

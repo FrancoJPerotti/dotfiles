@@ -8,6 +8,10 @@ return {
 				enabled = false,
 				show_scores = false,
 			},
+			keymaps = {
+				select_split = "<C-x>",
+				select_vsplit = "<C-v>",
+			},
 		},
 		lazy = false,
 		keys = {

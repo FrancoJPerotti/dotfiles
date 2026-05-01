@@ -13,24 +13,41 @@ return {
 		},
 	},
 	config = function()
+		local function close_view(self)
+			if self.action_call then
+				self:action_call("n_close")
+			else
+				self:exec_action("n_close")
+			end
+		end
+
 		local function close_with_save(self)
 			if not self.win or not vim.api.nvim_buf_is_valid(self.win.bufnr) then
-				self:exec_action("n_close")
+				close_view(self)
 				return
 			end
 
 			local function has_changes()
-				local lines = vim.api.nvim_buf_get_lines(self.win.bufnr, 0, -1, false)
-				local operations = self.files:diff_with_lines(lines)
+				if not self.files or not self.files.diff_with_buffer then
+					return false
+				end
+
+				local ok, operations = pcall(function()
+					return self.files:diff_with_buffer()
+				end)
+				if not ok then
+					vim.notify("Fyler diff failed: " .. tostring(operations), vim.log.levels.ERROR)
+					return false
+				end
 				return operations and not vim.tbl_isempty(operations)
 			end
 
 			if not has_changes() then
-				self:exec_action("n_close")
+				close_view(self)
 				return
 			end
 
-			self:synchronize()
+			self:dispatch_mutation()
 
 			local attempts = 0
 			local function check_and_close()
@@ -38,7 +55,7 @@ return {
 					return
 				end
 				if not has_changes() then
-					self:exec_action("n_close")
+					close_view(self)
 					return
 				end
 				attempts = attempts + 1
