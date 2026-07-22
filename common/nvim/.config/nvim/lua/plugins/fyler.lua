@@ -7,55 +7,32 @@ return {
 		{
 			"<leader>e",
 			function()
-				require("fyler").toggle({ kind = "float" })
+				require("fyler").toggle()
 			end,
-			desc = "Toggle Fyler view (float)",
+			desc = "Toggle Fyler view (floating)",
 		},
 	},
 	config = function()
-		local function close_view(self)
-			if self.action_call then
-				self:action_call("n_close")
-			else
-				self:exec_action("n_close")
-			end
-		end
-
 		local function close_with_save(self)
-			if not self.win or not vim.api.nvim_buf_is_valid(self.win.bufnr) then
-				close_view(self)
+			if not self.buf_id or not vim.api.nvim_buf_is_valid(self.buf_id) then
+				self:close()
 				return
 			end
 
-			local function has_changes()
-				if not self.files or not self.files.diff_with_buffer then
-					return false
-				end
-
-				local ok, operations = pcall(function()
-					return self.files:diff_with_buffer()
-				end)
-				if not ok then
-					vim.notify("Fyler diff failed: " .. tostring(operations), vim.log.levels.ERROR)
-					return false
-				end
-				return operations and not vim.tbl_isempty(operations)
-			end
-
-			if not has_changes() then
-				close_view(self)
+			if not vim.api.nvim_get_option_value("modified", { buf = self.buf_id }) then
+				self:close()
 				return
 			end
 
-			self:dispatch_mutation()
+			self:mutate()
 
 			local attempts = 0
 			local function check_and_close()
-				if not self.win or not vim.api.nvim_buf_is_valid(self.win.bufnr) then
+				if not self.buf_id or not vim.api.nvim_buf_is_valid(self.buf_id) then
 					return
 				end
-				if not has_changes() then
-					close_view(self)
+				if not vim.api.nvim_get_option_value("modified", { buf = self.buf_id }) then
+					self:close()
 					return
 				end
 				attempts = attempts + 1
@@ -69,54 +46,58 @@ return {
 		end
 
 		require("fyler").setup({
-			integrations = {
-				icon = "nvim_web_devicons",
-				winpick = {
-					provider = "snacks",
+			auto_confirm_simple_mutation = true,
+			kind = "floating",
+			ui = {
+				hidden_items = {
+					-- This is a dotfiles repository, so hiding every dot-prefixed
+					-- directory makes folders containing only `.config` look empty.
+					switches = {},
+					patterns = { "/%.git$" },
+					always_visible = {},
+					always_hidden = {},
 				},
 			},
-			views = {
-				finder = {
-					-- Skips confirmation for simple edits with following condition:
-					-- CREATE <= 5 && DELETE == 0 && MOVE <= 1 && COPY <= 1
-					confirm_simple = false,
-					git_status = {
-						enabled = true,
-						symbols = {
-							Untracked = "U",
-							Added = " ",
-							Modified = " ",
-							Deleted = " ",
-							Renamed = " ",
-							Copied = "~",
-							Conflict = "!",
-							Ignored = "◌",
-						},
+			integrations = {
+				icon = "nvim_web_devicons",
+				window_picker = function()
+					return require("snacks").picker.util.pick_win()
+				end,
+			},
+			kind_presets = {
+				floating = {
+					height = "70%",
+					width = "40%",
+					row = "center",
+					col = "center",
+				},
+			},
+			extensions = {
+				git = {
+					enabled = true,
+					icons = {
+						["??"] = { icon = "U", hl = "FylerGitUntracked" },
+						[" M"] = { icon = " ", hl = "FylerGitModified" },
+						["M "] = { icon = " ", hl = "FylerGitStaged" },
+						["MM"] = { icon = " ", hl = "FylerGitStaged" },
+						[" D"] = { icon = " ", hl = "FylerGitDeleted" },
+						["D "] = { icon = " ", hl = "FylerGitStaged" },
+						["R "] = { icon = " ", hl = "FylerGitRenamed" },
+						["UU"] = { icon = "!", hl = "FylerGitConflict" },
+						["!!"] = { icon = "◌", hl = "FylerGitIgnored" },
 					},
-					mappings = {
-						["q"] = "CloseView",
-						["<Esc>"] = close_with_save,
-						["<CR>"] = "Select",
-						["<C-t>"] = "SelectTab",
-						["<C-v>"] = "SelectVSplit",
-						["<C-x>"] = "SelectSplit",
-						["^"] = "GotoParent",
-						["="] = "GotoCwd",
-						["."] = "GotoNode",
-						["#"] = "CollapseAll",
-						["<BS>"] = "CollapseNode",
-					},
-					win = {
-						kind = "float",
-						kinds = {
-							float = {
-								height = "70%",
-								width = "40%",
-								top = "10%",
-								left = "30%",
-							},
-						},
-					},
+				},
+			},
+			mappings = {
+				n = {
+					["<Esc>"] = { action = close_with_save },
+					["<C-t>"] = { action = "select", args = { tabedit = true } },
+					["<C-v>"] = { action = "select", args = { vsplit = true } },
+					["<C-x>"] = { action = "select", args = { split = true } },
+					["^"] = { action = "visit", args = { parent = true } },
+					["="] = { action = "visit" },
+					["."] = { action = "visit", args = { cursor = true } },
+					["<BS>"] = { action = "shrink", args = { parent = true } },
 				},
 			},
 		})
