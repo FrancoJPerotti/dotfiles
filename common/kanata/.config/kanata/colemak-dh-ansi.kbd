@@ -36,6 +36,20 @@
   msr (movemouse-right 1 1) ;; Move mouse right by 1 unit
 )
 
+(defvirtualkeys
+  rpt-bspc   bspc
+  rpt-ret    ret
+  rpt-c-bspc C-bspc
+  rpt-s-ret  S-ret
+)
+
+(defalias
+  rbspc  (multi (on-press press-vkey rpt-bspc) (on-release release-vkey rpt-bspc))
+  rret   (multi (on-press press-vkey rpt-ret) (on-release release-vkey rpt-ret))
+  rcbspc (multi (on-press press-vkey rpt-c-bspc) (on-release release-vkey rpt-c-bspc))
+  rsret  (multi (on-press press-vkey rpt-s-ret) (on-release release-vkey rpt-s-ret))
+)
+
 ;; The first layer defined is the layer that will be active by default when kanata starts up.
 ;; Set colemak as keyboard layer in tiling manager
 (deflayer colemak
@@ -90,12 +104,12 @@
 
 (defcfg concurrent-tap-hold yes)
 (defchordsv2
-  (s d) bspc 22 all-released ()                   ;; Backspace key
+  (s d) @rbspc 22 all-released ()                 ;; Backspace key
   (w e) esc 22 all-released ()                    ;; Escape key
-  (l ;) ret 22 all-released ()                    ;; Enter/Return key
+  (l ;) @rret 22 all-released ()                  ;; Enter/Return key
   (o p) caps 22 all-released ()                   ;; Caps Lock key
-  (d f) C-bspc 22 all-released ()                 ;; Delete previous word
-  (k l) S-ret 22 all-released ()                  ;; Shift+Enter (insert new line)
+  (d f) @rcbspc 22 all-released ()                ;; Delete previous word
+  (k l) @rsret 22 all-released ()                 ;; Shift+Enter (insert new line)
   (a g) F12 22 all-released ()                    ;; Close current window
   (s d f) (macro S-home bspc) 30 first-release () ;; Delete entire line
   (. /) C-m 22 all-released ()                    ;; Press Control+K

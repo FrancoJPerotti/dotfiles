@@ -23,13 +23,28 @@ current_state() {
 
 set_layout() {
     local layout="$1"
+    local variant="${2:-}"
+
+    if [[ -n "${variant}" ]]; then
+        hyprctl keyword input:kb_layout "${layout}" >/dev/null
+        hyprctl keyword input:kb_variant "${variant}" >/dev/null
+        return
+    fi
+
+    hyprctl keyword input:kb_variant "" >/dev/null
     hyprctl keyword input:kb_layout "${layout}" >/dev/null
 }
 
-switch_to_us_intl() {
-    echo "Switching to US layout..."
-    set_layout us
-    write_state "us"
+switch_to_us() {
+    local state="${1:-us}"
+    local variant="${2:-}"
+    local label="US"
+    if [[ -n "${variant}" ]]; then
+        label="US ${variant}"
+    fi
+    echo "Switching to ${label} layout..."
+    set_layout us "${variant}"
+    write_state "${state}"
 }
 
 switch_to_cdhwic() {
@@ -41,12 +56,16 @@ switch_to_cdhwic() {
 need hyprctl
 
 case "${target}" in
-custom | cdhwic)
+legacy | previous | custom | cdhwic)
     switch_to_cdhwic
     exit 0
     ;;
 us-intl | usintl | intl)
-    switch_to_us_intl
+    switch_to_us "us-intl" intl
+    exit 0
+    ;;
+kanata | default | kanata-test | test)
+    switch_to_us "kanata" intl
     exit 0
     ;;
 "")
@@ -58,7 +77,7 @@ us-intl | usintl | intl)
 esac
 
 if [[ "$(current_state)" == "cdhwic" ]]; then
-    switch_to_us_intl
+    switch_to_us
 else
     switch_to_cdhwic
 fi

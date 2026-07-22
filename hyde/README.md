@@ -62,10 +62,26 @@ Notable AUR tools:
 - `unity-test` – C unit testing framework.
 - `vial-appimage` – keyboard configuration tool.
 
-After stowing the profile, `kanata` can be toggled with `Super+F11` or by
-running `~/.local/bin/kanata_up.sh`. The helper switches Hyprland between the
-default `us-intl` layout and the custom `cdhwic` layout while starting or
-stopping `kanata` as needed.
+After stowing the profile, the default Kanata-owned Colemak layout starts with
+Hyprland and uses the standard US International XKB map. It can be toggled with
+`Super+F11` or by running `~/.local/bin/kanata_up.sh`.
+
+```bash
+# Activate the default Kanata-owned mapping with US International XKB.
+~/.local/bin/kanata_up.sh --current
+
+# Restore the previous Kanata mapping with the custom CDHWIC XKB layout.
+~/.local/bin/kanata_up.sh --legacy
+```
+
+The default configuration lives at
+`~/.config/kanata/colemak-dh-kanata-test.kbd`. Its ASCII symbols emit their
+final US keycodes so shortcut handling is consistent in Chromium-based
+applications. The standard US International XKB variant supplies dead acute
+and grave accents plus `ñ`/`Ñ`, including in terminals. Less common characters
+still use Kanata Unicode actions and may not work in every native Wayland
+application. The previous `colemak-dh-ansi.kbd` configuration and `cdhwic`
+layout remain available through `--legacy`.
 
 ### Fonts
 

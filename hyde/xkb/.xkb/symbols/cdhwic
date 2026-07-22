@@ -37,7 +37,7 @@ xkb_symbols "cdhwic" {
     key <AC03> { [            s,            S,           comma,        0x1001e9e ] };
     key <AC04> { [            t,            T,          period, dead_doubleacute ] };
     key <AC05> { [            g,            G,              at,       asciitilde ] };
-    key <AC06> { [    semicolon,        colon                                    ] };
+    key <AC06> { [ bracketright,        colon                                    ] };
     key <AC07> { [            m,            M,      underscore,       exclamdown ] };
     key <AC08> { [            n,            N,       parenleft,           Ntilde ] };
     key <AC09> { [            e,            E,       braceleft,           Eacute ] };

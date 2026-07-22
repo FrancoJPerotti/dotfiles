@@ -1,0 +1,199 @@
+;; Default single-remapper layout.
+;;
+;; This reproduces the current Colemak-DH layout at the evdev layer so that
+;; Hyprland can use a plain US XKB layout. colemak-dh-ansi.kbd remains the
+;; rollback profile for the previous Kanata + CDHWIC arrangement.
+
+(defsrc
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft lsgt z    x    c    v    b    n    m    ,    .    /    rsft
+  lctl     lmet lalt           spc            ralt rctl
+)
+
+;; Use the right action whenever either physical Shift key is held. Releasing
+;; Shift for that action prevents the fourth-level symbol from being shifted a
+;; second time by the plain US XKB layout.
+(deftemplate shifted (base shifted)
+  (fork $base (multi (unmod (lsft rsft) nop0) $shifted) (lsft rsft))
+)
+
+(defalias
+  fun  (layer-while-held function)
+  sym  (layer-while-held symbols)
+  num  (tap-hold-press 150 150 tab (layer-while-held num))
+  sup  (multi lmet (layer-while-held super_nav))
+  sgrv (tap-hold-press 200 200 grv rsft)
+  osl  (one-shot-press-pcancel 2000 lsft)
+  osr  (one-shot-press-pcancel 2000 rsft)
+  lshz (tap-hold-press 200 200 @osl lsft)
+  rshz (tap-hold-press 200 200 @osr rsft)
+  tspc (tap-hold-press 170 170 spc @sym)
+
+  ;; Reliable characters provided by the standard US International XKB map.
+  litgrv   (multi ralt grv)
+  littilde (multi ralt lsft grv)
+  litapos  (multi ralt ')
+  litquote (multi ralt lsft ')
+  enyelo   (multi ralt n)
+  enyehi   (multi ralt lsft n)
+
+  ;; Base-layer keys whose shifted result is not the US shifted result.
+  grbs (t! shifted grv \)
+  plpm (t! shifted S-= (unicode U+00B1))
+  mnnd (t! shifted - (unicode U+2013))
+  rbrc (t! shifted ] S-;)
+  enye (t! shifted @enyelo @enyehi)
+  ques (t! shifted S-/ (unicode U+00BF))
+  acst (t! shifted ' S-8)
+
+  ;; Function and mouse aliases retained from the stable configuration.
+  pw   C-left
+  nw   C-right
+  mscl (layer-while-held mouse_scroll)
+  msu  (movemouse-up 1 1)
+  msl  (movemouse-left 1 1)
+  msd  (movemouse-down 1 1)
+  msr  (movemouse-right 1 1)
+)
+
+(defvirtualkeys
+  rpt-bspc   bspc
+  rpt-ret    ret
+  rpt-c-bspc C-bspc
+  rpt-s-ret  S-ret
+  hold-caps  (tap-hold 200 150 nop0 caps)
+)
+
+(defalias
+  rbspc  (multi (on-press press-vkey rpt-bspc) (on-release release-vkey rpt-bspc))
+  rret   (multi (on-press press-vkey rpt-ret) (on-release release-vkey rpt-ret))
+  rcbspc (multi (on-press press-vkey rpt-c-bspc) (on-release release-vkey rpt-c-bspc))
+  rsret  (multi (on-press press-vkey rpt-s-ret) (on-release release-vkey rpt-s-ret))
+  hcaps  (multi (on-press press-vkey hold-caps) (on-release release-vkey hold-caps))
+)
+
+;; Plain US keycodes that produce the current Colemak-DH base characters.
+(deflayer colemak
+  ;      1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  @num   q    w    f    p    b    @grbs j    l    u    y    @enye @plpm -
+  @sup   a    r    s    t    g    @rbrc m    n    e    i    o    -
+  @lshz  z    x    c    d    v    z    .    k    h    @ques @acst @rshz
+  _           @sup lalt              @tspc              @fun  _
+)
+
+;; Space-hold symbol layer. Every ASCII symbol is emitted using its real US
+;; evdev keycode, which is what Vivaldi and other Chromium applications expect.
+(deflayer symbols
+  (t! shifted S-grv @littilde)
+  (t! shifted (unicode U+00A1) (unicode U+00B9))
+  (t! shifted (unicode U+00BA) (unicode U+00B2))
+  (t! shifted (unicode U+00AA) (unicode U+00B3))
+  (t! shifted (unicode U+00A2) (unicode U+00A3))
+  (t! shifted (unicode U+20AC) (unicode U+00A5))
+  (t! shifted (unicode U+0127) (unicode U+0126))
+  (t! shifted (unicode U+00F0) (unicode U+00D0))
+  (t! shifted (unicode U+00FE) (unicode U+00DE))
+  (t! shifted (unicode U+2018) (unicode U+201C))
+  (t! shifted (unicode U+2019) (unicode U+201D))
+  (t! shifted (unicode U+2013) (unicode U+2014))
+  (t! shifted (unicode U+00D7) (unicode U+00F7))
+  _
+
+  _
+  (t! shifted @litquote (unicode U+00C4))
+  (t! shifted @litapos (unicode U+00C5))
+  (t! shifted / (unicode U+00C3))
+  (t! shifted \ (unicode U+00D8))
+  @littilde
+  ]
+  (t! shifted S-6 (unicode U+0110))
+  (t! shifted S-1 S-0)
+  (t! shifted = S-])
+  (t! shifted S-7 S-.)
+  (t! shifted S-\ ])
+  (t! shifted S-8 (unicode U+2039))
+  (t! shifted S-- @littilde)
+
+  _
+  (t! shifted S-; (unicode U+00C1))
+  (t! shifted ; @littilde)
+  (t! shifted , (unicode U+1E9E))
+  (t! shifted . (unicode U+02DD))
+  (t! shifted S-2 @littilde)
+  _
+  (t! shifted S-- (unicode U+00A1))
+  (t! shifted S-9 (unicode U+00D1))
+  (t! shifted S-[ (unicode U+00C9))
+  (t! shifted S-, (unicode U+00CD))
+  (t! shifted [ (unicode U+00D3))
+  _
+
+  _
+  (t! shifted S-4 (unicode U+00C6))
+  (t! shifted S-4 @littilde)
+  (t! shifted - (unicode U+00C7))
+  (t! shifted S-3 (unicode U+0152))
+  (t! shifted S-5 @littilde)
+  (t! shifted S-4 (unicode U+00C6))
+  _
+  (t! shifted @litgrv @littilde)
+  (t! shifted S-0 @littilde)
+  (t! shifted S-] @littilde)
+  (t! shifted S-. @littilde)
+  ]
+
+  _ _ _ _ _ _
+)
+
+(deflayer num
+  XX XX XX XX XX XX XX XX XX XX XX XX XX XX
+  XX XX XX XX XX XX XX XX 7  8  9  XX XX XX
+  XX XX XX XX XX XX XX XX 4  5  6  XX XX
+  XX XX XX XX XX XX XX XX XX 1  2  3  XX
+  XX       XX XX          _        0  XX
+)
+
+(deflayer function
+  _ _    _    _    _    _ _ _ _    _   _   _    _ _
+  _ brup vold mute volu _ _ _ home @pw @nw end  _ _
+  _ brdwn prev pp next _ _ _ left down up right _
+  _ _    _    _    _    _ _ _ _    mlft mrgt _ _
+  _      _    _         @mscl         _    _
+)
+
+(deflayer super_nav
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  _ _ _ _ _ _ grv _ _ _ _ _ _ _
+  _ _ _ _ _ _ _ _ _ _ _ _ _
+  _ _ _ _ _ _ _ _ _ _ _ ' @sgrv
+  _   _ _       _       _ _
+)
+
+(deflayer mouse_scroll
+  _ _ _ _ _ _ _ _ _ _ _ _ _ _
+  _ _ _ _ _ _ _ _ @msl @msd @msu @msr _ _
+  _ _ _ _ _ _ _ _ mwl mwd mwu mwr _
+  _ _ _ _ _ _ _ _ _ _ _ _ _
+  _   _ _       _       _ _
+)
+
+(defcfg
+  concurrent-tap-hold yes
+  linux-unicode-termination space
+  process-unmapped-keys no
+)
+
+(defchordsv2
+  (s d) @rbspc 22 all-released ()
+  (w e) esc 22 all-released ()
+  (l ;) @rret 22 all-released ()
+  ;; Hold both keys for 150 ms; quick rolls must not toggle Caps Lock.
+  (o p) @hcaps 22 first-release (super_nav)
+  (d f) @rcbspc 22 all-released ()
+  (k l) @rsret 22 all-released ()
+  (a g) F12 22 all-released ()
+  (s d f) (macro S-home bspc) 30 first-release ()
+  (. /) C-m 22 all-released ()
+)
