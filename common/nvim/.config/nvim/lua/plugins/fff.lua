@@ -1,7 +1,11 @@
 return {
 	{
 		"dmtrKovalenko/fff.nvim",
-		build = function() require("fff.download").download_or_build_binary() end,
+		version = "0.10.0",
+		-- enabled = false,
+		build = function()
+			require("fff.download").download_or_build_binary()
+		end,
 		dependencies = { "folke/snacks.nvim" },
 		opts = {
 			debug = {
@@ -11,6 +15,14 @@ return {
 			keymaps = {
 				select_split = "<C-x>",
 				select_vsplit = "<C-v>",
+			},
+			select = {
+				select_window = function(_, action)
+					if action == "tab" then
+						return nil
+					end
+					return require("config.winpick").pick_window({})
+				end,
 			},
 		},
 		lazy = false,
@@ -32,7 +44,6 @@ return {
 		},
 		config = function(_, opts)
 			require("fff").setup(opts)
-			require("config.winpick").setup_fff()
 		end,
 	},
 }
