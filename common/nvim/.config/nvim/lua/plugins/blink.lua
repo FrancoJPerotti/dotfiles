@@ -29,9 +29,15 @@ return {
 
 		enabled = function()
 			local disabled = { "NvimTree", "DressingInput" }
-			return not vim.tbl_contains(disabled, vim.bo.filetype)
+			return vim.g.blink_autocomplete_enabled ~= false and not vim.tbl_contains(disabled, vim.bo.filetype)
 		end,
 	},
 
 	opts_extend = { "sources.default" },
+	init = function()
+		vim.api.nvim_create_user_command("BlinkToggle", function()
+			vim.g.blink_autocomplete_enabled = vim.g.blink_autocomplete_enabled == false
+			vim.notify("Blink autocomplete: " .. (vim.g.blink_autocomplete_enabled and "ON" or "OFF"))
+		end, { desc = "Toggle Blink completion", force = true })
+	end,
 }
