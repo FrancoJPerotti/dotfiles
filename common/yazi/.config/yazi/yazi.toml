@@ -8,3 +8,7 @@ linemode = "permissions"
 edit = [
 	{ run = 'nvim "$@"', block = true, for = "unix" },
 ]
+
+[preview]
+max_width = 4000
+max_height = 4000
