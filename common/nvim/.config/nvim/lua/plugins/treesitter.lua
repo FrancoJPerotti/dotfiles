@@ -2,11 +2,7 @@ return {
 	"nvim-treesitter/nvim-treesitter",
 	branch = "main",
 	lazy = false,
-	build = function()
-		if vim.fn.executable("tree-sitter") == 1 then
-			vim.cmd.TSUpdate()
-		end
-	end,
+	build = ":TSUpdate",
 	dependencies = {
 		{
 			"windwp/nvim-ts-autotag",
@@ -17,6 +13,33 @@ return {
 	},
 	config = function()
 		local ts = require("nvim-treesitter")
+		local parsers = {
+			"bash",
+			"c",
+			"css",
+			"gitignore",
+			"graphql",
+			"html",
+			"java",
+			"javascript",
+			"json",
+			"kotlin",
+			"latex",
+			"lua",
+			"markdown",
+			"markdown_inline",
+			"prisma",
+			"python",
+			"query",
+			"regex",
+			"rust",
+			"svelte",
+			"tsx",
+			"typescript",
+			"vim",
+			"vimdoc",
+			"yaml",
+		}
 
 		ts.setup({
 			install_dir = vim.fn.stdpath("data") .. "/site",
@@ -27,32 +50,8 @@ return {
 			vim.treesitter.language.register("yaml", { "yml" })
 		end)
 
-		if vim.fn.executable("tree-sitter") == 1 then
-			ts.install({
-				"bash",
-				"c",
-				"css",
-				"gitignore",
-				"graphql",
-				"html",
-				"java",
-				"javascript",
-				"json",
-				"lua",
-				"markdown",
-				"markdown_inline",
-				"prisma",
-				"python",
-				"query",
-				"rust",
-				"svelte",
-				"tsx",
-				"typescript",
-				"vim",
-				"vimdoc",
-				"yaml",
-			})
-		end
+		-- install() is asynchronous and a no-op for parsers already present.
+		ts.install(parsers)
 
 		local group = vim.api.nvim_create_augroup("UserTreesitter", { clear = true })
 		vim.api.nvim_create_autocmd("FileType", {
