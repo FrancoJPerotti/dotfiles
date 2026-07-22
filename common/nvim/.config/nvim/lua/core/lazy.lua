@@ -27,6 +27,11 @@ require("lazy").setup({
 	change_detection = {
 		notify = false,
 	},
+	rocks = {
+		-- No configured plugin uses LuaRocks. Avoid bootstrapping a broken,
+		-- unused hererocks installation and the corresponding health error.
+		enabled = false,
+	},
 })
 
 vim.api.nvim_create_autocmd("FileType", {
