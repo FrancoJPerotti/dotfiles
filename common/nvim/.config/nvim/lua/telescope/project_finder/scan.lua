@@ -34,8 +34,9 @@ function M.get_searchable_dirs(search_dirs)
 end
 
 local function should_ignore_path(path, ignore_patterns)
+	local normalized = "/" .. path:gsub("^/+", ""):gsub("/+$", "") .. "/"
 	for _, pattern in ipairs(ignore_patterns or {}) do
-		if path:find(pattern, 1, true) then
+		if pattern ~= "" and normalized:find("/" .. pattern .. "/", 1, true) then
 			return true
 		end
 	end
@@ -74,16 +75,12 @@ function M.clean_candidates(raw_list, ignore_patterns)
 
 	local clean_list = {}
 	local seen = {}
-	local last_valid_path = ""
 
 	for _, raw in ipairs(raw_list) do
 		local candidate = normalize_candidate(raw)
 		if candidate and not seen[candidate] and not should_ignore_path(candidate, ignore_patterns) then
-			if last_valid_path == "" or not vim.startswith(candidate, last_valid_path .. "/") then
-				table.insert(clean_list, candidate)
-				seen[candidate] = true
-				last_valid_path = candidate
-			end
+			table.insert(clean_list, candidate)
+			seen[candidate] = true
 		end
 	end
 

@@ -23,7 +23,7 @@ local ignore_patterns = {
 	"node_modules",
 }
 
-local PROJECT_CACHE_VERSION = 1
+local PROJECT_CACHE_VERSION = 2
 local PROJECT_CACHE_PATH = vim.fn.stdpath("cache") .. "/telescope_project_finder_projects.json"
 
 local AUTO_REFRESH = util.toboolean(vim.g.project_finder_auto_refresh, true)

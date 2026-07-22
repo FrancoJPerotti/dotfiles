@@ -319,6 +319,7 @@ function M.open(projects, opts)
 		{
 			finder = build_finder(items, init_col_meta),
 			sorter = conf.generic_sorter({}),
+			default_selection_index = 2,
 			attach_mappings = function(prompt_bufnr, _)
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
