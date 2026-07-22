@@ -47,6 +47,10 @@ for k, v in pairs(options) do
 	vim.opt[k] = v
 end
 
+-- auto-session needs buffer-local options (filetype, indentation, etc.) to be
+-- restored with the session.
+vim.opt.sessionoptions:append("localoptions")
+
 -- vim.opt.shortmess = "ilmnrx"                        -- flags to shorten vim messages, see :help 'shortmess'
 vim.opt.shortmess:append("c") -- don't give |ins-completion-menu| messages
 vim.opt.iskeyword:append("-") -- hyphenated words recognized by searches
