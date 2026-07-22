@@ -1,4 +1,13 @@
 return {
+	cmd = { "lua-language-server" },
+	filetypes = { "lua" },
+	root_dir = function(bufnr, on_dir)
+		local filename = vim.api.nvim_buf_get_name(bufnr)
+		local real_filename = vim.uv.fs_realpath(filename) or filename
+		local root = vim.fs.root(real_filename, { ".luarc.json", ".luarc.jsonc", ".git" })
+		on_dir(root or vim.fs.dirname(real_filename))
+	end,
+	single_file_support = true,
 	on_init = function(client)
 		if client.workspace_folders then
 			local path = client.workspace_folders[1].name

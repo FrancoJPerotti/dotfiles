@@ -28,9 +28,12 @@ return {
 				cpp = { "clang-format", "astyle" },
 				rust = { "rustfmt" },
 				kotlin = { "ktfmt" },
+				tex = { "tex-fmt" },
+				latex = { "tex-fmt" },
+				bib = { "tex-fmt" },
 			},
 			format_on_save = {
-				lsp_fallback = true,
+				lsp_format = "fallback",
 				async = false,
 				timeout_ms = 1000,
 			},

@@ -12,6 +12,10 @@ return {
 
 		-- enable mason and configure icons
 		mason.setup({
+			providers = {
+				"mason.providers.registry-api",
+				"mason.providers.client",
+			},
 			ui = {
 				icons = {
 					package_installed = "✓",
@@ -28,12 +32,23 @@ return {
 				"lua-language-server",
 				"pyright",
 				"rust-analyzer",
+				"kotlin-language-server",
+				"jdtls",
 				-- formatters
 				"stylua",
 				"black",
+				"isort",
 				"prettier",
 				"shfmt",
 				"ktfmt",
+				"tex-fmt",
+				"xmlformatter",
+				"texlab",
+				"google-java-format",
+				-- linters
+				"eslint_d",
+				"pylint",
+				"checkstyle",
 			},
 		})
 	end,

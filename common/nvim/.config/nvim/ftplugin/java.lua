@@ -1,9 +1,11 @@
 local jdtls = require("jdtls")
 local base_capabilities = vim.lsp.protocol.make_client_capabilities()
 
-local home = os.getenv("HOME")
-local project_name = vim.fn.fnamemodify(vim.fn.getcwd(), ":p:h:t")
-local workspace_dir = home .. "/.local/share/nvim/jdtls-workspaces/" .. project_name
+local root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml", "build.gradle" })
+local project_name = vim.fn.fnamemodify(root_dir or vim.fn.getcwd(), ":p:t")
+local data_dir = vim.fn.stdpath("data")
+local jdtls_dir = data_dir .. "/mason/packages/jdtls"
+local workspace_dir = data_dir .. "/jdtls-workspaces/" .. project_name
 
 local config = {
 	cmd = {
@@ -20,16 +22,16 @@ local config = {
 		"--add-opens",
 		"java.base/java.lang=ALL-UNNAMED",
 		"-jar",
-		vim.fn.glob(home .. "/.local/share/nvim/mason/packages/jdtls/plugins/org.eclipse.equinox.launcher_*.jar"),
+		vim.fn.glob(jdtls_dir .. "/plugins/org.eclipse.equinox.launcher_*.jar"),
 		"-configuration",
-		home .. "/.local/share/nvim/mason/packages/jdtls/config_linux",
+		jdtls_dir .. "/config_linux",
 		"-data",
 		workspace_dir,
 	},
 
-	root_dir = require("jdtls.setup").find_root({ ".git", "mvnw", "gradlew", "pom.xml", "build.gradle" }),
+	root_dir = root_dir,
 
-	capabilities = capabilities,
+	capabilities = require("blink.cmp").get_lsp_capabilities(base_capabilities),
 
 	settings = {
 		java = {

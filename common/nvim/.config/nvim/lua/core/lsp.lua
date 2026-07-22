@@ -13,6 +13,7 @@ local servers = {
 	"rust_analyzer",
 	"bash-language-server",
 	"kotlin_language_server",
+	"texlab",
 }
 
 local function load_server_config(name)
