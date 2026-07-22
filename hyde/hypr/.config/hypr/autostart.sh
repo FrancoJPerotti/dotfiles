@@ -43,10 +43,10 @@ launch_pwa() {
 
 launch_pwa spotify https://spotify.com
 launch_pwa whatsapp https://web.whatsapp.com
-launch_pwa discord https://discord.com/app
-launch_pwa ticktick https://ticktick.com
+# launch_pwa discord https://discord.com/app
+# launch_pwa ticktick https://ticktick.com
 launch_pwa chatgpt https://chatgpt.com
-hyprctl dispatch exec obsidian
+# hyprctl dispatch exec obsidian
 
 ###############################################################################
 # Regular workspaces
