@@ -95,6 +95,27 @@ sudo apt install fonts-firacode fonts-font-awesome
 
    The script automatically applies the `common/` base plus the `ubuntu-i3/` profile.
 
+### Kanata on i3/X11
+
+The VivoBook X510UQ uses the profile-specific
+`~/.config/kanata/vivobook-x510uq.kbd`. It expects an ISO keyboard with the
+`<LSGT>` key between left Shift and Z and runs over the standard `us(intl)` XKB
+layout. The shared Kanata config used by the Hyde/Zenbook profile is left
+unchanged. `setup.sh` installs the pinned Kanata 1.11.0 binary with checksum
+verification.
+
+Before enabling the user service, run a supervised trial:
+
+```bash
+~/.local/bin/kanata_trial.sh --check
+~/.local/bin/kanata_trial.sh --start
+```
+
+The trial remains active until confirmed with `kanata_trial.sh --keep` or
+restored explicitly with `kanata_trial.sh --rollback`. Keeping the trial enables
+`kanata.service`; rolling back disables it and starts the previous shared
+configuration.
+
 ## Keybindings
 
 Here are some of the most important keybindings for i3:

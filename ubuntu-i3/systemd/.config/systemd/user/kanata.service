@@ -1,0 +1,13 @@
+[Unit]
+Description=Kanata keyboard remapper (Colemak-DH, ISO)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/kanata -c %h/.config/kanata/vivobook-x510uq.kbd -q
+Restart=on-failure
+RestartSec=750ms
+
+[Install]
+WantedBy=default.target

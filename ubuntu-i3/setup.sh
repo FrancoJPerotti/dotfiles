@@ -282,6 +282,42 @@ install_kitty() {
     fi
 }
 
+install_kanata() {
+    log_step "Installing Kanata keyboard remapper"
+    local version="1.11.0"
+    local archive="linux-binaries-x64.zip"
+    local expected_sha256="d9f634afb4c7f078cc2aacf3998fd65b432d4d83296cc48a89f941525459b4e2"
+    local install_dir="$USER_HOME/.local/bin"
+    local install_path="$install_dir/kanata"
+
+    case "$(uname -m)" in
+    x86_64 | amd64) ;;
+    *) log_err "Kanata $version has no supported binary for architecture: $(uname -m)" ;;
+    esac
+
+    if [[ -x "$install_path" ]] && [[ "$($install_path --version 2>/dev/null)" == "kanata $version" ]]; then
+        log_skip "Kanata $version is already installed"
+        return
+    fi
+
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+    curl -fL \
+        "https://github.com/jtroo/kanata/releases/download/v${version}/${archive}" \
+        -o "$tmp_dir/$archive"
+    if [[ "$(sha256sum "$tmp_dir/$archive" | cut -d' ' -f1)" != "$expected_sha256" ]]; then
+        rm -rf "$tmp_dir"
+        log_err "Kanata archive checksum verification failed"
+    fi
+
+    unzip -q "$tmp_dir/$archive" kanata_linux_x64 -d "$tmp_dir"
+    install -d -o "$TARGET_USER" -g "$TARGET_USER" "$install_dir"
+    install -m 0755 -o "$TARGET_USER" -g "$TARGET_USER" \
+        "$tmp_dir/kanata_linux_x64" "$install_path"
+    rm -rf "$tmp_dir"
+    log_ok "Installed Kanata $version at $install_path"
+}
+
 configure_kitty_default() {
     log_step "Configuring Kitty as default terminal"
     local kitty_app_dir="$USER_HOME/.local/kitty.app"
@@ -603,6 +639,13 @@ remove_standalone_tools() {
     else
         log_skip "Greenclip not installed"
     fi
+
+    if [ -f "$USER_HOME/.local/bin/kanata" ]; then
+        sudo -u "$TARGET_USER" rm -f "$USER_HOME/.local/bin/kanata"
+        log_ok "Removed Kanata"
+    else
+        log_skip "Kanata not installed by this profile"
+    fi
     
     local kitty_dir="$USER_HOME/.local/kitty.app"
     if [ -d "$kitty_dir" ]; then
@@ -757,6 +800,7 @@ main_install() {
     initialize_system
     install_apt_packages
     install_kitty
+    install_kanata
     configure_kitty_default
     install_standalone_tools
     configure_shell
