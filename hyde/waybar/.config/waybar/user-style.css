@@ -1,0 +1,26 @@
+/* User custom styles */
+
+#custom-capslock {
+    background: rgba(225, 20, 35, 0.96);
+    color: rgba(255, 255, 255, 1);
+    border-radius: 10pt;
+    margin: 0.3em 1em;
+    padding: 0 2em;
+    min-width: 8em;
+    font-weight: 800;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+/* Restore the horizontal spacing from HyDE's pre-Lua style.
+ * Reference: cfg_backups/260716_20h49m09s, styles/defaults.css.
+ */
+window#waybar.top .modules-left #cpu,
+window#waybar.top .modules-left #memory,
+window#waybar.top .modules-left #custom-cpuinfo,
+window#waybar.top .modules-left #custom-gpuinfo {
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+    padding-left: 0.2em;
+    padding-right: 0.2em;
+}

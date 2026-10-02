@@ -103,7 +103,9 @@ monitor_refresh_update() {
   fi
 
   local refresh_rate="$1"
-  hyprctl keyword monitor "HDMI-A-1,1920x1080@${refresh_rate},840x1760,1.0,transform,1"
+  local mode_lua
+  mode_lua="$(printf '%s' "1920x1080@${refresh_rate}" | jq -Rs '.')" || return 1
+  hyprctl eval "hl.monitor({output=\"HDMI-A-1\",mode=${mode_lua},position=\"840x1760\",scale=1.0,transform=1})"
 }
 
 
@@ -186,7 +188,9 @@ function nvim() {
     )
 
     # ── Launch through Hyprland ───────────────────────────────────────
-    hyprctl dispatch exec -- "$(printf '%q ' "${cmd[@]}")"
+    local command_lua
+    command_lua="$(printf '%q ' "${cmd[@]}" | jq -Rs '.')" || return 1
+    hyprctl eval "hl.dispatch(hl.dsp.exec_cmd(${command_lua}))"
 }
 
 function meet() {
@@ -222,3 +226,6 @@ function meet() {
             ;;
     esac
 }
+
+# bun completions
+[ -s "/tmp/opencode/bun-install/_bun" ] && source "/tmp/opencode/bun-install/_bun"

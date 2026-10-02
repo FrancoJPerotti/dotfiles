@@ -1,0 +1,11 @@
+{
+  "include": ["$XDG_CONFIG_HOME/waybar/layouts/francos_bar_2_monitors.jsonc"],
+  "group/pill#right2": {
+    "orientation": "inherit",
+    "modules": ["pulseaudio", "pulseaudio#microphone", "custom/updates"]
+  },
+  "group/pill#right3": {
+    "orientation": "inherit",
+    "modules": ["privacy", "tray"]
+  }
+}

@@ -1,6 +1,8 @@
 conan
 kanata
 selectdefaultapplication-git
+sptlrx-bin
 unity-test
 vial-appimage
 wl-kbptr
+xdg-desktop-portal-termfilechooser-boydaihungst-git

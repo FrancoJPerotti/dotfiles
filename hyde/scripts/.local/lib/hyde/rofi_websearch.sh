@@ -235,6 +235,16 @@ load_engines() {
 # --------------------------------------------------------------------------------------
 
 # Focuses the most recently used Vivaldi browser window.
+lua_quote() {
+    local value="$1"
+    value="${value//\\/\\\\}"
+    value="${value//\"/\\\"}"
+    value="${value//$'\n'/\\n}"
+    value="${value//$'\r'/\\r}"
+    value="${value//$'\t'/\\t}"
+    printf '"%s"' "$value"
+}
+
 hypr_focus_vivaldi_browser() {
     command -v hyprctl >/dev/null || return 0 # Do nothing if not on Hyprland.
     if command -v jq >/dev/null; then
@@ -246,10 +256,16 @@ hypr_focus_vivaldi_browser() {
         local addr
         addr="$(hyprctl -j clients | jq -r --argjson regex "\"$VIVALDI_CLASS_REGEX\"" '[ .[] | select(.class | test($regex)) ] | sort_by(.focusHistoryID // 0) | reverse | .[0].address // empty')"
         # If an address was found, focus it.
-        [[ -n "$addr" ]] && hyprctl dispatch focuswindow "address:$addr" >/dev/null 2>&1 || true
+        if [[ -n "$addr" ]]; then
+            local addr_lua
+            addr_lua="$(lua_quote "$addr")"
+            hyprctl eval "for _,w in ipairs(hl.get_windows()) do if w.address == ${addr_lua} then hl.dispatch(hl.dsp.focus({window=w})); break end end" >/dev/null 2>&1 || true
+        fi
     else
         # Fallback for systems without jq (less precise).
-        hyprctl dispatch focuswindow "class:$VIVALDI_CLASS_REGEX" >/dev/null 2>&1 || true
+        local class_lua
+        class_lua="$(lua_quote "$VIVALDI_CLASS_REGEX")"
+        hyprctl eval "local windows=hl.get_windows({class=${class_lua}}); if windows[1] then hl.dispatch(hl.dsp.focus({window=windows[1]})) end" >/dev/null 2>&1 || true
     fi
 }
 

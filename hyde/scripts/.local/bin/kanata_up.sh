@@ -20,7 +20,7 @@ set_raw_keyboards_enabled() {
 
     command -v hyprctl >/dev/null 2>&1 || return 0
     for device in "${raw_keyboards[@]}"; do
-        hyprctl keyword "device[${device}]:enabled" "${enabled}" >/dev/null 2>&1 || true
+        hyprctl eval "hl.device({name=\"${device}\",enabled=${enabled}})" >/dev/null 2>&1 || true
     done
 }
 

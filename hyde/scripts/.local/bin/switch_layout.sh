@@ -24,15 +24,11 @@ current_state() {
 set_layout() {
     local layout="$1"
     local variant="${2:-}"
+    local layout_lua variant_lua
 
-    if [[ -n "${variant}" ]]; then
-        hyprctl keyword input:kb_layout "${layout}" >/dev/null
-        hyprctl keyword input:kb_variant "${variant}" >/dev/null
-        return
-    fi
-
-    hyprctl keyword input:kb_variant "" >/dev/null
-    hyprctl keyword input:kb_layout "${layout}" >/dev/null
+    layout_lua="$(printf '%s' "${layout}" | jq -Rs '.')"
+    variant_lua="$(printf '%s' "${variant}" | jq -Rs '.')"
+    hyprctl eval "hl.config({input={kb_layout=${layout_lua},kb_variant=${variant_lua}}})" >/dev/null
 }
 
 switch_to_us() {
@@ -54,6 +50,7 @@ switch_to_cdhwic() {
 }
 
 need hyprctl
+need jq
 
 case "${target}" in
 legacy | previous | custom | cdhwic)

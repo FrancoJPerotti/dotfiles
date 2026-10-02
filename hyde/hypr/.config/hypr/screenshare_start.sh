@@ -1,7 +1,14 @@
 #!/bin/sh
-sleep 1
-killall -e xdg-desktop-portal-hyprland
-killall xdg-desktop-portal
-/usr/lib/xdg-desktop-portal-hyprland &
-sleep 2
-/usr/lib/xdg-desktop-portal &
+set -eu
+
+# Keep D-Bus activated portal backends on the same Wayland session as Hyprland.
+dbus-update-activation-environment --systemd \
+    DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+systemctl --user import-environment \
+    DISPLAY WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+
+# Restart the managed services instead of launching duplicate portal processes.
+systemctl --user restart \
+    xdg-desktop-portal-termfilechooser.service \
+    xdg-desktop-portal-hyprland.service \
+    xdg-desktop-portal.service
