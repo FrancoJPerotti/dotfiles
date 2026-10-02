@@ -20,6 +20,8 @@ def list_sessions() -> List[Dict[str, str]]:
         return sessions
     for line in out.splitlines():
         name, attached, windows = (line.split("\t") + ["", "", ""])[:3]
+        if name.startswith("__stacked__"):
+            continue
         sessions.append({"name": name, "attached": attached, "windows": windows, "current": "1" if name == current else "0"})
     sessions.sort(key=lambda s: (s["current"] != "1", s["name"].lower()))
     return sessions
