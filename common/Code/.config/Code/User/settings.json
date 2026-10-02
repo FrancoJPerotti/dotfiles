@@ -167,4 +167,5 @@
   "workbench.colorTheme": "GitHub Dark Dimmed",
   "window.commandCenter": false,
   "explorer.confirmDelete": false,
+  "chat.viewSessions.orientation": "stacked",
 }
