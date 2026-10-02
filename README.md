@@ -60,8 +60,14 @@ sudo apt install stow git
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/franco/dotfiles_ubuntu.git ~/dotfiles
+    git clone --recurse-submodules https://github.com/FrancoJPerotti/dotfiles.git ~/dotfiles
     cd ~/dotfiles
+    ```
+
+    If the repository was cloned without submodules, initialize the tmux plugins with:
+
+    ```bash
+    git submodule update --init --recursive
     ```
 
 2.  **Review the packages:**
