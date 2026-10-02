@@ -1,0 +1,8 @@
+[Desktop Entry]
+Terminal=false
+Type=Application
+Name=NotebookLM
+Exec=/opt/vivaldi/vivaldi --app=https://notebooklm.google.com
+TryExec=/opt/vivaldi/vivaldi
+Icon=/home/franco/.local/share/applications/web_app_icons/notebooklm.svg
+Categories=Network;WebBrowser;
