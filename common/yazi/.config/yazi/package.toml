@@ -1,7 +1,7 @@
 [[plugin.deps]]
 use = "llanosrocas/yaziline"
-rev = "cc0314c"
-hash = "b937c5c8e2d9fa314d4532489176814e"
+rev = "029b27d"
+hash = "ceeb45e796faf0d9eed10831ffec7701"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
