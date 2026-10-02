@@ -14,6 +14,8 @@ local servers = {
 	"bash-language-server",
 	"kotlin_language_server",
 	"texlab",
+	"gopls",
+	"verible",
 }
 
 local function load_server_config(name)

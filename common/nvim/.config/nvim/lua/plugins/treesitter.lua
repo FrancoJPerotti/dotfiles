@@ -18,6 +18,7 @@ return {
 			"c",
 			"css",
 			"gitignore",
+			"go",
 			"graphql",
 			"html",
 			"java",

@@ -71,9 +71,6 @@ keymap.set("n", "<C-q><C-a>", "<cmd>qa<CR>", { noremap = true, silent = true, de
 keymap.set("n", "<C-w><C-w>", "<cmd>w<CR>", { desc = "Save Buffer" })
 keymap.set("n", "<C-w><C-a>", "<cmd>wa<CR>", { desc = "Save All Buffers" })
 
--- Switch Source/Header
-keymap.set("n", "<leader>o", "<cmd>LspClangdSwitchSourceHeader<CR>", { desc = "Switch source/header" })
-
 -- LLM Context to Clipboard
 keymap.set("n", "<leader>ai", "<cmd>CtxIngest<CR>", { desc = "Copy LLM context to clipboard" })
 

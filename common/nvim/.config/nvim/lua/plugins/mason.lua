@@ -32,6 +32,8 @@ return {
 				"lua-language-server",
 				"pyright",
 				"rust-analyzer",
+				"gopls",
+				"verible",
 				"kotlin-language-server",
 				"jdtls",
 				-- formatters
@@ -49,6 +51,7 @@ return {
 				"eslint_d",
 				"pylint",
 				"checkstyle",
+				"golangci-lint",
 			},
 		})
 	end,
