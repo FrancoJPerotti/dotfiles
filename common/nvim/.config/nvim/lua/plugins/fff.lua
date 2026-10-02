@@ -7,7 +7,13 @@ return {
 			require("fff.download").download_or_build_binary()
 		end,
 		dependencies = { "folke/snacks.nvim" },
+		init = function()
+			vim.g.fff = vim.tbl_deep_extend("force", vim.g.fff or {}, {
+				lazy_sync = true,
+			})
+		end,
 		opts = {
+			lazy_sync = true,
 			debug = {
 				enabled = false,
 				show_scores = false,
@@ -25,7 +31,7 @@ return {
 				end,
 			},
 		},
-		lazy = false,
+		lazy = true,
 		keys = {
 			{
 				"<leader><leader>",

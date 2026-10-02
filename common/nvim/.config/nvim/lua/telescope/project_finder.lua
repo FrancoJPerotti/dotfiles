@@ -26,6 +26,7 @@ local ignore_patterns = {
 local PROJECT_CACHE_VERSION = 2
 local PROJECT_CACHE_PATH = vim.fn.stdpath("cache") .. "/telescope_project_finder_projects.json"
 
+local STARTUP_SCAN = util.toboolean(vim.g.project_finder_scan_on_startup, false)
 local AUTO_REFRESH = util.toboolean(vim.g.project_finder_auto_refresh, true)
 local AUTO_REFRESH_INTERVAL_MS = tonumber(vim.g.project_finder_auto_refresh_interval_ms) or 120000
 local AUTO_REFRESH_DEBOUNCE_MS = tonumber(vim.g.project_finder_auto_refresh_debounce_ms) or 500
@@ -39,6 +40,7 @@ local project_state = {
 }
 
 local auto_refresh_state = {
+	initialized = false,
 	scheduled = false,
 	last_request_ms = 0,
 	timer = nil,
@@ -181,6 +183,11 @@ local function schedule_scan()
 end
 
 local function setup_auto_refresh()
+	if auto_refresh_state.initialized then
+		return
+	end
+	auto_refresh_state.initialized = true
+
 	if not AUTO_REFRESH then
 		return
 	end
@@ -217,7 +224,13 @@ local function setup_auto_refresh()
 	end
 end
 
+local function activate()
+	setup_auto_refresh()
+end
+
 function M.open()
+	activate()
+
 	local opts = {
 		refresh_after_open = true,
 		request_scan = request_scan,
@@ -235,22 +248,25 @@ function M.open()
 end
 
 function M.refresh()
+	activate()
 	request_scan()
 end
 
 load_project_cache()
 
-if vim.v.vim_did_enter == 1 then
-	request_scan()
-else
-	vim.api.nvim_create_autocmd("VimEnter", {
-		once = true,
-		callback = function()
-			request_scan()
-		end,
-	})
+if STARTUP_SCAN then
+	if vim.v.vim_did_enter == 1 then
+		activate()
+		request_scan()
+	else
+		vim.api.nvim_create_autocmd("VimEnter", {
+			once = true,
+			callback = function()
+				activate()
+				request_scan()
+			end,
+		})
+	end
 end
-
-setup_auto_refresh()
 
 return M

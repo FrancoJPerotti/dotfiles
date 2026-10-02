@@ -19,14 +19,14 @@ return {
 		}
 		dashboard.section.buttons.val = {
 			dashboard.button("e", "  New file", ":ene <BAR> startinsert <CR>"),
-			dashboard.button("<leader> <leader>", "󰈞  Find file", ":lua require('fff').find_files()<CR>"),
+			dashboard.button(
+				"<leader> <leader>",
+				"󰈞  Find file",
+				":lua require('fff').find_files()<CR>"
+			),
 			dashboard.button("<leader> f p", "󰈞  Find Git Project"),
 			dashboard.button("q", "󰅚  Quit NVIM", ":qa<CR>"),
 		}
-		local handle = io.popen("fortune")
-		local fortune = handle:read("*a")
-		handle:close()
-		dashboard.section.footer.val = fortune
 
 		dashboard.config.opts.noautocmd = true
 
