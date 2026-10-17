@@ -1,0 +1,16 @@
+[Unit]
+Description=Animated Caps Lock island inside the focused Hyprland window
+PartOf=graphical-session.target
+After=graphical-session.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/capslock-island.py
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=3
+
+[Install]
+WantedBy=graphical-session.target
