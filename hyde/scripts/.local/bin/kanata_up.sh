@@ -34,6 +34,8 @@ kanata_device_is_available() {
 # Supervise Kanata in a detached process. Raw keyboards are exposed while the
 # virtual device is unavailable, then isolated again after an automatic restart.
 if [[ "${1:-}" == "--guard" ]]; then
+    # The supervisor must not retain the action lock inherited from its parent.
+    exec 9>&-
     selected_config="${2:-}"
     [[ -n "${selected_config}" ]] || exit 2
     guard_kanata_bin="${KANATA_BIN:-$(command -v kanata)}"
@@ -75,17 +77,6 @@ if [[ "${1:-}" == "--guard" ]]; then
     done
 fi
 
-# Hyprland reapplies device settings on config reloads. Restore the runtime
-# isolation without restarting Kanata or changing the selected layout.
-if [[ "${1:-}" == "--sync-devices" ]]; then
-    if pgrep -x kanata >/dev/null 2>&1 && kanata_device_is_available; then
-        set_raw_keyboards_enabled false
-    else
-        set_raw_keyboards_enabled true
-    fi
-    exit 0
-fi
-
 notify() {
     local message="$1"
     if command -v notify-send >/dev/null 2>&1; then
@@ -104,6 +95,10 @@ case "${1:-}" in
     mode="legacy"
     shift
     ;;
+--off | --sync-devices)
+    mode="${1#--}"
+    shift
+    ;;
 --toggle | "")
     if [[ -n "${1:-}" ]]; then
         shift
@@ -111,7 +106,7 @@ case "${1:-}" in
     ;;
 --help)
     cat <<'USAGE'
-Usage: kanata_up.sh [--toggle|--ensure|--current|--legacy]
+Usage: kanata_up.sh [--toggle|--ensure|--current|--legacy|--off|--sync-devices]
 
 Without arguments the script toggles between the default Kanata layout and
 the fallback plain US International layout.
@@ -120,6 +115,11 @@ the fallback plain US International layout.
   --legacy, --previous Activate the previous Kanata + CDHWIC configuration.
   --test               Alias for --current, retained for compatibility.
   --toggle             Toggle the default layout and plain US fallback.
+  --off                Stop Kanata and use plain US International.
+  --sync-devices       Restore device visibility after a Hyprland reload.
+
+Matching keyboards in ~/.config/kanata/firmware-keyboards.conf keep Kanata
+disabled, including when --ensure or --toggle is requested.
 USAGE
     exit 0
     ;;
@@ -133,6 +133,14 @@ if [[ $# -gt 0 ]]; then
     echo "Unexpected argument: ${1}" >&2
     exit 1
 fi
+
+# Serialize startup, hotplug, manual toggles and reload actions.
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/kanata-${UID}.action.lock"
+flock 9
+
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=kanata-keyboard-policy.sh
+source "${script_dir}/kanata-keyboard-policy.sh"
 
 kanata_bin="${KANATA_BIN:-}"
 if [[ -z "${kanata_bin}" ]]; then
@@ -279,6 +287,43 @@ activate_layout() {
     fi
     notify "${message}"
 }
+
+# Firmware mappings take precedence over startup and the manual toggle.
+policy_status=0
+firmware_keyboard_connected || policy_status=$?
+if [[ "${policy_status}" == 2 ]]; then
+    echo "Cannot read input devices; preserving keyboard state." >&2
+    exit 1
+fi
+if [[ "${policy_status}" == 0 ]]; then
+    stop_kanata
+    "${switcher}" intl
+    # Distinguish automatic bypass from a manual stop across Lua reloads.
+    printf '%s' firmware >"${state_file}"
+    if [[ "${mode}" != "sync-devices" ]]; then
+        notify "Firmware keyboard connected: Kanata off, US International layout."
+    fi
+    exit 0
+fi
+
+case "${mode}" in
+off)
+    stop_kanata
+    "${switcher}" intl
+    exit 0
+    ;;
+sync-devices)
+    # Preserve a manual stop while restoring device settings after a reload.
+    if [[ -r "${state_file}" && "$(<"${state_file}")" == "firmware" ]]; then
+        activate_layout "${default_config}" kanata "Firmware keyboard disconnected: Kanata restored."
+    elif kanata_is_running && kanata_device_is_available; then
+        set_raw_keyboards_enabled false
+    else
+        set_raw_keyboards_enabled true
+    fi
+    exit 0
+    ;;
+esac
 
 current_state=""
 if [[ -r "${state_file}" ]]; then

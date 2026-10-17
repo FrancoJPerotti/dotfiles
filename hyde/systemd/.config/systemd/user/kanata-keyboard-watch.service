@@ -1,0 +1,12 @@
+[Unit]
+Description=Switch Kanata when firmware keyboards connect or disconnect
+PartOf=graphical-session.target
+ConditionEnvironment=HYPRLAND_INSTANCE_SIGNATURE
+ConditionPathExists=%h/.config/kanata/firmware-keyboards.conf
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/kanata-watch.sh --watch
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=10

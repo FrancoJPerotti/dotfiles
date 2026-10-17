@@ -49,6 +49,7 @@ local modules = {
 	"options",
 	"monitors",
 	"input",
+	"keyboards",
 	"bindings",
 	"applications",
 	"workspaces",
