@@ -4,15 +4,18 @@ local util = require("telescope.project_finder.util")
 local M = {}
 
 local INCLUDE_UNTRACKED = vim.g.project_finder_include_untracked
+local CACHE_TTL_MS = math.max(1000, tonumber(vim.g.project_finder_git_cache_ttl_ms) or 30000)
 
 local state = {
 	cache = {},
+	updated = {},
+	changed = {},
 	inflight = {},
 	queue = {},
 	qhead = 1,
 	qtail = 0,
 	running = 0,
-	max = tonumber(vim.g.project_finder_git_concurrency) or 6,
+	max = math.max(1, tonumber(vim.g.project_finder_git_concurrency) or 6),
 	refresh_cb = nil,
 	refresh_scheduled = false,
 }
@@ -148,14 +151,27 @@ local function schedule_git_refresh()
 
 	vim.defer_fn(function()
 		state.refresh_scheduled = false
+		local changed = state.changed
+		state.changed = {}
 		if type(state.refresh_cb) == "function" then
-			pcall(state.refresh_cb)
+			pcall(state.refresh_cb, changed)
 		end
-	end, 60)
+	end, 150)
+end
+
+local function store_info(path, info)
+	state.updated[path] = vim.loop.hrtime() / 1e6
+	if not vim.deep_equal(state.cache[path], info) then
+		state.cache[path] = info
+		state.changed[path] = true
+		schedule_git_refresh()
+	end
 end
 
 local function enqueue(path)
-	if state.cache[path] or state.inflight[path] then
+	local updated = state.updated[path]
+	local fresh = updated and (vim.loop.hrtime() / 1e6 - updated) < CACHE_TTL_MS
+	if fresh or state.inflight[path] then
 		return
 	end
 	state.inflight[path] = true
@@ -200,8 +216,7 @@ local function drain_queue()
 			env = { GIT_OPTIONAL_LOCKS = "0" },
 			on_exit = vim.schedule_wrap(function(handle, return_val)
 				if return_val ~= 0 then
-					state.cache[path] = make_info({ branch = "detached", ahead = 0, behind = 0, dirty = false }, "no commits", 0)
-					schedule_git_refresh()
+					store_info(path, make_info({ branch = "detached", ahead = 0, behind = 0, dirty = false }, "no commits", 0))
 					finish()
 					return
 				end
@@ -218,8 +233,7 @@ local function drain_queue()
 							last_commit, commit_epoch = read_commit_meta_from_line(util.trim((log_handle:result() or {})[1] or ""))
 						end
 
-						state.cache[path] = make_info(status, last_commit, commit_epoch)
-						schedule_git_refresh()
+						store_info(path, make_info(status, last_commit, commit_epoch))
 						finish()
 					end),
 				})
@@ -229,14 +243,18 @@ local function drain_queue()
 					return
 				end
 
-				log_job:start()
+				if not pcall(log_job.start, log_job) then
+					finish()
+				end
 			end),
 		})
 
 		if not ok_status then
 			finish()
 		else
-			status_job:start()
+			if not pcall(status_job.start, status_job) then
+				finish()
+			end
 		end
 	end
 end
@@ -266,7 +284,11 @@ function M.get_cached(path)
 end
 
 function M.get_sync(path)
-	if state.cache[path] then
+	if
+		state.cache[path]
+		and state.updated[path]
+		and (vim.loop.hrtime() / 1e6 - state.updated[path]) < CACHE_TTL_MS
+	then
 		return state.cache[path]
 	end
 
@@ -282,7 +304,7 @@ function M.get_sync(path)
 	local last_commit, commit_epoch = read_commit_meta_from_line(commit_line)
 
 	local info = make_info(status, last_commit, commit_epoch)
-	state.cache[path] = info
+	store_info(path, info)
 	return info
 end
 
@@ -291,8 +313,33 @@ function M.request(path)
 	drain_queue()
 end
 
+local function clear_pending()
+	for idx = state.qhead, state.qtail do
+		local path = state.queue[idx]
+		if path then
+			state.inflight[path] = nil
+		end
+	end
+	state.queue = {}
+	state.qhead = 1
+	state.qtail = 0
+end
+
+function M.request_visible(paths)
+	-- Replace obsolete queued work when the query or visible rows change.
+	-- In-flight jobs retain their slot and may finish populating the cache.
+	clear_pending()
+	for _, path in ipairs(paths) do
+		enqueue(path)
+	end
+	drain_queue()
+end
+
 function M.set_refresh_callback(cb)
 	state.refresh_cb = cb
+	if cb == nil then
+		clear_pending()
+	end
 end
 
 return M

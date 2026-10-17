@@ -38,9 +38,6 @@ local function compute_column_meta(projects, opts)
 		path = 0,
 	}
 
-	local prefetched = 0
-	local prefetch_limit = tonumber(opts.prefetch_git_info_limit) or 0
-
 	for _, path in ipairs(projects) do
 		local cached = path_display_cache[path]
 		if not cached then
@@ -59,10 +56,6 @@ local function compute_column_meta(projects, opts)
 		lengths.path = math.max(lengths.path, cached.display_width)
 
 		local info = git.get_cached(path)
-		if not info and prefetched < prefetch_limit then
-			info = git.get_sync(path)
-			prefetched = prefetched + 1
-		end
 		if info then
 			lengths.branch = math.max(lengths.branch, util.strwidth(info.branch))
 			lengths.commit = math.max(lengths.commit, util.strwidth(info.last_commit))
@@ -203,11 +196,12 @@ local function ensure_clean_buffers()
 	return true
 end
 
-local function make_entry_maker(display_fn, col_meta)
+local function make_entry_maker(display_fn, col_meta, schedule_git)
 	local header_entry = make_header_entry(display_fn)
 	local branch_width = math.max(12, (col_meta and col_meta.branch or 20) - 2)
 	local commit_width = math.max(10, (col_meta and col_meta.commit or 14) - 2)
 	local path_width = math.max(18, (col_meta and col_meta.path or get_max_picker_width()) - 2)
+	local icon = devicons.get_icon("git", nil, { default = true }) or ""
 
 	return function(item)
 		if item == HEADER_SENTINEL then
@@ -229,13 +223,12 @@ local function make_entry_maker(display_fn, col_meta)
 		end
 
 		local name = cached.name
-		local icon = devicons.get_icon("git", nil, { default = true }) or ""
 
 		local entry = {
 			value = path,
 			ordinal = table.concat({ name, path }, " "),
 			name = name,
-			path_display = util.shorten_display(cached.display, path_width),
+			path_display = nil,
 			icon = icon,
 			branch = "…",
 			last_commit = "…",
@@ -249,21 +242,21 @@ local function make_entry_maker(display_fn, col_meta)
 		}
 
 		entry.display = function()
+			schedule_git()
+			entry.path_display = entry.path_display or util.shorten_display(cached.display, path_width)
 			local info = git.get_cached(path)
 			if info then
-				if not entry._git_applied then
-					entry._git_applied = true
+				if entry._git_applied ~= info then
+					entry._git_applied = info
 					entry.branch = util.truncate_text(info.branch, branch_width)
 					entry.last_commit = util.truncate_text(info.last_commit, commit_width)
 					entry.branch_hl = info.branch_hl
 					entry.commit_hl = info.commit_hl
 					entry.status_icon = info.status_icon
 					entry.status_hl = info.status_hl
-					entry.name_hl = info.name_hl or entry.name_hl
+					entry.name_hl = info.name_hl
 					entry.ordinal = table.concat({ name, info.branch, path }, " ")
 				end
-			else
-				git.request(path)
 			end
 			return display_fn(entry)
 		end
@@ -292,6 +285,53 @@ function M.open(projects, opts)
 	local current_items = items
 	local current_col_meta = init_col_meta
 
+	local picker
+	local git_timer = vim.loop.new_timer()
+	local closed = false
+	local function for_visible_entry(fn)
+		if closed or not picker or not picker.manager or not vim.api.nvim_win_is_valid(picker.results_win) then
+			return
+		end
+		local view = vim.fn.getwininfo(picker.results_win)[1]
+		if not view then
+			return
+		end
+		local index = 0
+		for entry in picker.manager:iter() do
+			index = index + 1
+			if index > picker.max_results then
+				break
+			end
+			local row = picker:get_row(index)
+			if row >= view.topline - 1 and row < view.botline then
+				fn(index, entry)
+			end
+		end
+	end
+	local query_visible_git = vim.schedule_wrap(function()
+		if closed or not picker or not picker.manager then
+			return
+		end
+		local paths = {}
+		for_visible_entry(function(index, entry)
+			if entry.value then
+				paths[#paths + 1] = entry.value
+				local info = git.get_cached(entry.value)
+				if info and entry._git_applied ~= info then
+					picker:entry_adder(index, entry, nil, false)
+				end
+			end
+		end)
+		git.request_visible(paths)
+	end)
+	local function schedule_git()
+		if not closed then
+			-- Telescope displays transient rows while sorting. Wait until the
+			-- results settle before spending CPU on their Git metadata.
+			git_timer:start(60, 0, query_visible_git)
+		end
+	end
+
 	local function build_finder(list, col_meta_override)
 		local col_meta = col_meta_override or compute_column_meta(list, opts)
 		local display_fn = make_entry_display(col_meta)
@@ -301,11 +341,10 @@ function M.open(projects, opts)
 		end
 		return finders.new_table({
 			results = results,
-			entry_maker = make_entry_maker(display_fn, col_meta),
+			entry_maker = make_entry_maker(display_fn, col_meta, schedule_git),
 		})
 	end
 
-	local picker
 	picker = pickers.new(
 		themes.get_dropdown({
 			prompt_title = " Git Projects",
@@ -319,7 +358,27 @@ function M.open(projects, opts)
 		{
 			finder = build_finder(items, init_col_meta),
 			sorter = conf.generic_sorter({}),
-			default_selection_index = 2,
+			selection_strategy = "reset",
+			on_input_filter_cb = function()
+				schedule_git()
+			end,
+			default_selection_index = 1,
+			on_complete = {
+				function(current)
+					local selected = current:get_selection()
+					if not selected or not selected.is_header then
+						return
+					end
+					local index = 0
+					for entry in current.manager:iter() do
+						index = index + 1
+						if not entry.is_header then
+							current:set_selection(current:get_row(index))
+							break
+						end
+					end
+				end,
+			},
 			attach_mappings = function(prompt_bufnr, _)
 				actions.select_default:replace(function()
 					local selection = action_state.get_selected_entry()
@@ -342,14 +401,40 @@ function M.open(projects, opts)
 	)
 
 	picker:find()
+	local scroll_autocmd = vim.api.nvim_create_autocmd("WinScrolled", {
+		pattern = tostring(picker.results_win),
+		callback = schedule_git,
+	})
+	vim.api.nvim_create_autocmd("BufWipeout", {
+		buffer = picker.prompt_bufnr,
+		once = true,
+		callback = function()
+			closed = true
+			git_timer:stop()
+			git_timer:close()
+			vim.api.nvim_del_autocmd(scroll_autocmd)
+			git.set_refresh_callback(nil)
+		end,
+	})
 
-	git.set_refresh_callback(function()
+	local prefetch_limit = math.max(0, tonumber(opts.prefetch_git_info_limit) or 0)
+	for idx = 1, math.min(#items, prefetch_limit) do
+		git.request(items[idx])
+	end
+
+	git.set_refresh_callback(function(changed)
 		if not picker or not picker.prompt_bufnr or not vim.api.nvim_buf_is_valid(picker.prompt_bufnr) then
 			git.set_refresh_callback(nil)
 			return
 		end
-		pcall(function()
-			picker:refresh(build_finder(current_items, current_col_meta), { reset_prompt = false })
+		if not picker.manager or not vim.api.nvim_buf_is_valid(picker.results_bufnr) then
+			return
+		end
+		-- Git metadata changes the display only: do not rerun fuzzy matching.
+		for_visible_entry(function(index, entry)
+			if changed[entry.value] then
+				picker:entry_adder(index, entry, nil, false)
+			end
 		end)
 	end)
 
@@ -358,6 +443,9 @@ function M.open(projects, opts)
 	end
 
 	request_scan(function(new_list, changed)
+		if not picker.prompt_bufnr or not vim.api.nvim_buf_is_valid(picker.prompt_bufnr) then
+			return
+		end
 		if not changed then
 			return
 		end
