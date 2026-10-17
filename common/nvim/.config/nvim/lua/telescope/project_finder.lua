@@ -137,7 +137,13 @@ local function start_scan()
 	end
 
 	project_state.job = job
-	job:start()
+	local started, err = pcall(job.start, job)
+	if not started then
+		project_state.scanning = false
+		project_state.job = nil
+		vim.notify("Unable to start project scan: " .. tostring(err), vim.log.levels.ERROR)
+		notify_waiters(project_state.cache, false)
+	end
 end
 
 local function request_scan(cb)

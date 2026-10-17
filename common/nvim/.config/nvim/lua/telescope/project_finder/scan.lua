@@ -90,7 +90,7 @@ end
 function M.build_scan_job(dirs, ignore_patterns)
 	if vim.fn.executable("fd") == 1 then
 		-- Include both .git directories and files (worktrees/submodules).
-		local args = { "-H", "-a", "--no-ignore", "--glob", ".git", "-t", "d", "-t", "f" }
+		local args = { "-H", "-a", "--no-ignore", "--glob", ".git", "--prune", "-t", "d", "-t", "f" }
 		for _, pattern in ipairs(ignore_patterns or {}) do
 			table.insert(args, "--exclude")
 			table.insert(args, pattern)
@@ -123,7 +123,7 @@ function M.build_scan_job(dirs, ignore_patterns)
 		table.insert(args, "-o")
 	end
 
-	vim.list_extend(args, { "-name", ".git", "-print" })
+	vim.list_extend(args, { "-name", ".git", "-print", "-prune" })
 
 	return {
 		command = "find",
