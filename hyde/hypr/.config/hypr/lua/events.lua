@@ -2,6 +2,7 @@
 -- Requires ctx.machine and ctx.startDesktopApplications, built in hyprland.lua.
 return function(ctx)
 	hl.on("hyprland.start", function()
+		hl.exec_cmd(ctx.home .. "/.local/bin/capslock-island.sh --start")
 		hl.exec_cmd("wlsunset -t 4500 -l -31.4 -L -64.1")
 		hl.exec_cmd("kdeconnect-cli -n Galaxy\\ S20")
 		hl.exec_cmd("/usr/bin/handy --start-hidden")

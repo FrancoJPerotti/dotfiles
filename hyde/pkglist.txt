@@ -10,6 +10,7 @@ eza
 gcovr
 git
 github-cli
+gtk-layer-shell
 jdk17-openjdk
 jdk21-openjdk
 jdk8-openjdk
@@ -23,6 +24,9 @@ neovim
 nlohmann-json
 obsidian
 postgresql
+python-cairo
+python-evdev
+python-gobject
 qmk
 stow
 tmux

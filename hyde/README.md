@@ -169,6 +169,34 @@ side of each reading. Existing Caps Lock styling is
 preserved there too. The older three-monitor layout remains available in the
 HyDE layout selector.
 
+### Caps Lock island
+
+`capslock-island.py` draws an animated, click-through tab inside the top border
+of the focused Hyprland window while Caps Lock is on. It opens in 220 ms and
+closes in 180 ms. Keyboard and pointer events, compositor events, and input
+hot-plug notifications drive updates; stable states have no drawing or position
+polling loop. Input activity is coalesced, with two final position checks after
+140 and 350 ms to follow compositor animations. Individual keystrokes are never
+stored or logged.
+
+Requires `python-gobject`, `python-cairo`, `python-evdev`, `gtk-layer-shell`, and
+read access to the relevant `/dev/input/event*` devices. These packages are in
+`pkglist.txt`. The island is independent of the older border/glow watcher, so
+both can run together without changing each other's styling.
+
+After stowing, Hyprland starts the user service at login and imports the session
+environment. To start or stop it in the current session:
+
+```bash
+~/.local/bin/capslock-island.sh --start
+~/.local/bin/capslock-island.sh --stop
+```
+
+Use `--preview` for a brief demonstration without toggling Caps Lock. Logs are
+available with `journalctl --user -u capslock-island.service`. To diagnose input
+permissions, check the startup warning about readable Caps Lock LED devices.
+Physical testing on multiple outputs with different scales is still needed.
+
 ### Handy transcription shortcuts
 
 Install Handy separately; it is not currently included in `pkglist.txt` or
