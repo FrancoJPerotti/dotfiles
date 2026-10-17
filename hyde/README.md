@@ -184,6 +184,23 @@ The wrapper detects the active mode from Handy's debug log at
 session environment if the log is stored elsewhere. The destination computer
 also needs Handy's models and application settings configured separately.
 
+### Handy paste script
+
+The `scripts` Stow package also installs `~/handy_paste.sh`. In Handy, select
+`external_script` as the paste method and set the external script path to the
+absolute path of that file (for example `/home/franco/handy_paste.sh`). Configure
+this separately on the ZenBook; Handy settings are not managed by this repo.
+
+Requires `hyprctl`, `jq`, `wl-copy`, `wl-paste`, and `wtype` (`hyprland`, `jq`,
+`wl-clipboard`, and `wtype` packages on Arch). It receives the transcript as its
+single argument, removes hidden control characters, copies it to the Wayland
+clipboard, and waits for the clipboard to be ready. It pastes with `Ctrl+Shift+V`
+in terminals and `Ctrl+V` in other apps. The terminal branch uses the Hyprland Lua
+API, so the destination needs a compatible Hyprland version.
+
+After pulling the dotfiles on the ZenBook, run `./stow-manager hyde` and configure
+Handy as above. Existing copies of the script are backed up automatically.
+
 ### Fonts
 
 Some parts of the setup assume Nerd Fonts and icon fonts:
