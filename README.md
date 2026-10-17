@@ -78,7 +78,7 @@ sudo apt install stow git
     ```bash
     ./stow-manager --stow -n
     ```
-    The script will auto-detect your distribution and show which symlinks it would create.
+    The script selects `hyde` on Arch-based systems and `ubuntu-i3` on Ubuntu-based systems. You can also pass the profile name explicitly.
 
 4.  **Apply the configuration:**
     Once you are satisfied with the preview, apply the configuration.
@@ -318,7 +318,7 @@ Contributions are welcome! Whether it's improving a configuration, fixing a bug 
 
 #### Stow Conflicts
 If you see errors about existing files when running `stow-manager --stow`:
-- **Backup existing files**: Move conflicting files to a backup location
+- **Backup existing files**: Move conflicting files to a backup location before retrying. The manager will not delete them.
 - **Use dry-run first**: Always run `./stow-manager -s -n` to preview changes
 - **Check for existing symlinks**: Run `ls -la ~` to identify existing dotfiles
 
@@ -351,8 +351,8 @@ If you encounter permission denied errors:
 
 #### Unstow Doesn't Remove Files
 If `./stow-manager -u` doesn't remove symlinks:
-- **Verify stow database**: Stow tracks what it manages; manually created symlinks won't be removed
-- **Use verbose mode**: Add `-v` flag for detailed output: `./stow-manager -u -v`
+- **Check the link target**: Manually created links and links to a different repository are not managed by this Stow package.
+- **Preview the operation**: Run `./stow-manager -u -n` to see the selected profile and its packages.
 
 For additional help, please open an issue on the [GitHub issue tracker](https://github.com/franco/dotfiles_ubuntu/issues).
 

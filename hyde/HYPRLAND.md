@@ -4,6 +4,23 @@ La configuración personal empieza en `hypr/.config/hypr/hyprland.lua`.
 HyDE aporta sus valores base y este archivo carga las preferencias personales.
 Las rutas de la tabla son relativas a `hypr/.config/hypr/lua/`.
 
+Para que esta configuración tenga efecto, la instalación de HyDE debe cargar
+`~/.config/hypr/hyprland.lua` y disponer de
+`~/.local/share/hypr/hyde.lua`. Si tu instalación todavía carga
+`~/.config/hypr/hyprland.conf`, seguirá usando los archivos `.conf` antiguos
+aunque Stow haya enlazado todos los archivos Lua. Comprobalo con:
+
+```bash
+test -f ~/.local/share/hypr/hyde.lua && echo 'HyDE Lua disponible'
+rg 'HYPRLAND_CONFIG=' ~/.config/uwsm/env-hyprland.d/00-hyde.sh
+```
+
+Si falta el archivo Lua o `HYPRLAND_CONFIG` apunta a `.conf`, seguí la
+[migración oficial de HyDE](https://github.com/HyDE-Project/HyDE/blob/master/MIGRATION-LUA.md)
+desde el clon de HyDE (`git pull` y `./Scripts/install.sh -r`). La sesión que
+ya estaba abierta puede seguir usando `.conf` hasta el próximo inicio;
+conservá una copia de esa configuración antigua hasta comprobar el arranque Lua.
+
 ## Dónde cambiar cada cosa
 
 | Cambio | Archivo que conviene leer primero |
@@ -11,8 +28,10 @@ Las rutas de la tabla son relativas a `hypr/.config/hypr/lua/`.
 | Agregar una app, su atajo, escritorio o arranque | `apps.lua` |
 | Cambiar un atajo general, de volumen o de navegación | `bindings.lua` |
 | Cambiar Kanata, monitores o Waybar según la computadora | `machines.lua` |
+| Apagar el panel interno al cerrar la tapa con monitor externo | `lid.lua` y `machines.lua` |
 | Cambiar apariencia, animaciones o comportamiento general | `options.lua` |
 | Cambiar teclado, mouse, touchpad o gestos | `input.lua` |
+| Desactivar Kanata al conectar un teclado con firmware propio | `keyboards.lua` y `~/.config/kanata/firmware-keyboards.conf` |
 | Cambiar blur de Rofi, notificaciones o Waybar | Final de `rules.lua` |
 | Agregar un servicio al inicio de sesión | `events.lua` |
 | Corregir Ctrl+T, foco de Spotify, letras o movimiento de ventanas | `behaviors.lua` |

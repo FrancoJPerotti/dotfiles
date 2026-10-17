@@ -73,6 +73,19 @@ Hyprland and uses the standard US International XKB map. Reloading Hyprland
 synchronizes keyboard visibility without restarting Kanata if you stopped it
 manually. You can also run `~/.local/bin/kanata_up.sh` directly.
 
+On the Zenbook, connecting the Corne (`4653:0001`) automatically stops Kanata
+and selects plain US International, leaving the firmware mapping in control.
+Disconnecting it restores the default Kanata layout. The user service
+`kanata-keyboard-watch.service` listens to input device events with
+`udevadm monitor`; it checks once on startup and then only on device events.
+`lua/keyboards.lua` automatically imports the Hyprland session environment,
+reloads user units and starts the service on login or config reload.
+Applying Stow and reloading Hyprland is enough: activation is automated.
+The service stops with the graphical session. Startup and `Super+F11` also
+respect the connected Corne. The internal keyboard uses plain
+US International while Kanata is off. Add hostnames and USB IDs to
+`common/kanata/.config/kanata/firmware-keyboards.conf` for other firmware keyboards.
+
 ```bash
 # Activate the default Kanata-owned mapping with US International XKB.
 ~/.local/bin/kanata_up.sh --current
@@ -120,13 +133,26 @@ Monitor modes, positions, scales and workspace priority are also defined in
 3840x2160, 60 Hz and scale 1.5.
 
 On `zenbook`, the built-in Samsung panel uses 2880x1800 at 120 Hz, scale 2 and
-position `307x1080`. The external Samsung uses 1920x1080 at 60 Hz, scale 1 and
-position `67x0`. The `workspace_monitors` list prefers the external Samsung,
+position `1267x2160`, centered below the external monitor. The external Samsung
+uses 3840x2160 at 60 Hz, scale 1.5 and position `67x0`. The `workspace_monitors` list prefers the external Samsung,
 then the built-in panel. Workspaces 1–4 and their windows move automatically
 when connecting or disconnecting the external monitor; the active numbered
 workspace is preserved. Output descriptions use prefixes to tolerate serial
 suffix differences. Unknown computers receive no personal monitor modes or
 workspace monitor assignment.
+
+On the Zenbook, `lua/lid.lua` handles the `Lid Switch` events: with the external
+monitor connected, closing the lid removes the internal panel from the layout,
+moving its workspaces to the external screen. Opening it restores the panel's
+configured mode, position and scale. Hotplug and config reloads also reconcile
+the lid state; detection has no periodic polling. The lid's state path and
+panel selector live in `machines.lua`.
+
+Suspension remains managed by logind. Its default
+`HandleLidSwitchDocked=ignore` keeps a laptop with an active external display
+awake when the lid closes; `HandleLidSwitch=suspend` applies without it.
+On this Zenbook those defaults are active and logind reports `Docked=true`
+with the Samsung attached. Hypridle still suspends after 900 seconds of idle.
 
 ### Per-computer Waybar layouts
 
@@ -191,6 +217,9 @@ sudo pacman -S ttf-firacode-nerd ttf-font-awesome
     ```
 
     The script automatically applies the `common/` base plus the `hyde/` profile.
+    The Zsh profile installs `~/.config/zsh/.zshrc`. On a new machine, set
+    `ZDOTDIR=$HOME/.config/zsh` in `~/.zshenv` so Zsh reads it.
+    Existing `~/.zshenv` files are machine-local and are not managed here.
 
 4. **Install global AI/agent CLIs (npm):**
 
