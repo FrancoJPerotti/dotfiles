@@ -97,11 +97,6 @@
     },
     {
         "key": "ctrl+backspace",
-        "command": "-deleteWordLeft",
-        "when": "textInputFocus && !editorReadonly"
-    },
-    {
-        "key": "ctrl+backspace",
         "command": "-extension.vim_ctrl+backspace",
         "when": "editorTextFocus && vim.active && vim.use<C-BS> && !inDebugRepl && vim.mode != 'Insert'"
     },
@@ -456,9 +451,18 @@
         "command": "workbench.action.focusActiveEditorGroup",
         "when": "panelFocus || terminalFocus"
     },
+    // Override Vim only while a writable editor text area has focus.
+    // Other inputs keep their default Ctrl+Backspace behavior.
     {
         "key": "ctrl+backspace",
-        "command": "deleteWordLeft"
+        "command": "deleteWordLeft",
+        "when": "editorTextFocus && !editorReadonly"
+    },
+    // Consume the shortcut in Vim Normal mode without changing the document.
+    {
+        "key": "ctrl+backspace",
+        "command": "",
+        "when": "editorTextFocus && vim.active && vim.mode == 'Normal' && !inChatInput"
     },
     {
         "key": "ctrl+numpad_subtract",

@@ -82,6 +82,16 @@
       "before": ["<leader>", "a", "e"],
       "commands": ["inlineChat.start"],
       "silent": true
+    },
+    {
+      // Add the visual selection to GitHub Copilot Chat and focus its input
+      "before": ["<leader>", "a", "c"],
+      "commands": [
+        "workbench.panel.chat.view.copilot.focus",
+        "workbench.action.chat.attachSelection",
+        "workbench.action.chat.focusInput"
+      ],
+      "silent": true
     }
   ],
 
@@ -104,8 +114,8 @@
 "github.copilot.enable": {
   "*": true,
   "plaintext": true,
-  "markdown": false,
-  "scminput": true
+  "scminput": true,
+  "markdown": true
 },
 "vscode-home-assistant.ignoreCertificates": true,
 "workbench.colorCustomizations": {
@@ -164,7 +174,7 @@
     "subportadoras"
   ],
   "github.copilot.nextEditSuggestions.enabled": true,
-  "workbench.colorTheme": "GitHub Dark Dimmed",
+  "workbench.colorTheme": "Tokyo Night Ported Nvim",
   "window.commandCenter": false,
   "explorer.confirmDelete": false,
   "chat.viewSessions.orientation": "stacked",

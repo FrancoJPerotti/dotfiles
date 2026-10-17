@@ -30,6 +30,7 @@
     "favorite_models": [],
     "model_parameters": []
   }, */
+  "diff_view_style": "split",
   "collaboration_panel": {
     "dock": "left"
   },
@@ -37,6 +38,9 @@
     "dock": "left"
   },
   "agent_servers": {
+    "codex-acp": {
+      "type": "registry"
+    },
     "opencode": {
       "type": "registry"
     }
@@ -47,6 +51,9 @@
     }
   },
   "edit_predictions": {
+    "disabled_globs": [
+      "..."
+    ],
     "provider": "copilot",
     "mode": "eager",
     "copilot": {
@@ -59,7 +66,6 @@
   "project_panel": {
     "dock": "left"
   },
-  "show_edit_predictions": false,
   "chat_panel": {
     "dock": "left"
   },
@@ -69,23 +75,54 @@
   "vim_mode": true,
   "relative_line_numbers": "enabled",
   "agent": {
+    "tool_permissions": {
+      "tools": {
+        "terminal": {
+          "default": "allow"
+        }
+      }
+    },
+    "threads_sidebar": {
+      "position": "right"
+    },
+    "default_profile": "write",
     "dock": "right",
     "inline_assistant_model": {
       "provider": "copilot_chat",
       "model": "gpt-5"
     },
     "default_model": {
-      "provider": "copilot_chat",
-      "model": "gpt-5"
+      "effort": "high",
+      "enable_thinking": true,
+      "provider": "openai-subscribed",
+      "model": "gpt-5.6-luna"
     },
   },
   "ui_font_size": 18,
   "buffer_font_size": 18,
+  "agent_ui_font_size": 18,
+  "agent_buffer_font_size": 18,
   "buffer_font_family": "Consolas ligaturized v3",
   "theme": {
     "mode": "system",
     "light": "Tokyo Night Storm",
     "dark": "Tokyo Night Storm"
+  },
+  "theme_overrides": {
+    "Tokyo Night Storm": {
+      "vim.normal.background": "#7aa2f7",
+      "vim.normal.foreground": "#1a1b26",
+      "vim.insert.background": "#9ece6a",
+      "vim.insert.foreground": "#1a1b26",
+      "vim.visual.background": "#bb9af7",
+      "vim.visual.foreground": "#1a1b26",
+      "vim.visual_line.background": "#bb9af7",
+      "vim.visual_line.foreground": "#1a1b26",
+      "vim.visual_block.background": "#bb9af7",
+      "vim.visual_block.foreground": "#1a1b26",
+      "vim.replace.background": "#f7768e",
+      "vim.replace.foreground": "#1a1b26"
+    }
   },
   "autosave": "on_focus_change",
   "base_keymap": "VSCode",

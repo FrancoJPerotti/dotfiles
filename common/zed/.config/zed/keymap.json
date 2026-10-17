@@ -30,7 +30,7 @@
       "ctrl-shift-w": "workspace::CloseWindow",
       "shift-escape": "workspace::ToggleZoom",
       "open": "workspace::Open",
-      // "ctrl-o": "workspace::Open",
+      "ctrl-o": null, // Block the default file picker; Vim normal mode overrides this below.
       "ctrl-=": ["zed::IncreaseBufferFontSize", { "persist": false }],
       "ctrl-+": ["zed::IncreaseBufferFontSize", { "persist": false }],
       "ctrl--": ["zed::DecreaseBufferFontSize", { "persist": false }],
@@ -151,7 +151,6 @@
       "ctrl-f": "buffer_search::Deploy",
       "ctrl-h": "buffer_search::DeployReplace",
       "ctrl->": "assistant::QuoteSelection",
-      "ctrl-<": "assistant::InsertIntoEditor",
       "ctrl-alt-e": "editor::SelectEnclosingSymbol",
       "ctrl-shift-backspace": "editor::GoToPreviousChange",
       "ctrl-shift-alt-backspace": "editor::GoToNextChange",
@@ -187,7 +186,7 @@
     }
   },
   {
-    "context": "Editor && jupyter && !ContextEditor",
+    "context": "Editor && jupyter",
     "bindings": {
       "ctrl-shift-enter": "repl::Run",
       "ctrl-alt-enter": "repl::RunInPlace"
@@ -222,44 +221,26 @@
     }
   },
   {
-    "context": "ContextEditor > Editor",
-    "bindings": {
-      "ctrl-enter": "assistant::Assist",
-      "ctrl-s": "workspace::Save",
-      "save": "workspace::Save",
-      "ctrl-<": "assistant::InsertIntoEditor",
-      "shift-enter": "assistant::Split",
-      "ctrl-r": "assistant::CycleMessageRole",
-      "enter": "assistant::ConfirmCommand",
-      "alt-enter": "editor::Newline",
-      "ctrl-k c": "assistant::CopyCode",
-      "ctrl-g": "search::SelectNextMatch",
-      "ctrl-shift-g": "search::SelectPreviousMatch",
-      "ctrl-k l": "agent::OpenRulesLibrary"
-    }
-  },
-  {
     "context": "AgentPanel",
     "bindings": {
-      "ctrl-n": "agent::NewThread",
-      "ctrl-alt-n": "agent::NewTextThread",
-      "ctrl-shift-h": "agent::OpenHistory",
+      "ctrl-n": "workspace::ActivatePaneLeft",
+      "ctrl-o": "workspace::ActivatePaneRight",
+      "ctrl-alt-n": "agent::NewThread",
       "ctrl-alt-c": "agent::OpenConfiguration",
       "ctrl-alt-p": "agent::OpenRulesLibrary",
       "ctrl-i": "agent::ToggleProfileSelector",
       "ctrl-alt-/": "agent::ToggleModelSelector",
-      "ctrl-shift-j": "agent::ToggleNavigationMenu",
+      "ctrl-shift-j": "agents_sidebar::ToggleThreadSwitcher",
       "ctrl-shift-i": "agent::ToggleOptionsMenu",
       "shift-alt-escape": "agent::ExpandMessageEditor",
       "ctrl->": "assistant::QuoteSelection",
-      "ctrl-shift-enter": "agent::ContinueThread",
       "alt-enter": "menu::Confirm"
     }
   },
   {
-    "context": "AgentPanel > NavigationMenu",
+    "context": "ThreadsSidebar",
     "bindings": {
-      "shift-backspace": null
+      "ctrl-shift-h": "agents_sidebar::ToggleThreadHistory"
     }
   },
   {
@@ -267,13 +248,6 @@
     "bindings": {
       "copy": "markdown::CopyAsMarkdown",
       "ctrl-c": "markdown::CopyAsMarkdown"
-    }
-  },
-  {
-    "context": "AgentPanel && prompt_editor",
-    "bindings": {
-      "ctrl-n": "agent::NewTextThread",
-      "ctrl-alt-t": "agent::NewThread"
     }
   },
   {
@@ -331,14 +305,6 @@
     "context": "ThreadHistory",
     "bindings": {
       "backspace": "agent::RemoveSelectedThread"
-    }
-  },
-  {
-    "context": "PromptLibrary",
-    "bindings": {
-      "new": "rules_library::NewRule",
-      "ctrl-n": "rules_library::NewRule",
-      "ctrl-shift-s": "rules_library::ToggleDefaultRule"
     }
   },
   {
@@ -711,15 +677,15 @@
       "alt-tab": "editor::AcceptEditPrediction",
       "alt-l": "editor::AcceptEditPrediction",
       "tab": "editor::AcceptEditPrediction",
-      "alt-right": "editor::AcceptPartialEditPrediction"
+      "alt-right": "editor::AcceptNextWordEditPrediction"
     }
   },
   {
-    "context": "Editor && edit_prediction_conflict",
+    "context": "Editor && (edit_prediction && (showing_completions || in_leading_whitespace))",
     "bindings": {
       "alt-tab": "editor::AcceptEditPrediction",
       "alt-l": "editor::AcceptEditPrediction",
-      "alt-right": "editor::AcceptPartialEditPrediction"
+      "alt-right": "editor::AcceptNextWordEditPrediction"
     }
   },
   {
@@ -761,7 +727,7 @@
     }
   },
   {
-    "context": "!ContextEditor > Editor && mode == full",
+    "context": "Editor && mode == full",
     "bindings": {
       "alt-enter": "editor::OpenExcerpts",
       "shift-enter": "editor::ExpandExcerpts",
@@ -1108,6 +1074,8 @@
   {
     "context": "MarkdownPreview",
     "bindings": {
+      "ctrl-n": "workspace::ActivatePaneLeft",
+      "ctrl-o": "workspace::ActivatePaneRight",
       "pageup": "markdown::MovePageUp",
       "pagedown": "markdown::MovePageDown"
     }
@@ -1415,6 +1383,7 @@
     "context": "vim_mode == visual",
     "bindings": {
       "space a e": "assistant::InlineAssist",
+      "space a c": "agent::AddSelectionToThread",
       "space a a": "assistant::QuoteSelection"
     }
   },
@@ -1920,7 +1889,7 @@
     }
   },
   {
-    "context": "os != macos && Editor && edit_prediction_conflict",
+    "context": "os != macos && Editor && (edit_prediction && (showing_completions || in_leading_whitespace))",
     "bindings": {
       // alt-l is provided as an alternative to tab/alt-tab. and will be displayed in the UI. This
       // is because alt-tab may not be available, as it is often used for window switching on Linux
@@ -1931,6 +1900,20 @@
   {
     "bindings": {
       "ctrl-q": null
+    }
+  },
+  {
+    "context": "Pane > ((Editor && mode == full && vim_mode != literal) || MarkdownPreview)",
+    "bindings": {
+      "ctrl-l": "pane::ActivatePreviousItem",
+      "ctrl-ñ": "pane::ActivateNextItem"
+    }
+  },
+  {
+    "context": "(AgentPanel > Editor) || (AgentPanel > Markdown) || AcpThread || (AcpThread > Editor)",
+    "bindings": {
+      "ctrl-n": "workspace::ActivatePaneLeft",
+      "ctrl-o": "workspace::ActivatePaneRight"
     }
   }
 ]
