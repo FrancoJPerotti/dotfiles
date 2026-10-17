@@ -7,7 +7,7 @@ return function(ctx)
 	local scrPath = ctx.scrPath
 
 	-- Window and session actions.
-	bind(mainMod .. " + SHIFT + P", exec("hyprpicker -a"), { description = "Color Picker" })
+	bind(mainMod .. " + C", exec("hyprpicker -a"), { description = "Color Picker" })
 	bind("F12", hl.dsp.window.close())
 	bind("ALT + F4", exec(scrPath .. "/dontkillsteam.sh"))
 	bind(mainMod .. " + DELETE", hl.dsp.exit())
@@ -54,10 +54,11 @@ return function(ctx)
 
 	-- Screenshots and clipboard.
 	bind(mainMod .. " + P", exec(scrPath .. "/screenshot.sh s"))
+	bind(mainMod .. " + SHIFT + P", exec("hyprshot -m window -m active -r | satty --filename -"))
 	bind("Print", exec(scrPath .. "/screenshot.sh p"))
-	bind(mainMod .. " + C", exec("pkill -x rofi || " .. scrPath .. "/custom_cliphist.sh -c"), {
-		description = "$d clipboard ",
-	})
+	-- bind(mainMod .. " + C", exec("pkill -x rofi || " .. scrPath .. "/custom_cliphist.sh -c"), {
+	-- 	description = "$d clipboard ",
+	-- })
 	bind(mainMod .. " + SHIFT + C", exec("pkill -x rofi || " .. scrPath .. "/cliphist.sh"), {
 		description = "$d clipboard manager ",
 	})
