@@ -4,13 +4,13 @@ set -euo pipefail
 # Stow Manager - Unified stow/unstow tool for dotfiles management.
 # - Stows or unstows packages from common/ + a profile directory.
 # - In dry-run mode, shows a tree view of planned changes.
-# - Idempotent: safe to run multiple times without side effects.
+# - Idempotent: safe to run multiple times; existing files are preserved.
 #
 # Usage:
 #   ./stow-manager --stow [profile] [-n|--dry-run]
 #   ./stow-manager --unstow [profile] [-n|--dry-run]
-#   ./stow-manager -s arch -n
-#   ./stow-manager -u ubuntu
+#   ./stow-manager -s hyde -n
+#   ./stow-manager -u ubuntu-i3
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
@@ -30,9 +30,9 @@ Actions:
   -u, --unstow   Remove symlinks for dotfiles
 
 Examples:
-  $0 --stow arch -n          # Preview stowing arch profile
-  $0 -s ubuntu               # Stow ubuntu profile
-  $0 --unstow arch           # Unstow arch profile
+  $0 --stow hyde -n          # Preview stowing HyDE profile
+  $0 -s ubuntu-i3            # Stow Ubuntu i3 profile
+  $0 --unstow hyde           # Unstow HyDE profile
   $0 -u -n                   # Preview unstowing current profile
   $0 -s                      # Stow auto-detected profile
 
@@ -47,8 +47,8 @@ Behaviour:
     except those listed in that domain's .stow-exclude file or built-in
     ignores (.git, .github, .stow-local-ignore, .stow-exclude).
   - Shows a tree visualization of all planned changes.
-  - Idempotent operation: running multiple times has no adverse effects.
-    Conflicts are intelligently detected and only non-stowed files are removed.
+  - Existing files are never removed automatically. Resolve reported conflicts
+    manually before rerunning the command.
 EOF
 }
 
@@ -100,8 +100,8 @@ if [[ -z "${TARGET_PROFILE}" && -r /etc/os-release ]]; then
   # shellcheck disable=SC1091
   . /etc/os-release
   case "${ID:-}" in
-  arch | endeavouros | manjaro) TARGET_PROFILE="arch" ;;
-  ubuntu | pop | linuxmint | neon | zorin) TARGET_PROFILE="ubuntu" ;;
+  arch | endeavouros | manjaro) TARGET_PROFILE="hyde" ;;
+  ubuntu | pop | linuxmint | neon | zorin) TARGET_PROFILE="ubuntu-i3" ;;
   esac
 fi
 
@@ -159,9 +159,9 @@ check_prerequisites() {
 check_prerequisites
 
 declare -a EXCLUDED=()
-declare -a CONFLICT_PATHS=()
 declare -a CONFLICT_RECORDS=()
 declare -a LINK_RECORDS=()
+HAD_ERRORS=false
 
 extract_conflict_from_line() {
   local line="$1"
@@ -201,17 +201,31 @@ is_stowed_package() {
   return 1
 }
 
+package_fully_linked() {
+  local domain_dir="$1" pkg_name="$2" source rel target
+  local found=false
+
+  while IFS= read -r -d '' source; do
+    found=true
+    rel="${source#"$domain_dir/$pkg_name/"}"
+    target="$HOME/$rel"
+    if [[ ! -L "$target" ]] || [[ "$(readlink -f -- "$target")" != "$(readlink -f -- "$source")" ]]; then
+      return 1
+    fi
+  done < <(find "$domain_dir/$pkg_name" \( -type f -o -type l \) -print0)
+
+  $found
+}
+
 cleanup_conflicts() {
   local domain_dir="$1"
   local pkg_name="$2"
-  local -a conflicts=()
   local domain="${domain_dir##*/}"
 
   # Run stow simulation; capture output (exit 2 is expected when conflicts).
   local sim_out
-  if ! sim_out=$(stow "${STOW_OPTS[@]}" -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1); then
-    :
-  fi
+  local sim_status=0
+  sim_out=$(stow "${STOW_OPTS[@]}" -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1) || sim_status=$?
 
   # Extract conflicting target paths
   while IFS= read -r line; do
@@ -226,27 +240,20 @@ cleanup_conflicts() {
         continue
       fi
       
-      conflicts+=("$full_path")
-      CONFLICT_PATHS+=("$rel")
       CONFLICT_RECORDS+=("$rel|$domain|$pkg_name")
     fi
   done <<<"$sim_out"
 
-  # Report / remove conflicts
-  for f in "${conflicts[@]}"; do
-    if $DRY_RUN; then
-      :
-    else
-      if [[ -e $f || -L $f ]]; then
-        echo "🗑️  Removing: $f"
-        rm -rf -- "$f"
-      fi
+  if ((sim_status != 0)); then
+    if package_fully_linked "$domain_dir" "$pkg_name"; then
+      return 2
     fi
-  done
-
-  if ! $DRY_RUN; then
-    echo "$sim_out"
+    warn "Cannot stow $domain/$pkg_name. Resolve these conflicts manually:"
+    printf '%s\n' "$sim_out"
+    return 1
   fi
+
+  return 0
 }
 
 load_excludes() {
@@ -329,8 +336,22 @@ stow_domain() {
     done < <(cd "$domain_dir" && find "$pkg_name" \( -type f -o -type l \) -printf '%P\n')
 
     if [[ "$ACTION" == "stow" ]]; then
-      # STOW: Detect conflicts and (optionally) remove them before real stow.
-      cleanup_conflicts "$domain_dir" "$pkg_name"
+      # STOW: Detect conflicts before real stow.
+      local conflict_status=0
+      cleanup_conflicts "$domain_dir" "$pkg_name" || conflict_status=$?
+      case "$conflict_status" in
+      0) ;;
+      2)
+        if ! $DRY_RUN; then
+          echo "  ✓ Already linked: $domain/$pkg_name"
+        fi
+        continue
+        ;;
+      *)
+        HAD_ERRORS=true
+        continue
+        ;;
+      esac
 
       # Perform the actual stow (stow itself is idempotent when no conflicts exist)
       if ! $DRY_RUN; then
@@ -343,6 +364,7 @@ stow_domain() {
             echo "  ✓ Already stowed: $domain/$pkg_name"
           else
             warn "Stow reported issues for $domain/$pkg_name — continuing with next package."
+            HAD_ERRORS=true
             if [[ -n "$stow_output" ]]; then
               echo "$stow_output" | head -3
             fi
@@ -363,6 +385,7 @@ stow_domain() {
             echo "  ✓ Already unstowed: $domain/$pkg_name"
           else
             warn "Stow reported issues unstowing $domain/$pkg_name — continuing with next package."
+            HAD_ERRORS=true
             if [[ -n "$unstow_output" ]]; then
               echo "$unstow_output" | head -3
             fi
@@ -622,7 +645,10 @@ stow_domain "${TARGET_PROFILE}"
 print_link_tree
 
 echo
-if $DRY_RUN; then
+if $HAD_ERRORS; then
+  error "Some packages could not be processed. Conflicting files were left untouched."
+  exit 1
+elif $DRY_RUN; then
   echo "✅ Preview complete. No changes made."
 else
   echo "✅ Done."
