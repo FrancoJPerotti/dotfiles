@@ -48,6 +48,7 @@ context.startDesktopApplications = loadModule("autostart")(context)
 local modules = {
 	"options",
 	"monitors",
+	"lid",
 	"input",
 	"keyboards",
 	"bindings",
