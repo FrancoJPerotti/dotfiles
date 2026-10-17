@@ -47,8 +47,8 @@ Behaviour:
     except those listed in that domain's .stow-exclude file or built-in
     ignores (.git, .github, .stow-local-ignore, .stow-exclude).
   - Shows a tree visualization of all planned changes.
-  - Existing files are never removed automatically. Resolve reported conflicts
-    manually before rerunning the command.
+  - Conflicting targets are backed up under ~/.local/state/dotfiles/backups/.
+  - Failed packages restore their backups; dry-run never changes files.
 EOF
 }
 
@@ -162,6 +162,9 @@ declare -a EXCLUDED=()
 declare -a CONFLICT_RECORDS=()
 declare -a LINK_RECORDS=()
 HAD_ERRORS=false
+BACKUP_ROOT="${HOME}/.local/state/dotfiles/backups/$(date +%Y%m%d-%H%M%S)-$$"
+BACKUP_COUNT=0
+declare -a PACKAGE_BACKUPS=()
 
 extract_conflict_from_line() {
   local line="$1"
@@ -177,7 +180,7 @@ extract_conflict_from_line() {
   elif [[ $line =~ CONFLICT:[[:space:]](.+)$ ]]; then
     rel="${BASH_REMATCH[1]}"
   # Pattern 4: "cannot stow X over existing target <path> since …"
-  elif [[ $line =~ cannot[[:space:]]stow[[:space:]].*over[[:space:]]existing[[:space:]]target[[:space:]]([^[:space:]]+) ]]; then
+  elif [[ $line =~ cannot[[:space:]]stow[[:space:]].*over[[:space:]]existing[[:space:]]target[[:space:]](.+)[[:space:]]since[[:space:]] ]]; then
     rel="${BASH_REMATCH[1]}"
   fi
 
@@ -217,43 +220,89 @@ package_fully_linked() {
   $found
 }
 
-cleanup_conflicts() {
-  local domain_dir="$1"
-  local pkg_name="$2"
-  local domain="${domain_dir##*/}"
-
-  # Run stow simulation; capture output (exit 2 is expected when conflicts).
-  local sim_out
-  local sim_status=0
-  sim_out=$(stow "${STOW_OPTS[@]}" -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1) || sim_status=$?
-
-  # Extract conflicting target paths
-  while IFS= read -r line; do
-    local rel
-    rel=$(extract_conflict_from_line "$line")
-
-    if [[ -n "$rel" ]]; then
-      local full_path="$HOME/$rel"
-      
-      # Skip if already a symlink to our package (idempotent check)
-      if is_stowed_package "$full_path" "$domain_dir" "$pkg_name"; then
-        continue
-      fi
-      
-      CONFLICT_RECORDS+=("$rel|$domain|$pkg_name")
+restore_package_backups() {
+  local domain_dir="$1" pkg_name="$2" rel target saved
+  for rel in "${PACKAGE_BACKUPS[@]}"; do
+    target="$HOME/$rel"
+    saved="$BACKUP_ROOT/$domain_dir/$pkg_name/$rel"
+    # GNU Stow normally aborts before changing links on failure.
+    # Remove only a replacement link to this package before restoring.
+    if [[ -L "$target" ]] && [[ "$(readlink -f -- "$target")" == "$(readlink -f -- "$SCRIPT_DIR/$domain_dir/$pkg_name/$rel")" ]]; then
+      rm -- "$target"
     fi
-  done <<<"$sim_out"
+    if [[ -e "$target" || -L "$target" ]]; then
+      error "Cannot restore $target; backup preserved at $saved"
+    elif mv -- "$saved" "$target"; then
+      BACKUP_COUNT=$((BACKUP_COUNT - 1))
+      echo "  ↩ Restored: $rel"
+    else
+      error "Restore failed; backup preserved at $saved"
+    fi
+  done
+  PACKAGE_BACKUPS=()
+}
 
-  if ((sim_status != 0)); then
+cleanup_conflicts() {
+  local domain_dir="$1" pkg_name="$2"
+  local domain="${domain_dir##*/}"
+  local sim_out sim_status line rel target saved
+  local -a conflicts=()
+  PACKAGE_BACKUPS=()
+
+  # Recheck after moving conflicts: a blocked parent can hide child conflicts.
+  while true; do
+    sim_status=0
+    sim_out=$(LC_ALL=C stow "${STOW_OPTS[@]}" -nv -d "$domain_dir" -t "$HOME" "$pkg_name" 2>&1) || sim_status=$?
+    ((sim_status == 0)) && return 0
     if package_fully_linked "$domain_dir" "$pkg_name"; then
       return 2
     fi
-    warn "Cannot stow $domain/$pkg_name. Resolve these conflicts manually:"
-    printf '%s\n' "$sim_out"
-    return 1
-  fi
-
-  return 0
+    conflicts=()
+    while IFS= read -r line; do
+      rel=$(extract_conflict_from_line "$line")
+      [[ -n "$rel" ]] || continue
+      # Never move targets outside HOME or this package's paths.
+      if [[ "$rel" == /* || "/$rel/" == *"/../"* || ! -e "$domain_dir/$pkg_name/$rel" && ! -L "$domain_dir/$pkg_name/$rel" ]]; then
+        continue
+      fi
+      target="$HOME/$rel"
+      [[ -e "$target" || -L "$target" ]] || continue
+      # Never move another package managed by this repository.
+      if [[ -L "$target" && "$(readlink -f -- "$target")" == "$SCRIPT_DIR/"* ]]; then
+        continue
+      fi
+      # Deduplicate Stow diagnostics.
+      local existing duplicate=false
+      for existing in "${conflicts[@]}"; do
+        [[ "$existing" == "$rel" ]] && duplicate=true
+      done
+      $duplicate || conflicts+=("$rel")
+    done <<<"$sim_out"
+    if ((${#conflicts[@]} == 0)); then
+      warn "Cannot stow $domain/$pkg_name:"
+      printf '%s\n' "$sim_out"
+      restore_package_backups "$domain" "$pkg_name"
+      return 1
+    fi
+    for rel in "${conflicts[@]}"; do
+      CONFLICT_RECORDS+=("$rel|$domain|$pkg_name")
+      if $DRY_RUN; then
+        echo "  📦 Would back up: $rel"
+        continue
+      fi
+      target="$HOME/$rel"
+      saved="$BACKUP_ROOT/$domain/$pkg_name/$rel"
+      if ! mkdir -p -- "$(dirname -- "$saved")" || ! mv -- "$target" "$saved"; then
+        error "Cannot back up $target"
+        restore_package_backups "$domain" "$pkg_name"
+        return 1
+      fi
+      PACKAGE_BACKUPS+=("$rel")
+      BACKUP_COUNT=$((BACKUP_COUNT + 1))
+      echo "  📦 Backed up: $rel"
+    done
+    $DRY_RUN && return 0
+  done
 }
 
 load_excludes() {
@@ -365,6 +414,7 @@ stow_domain() {
           else
             warn "Stow reported issues for $domain/$pkg_name — continuing with next package."
             HAD_ERRORS=true
+            restore_package_backups "$domain" "$pkg_name"
             if [[ -n "$stow_output" ]]; then
               echo "$stow_output" | head -3
             fi
@@ -645,8 +695,11 @@ stow_domain "${TARGET_PROFILE}"
 print_link_tree
 
 echo
+if ((BACKUP_COUNT > 0)); then
+  echo "📦 Backups ($BACKUP_COUNT): $BACKUP_ROOT"
+fi
 if $HAD_ERRORS; then
-  error "Some packages could not be processed. Conflicting files were left untouched."
+  error "Some packages could not be processed. Check diagnostics and any preserved backups."
   exit 1
 elif $DRY_RUN; then
   echo "✅ Preview complete. No changes made."

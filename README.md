@@ -318,7 +318,8 @@ Contributions are welcome! Whether it's improving a configuration, fixing a bug 
 
 #### Stow Conflicts
 If you see errors about existing files when running `stow-manager --stow`:
-- **Backup existing files**: Move conflicting files to a backup location before retrying. The manager will not delete them.
+- **Automatic backups**: Conflicting local files, directories, and external symlinks are moved to `~/.local/state/dotfiles/backups/<timestamp>-<pid>/` before linking the repository version. Shared directories retain unrelated files. Failed packages restore their backups; any backup that cannot be restored is preserved and reported. Links to other packages in this repository require manual resolution.
+- **Preview backups**: `./stow-manager -s hyde -n` lists detected conflicts without changing files. Conflicts hidden behind a blocked parent may only be discovered during a real run.
 - **Use dry-run first**: Always run `./stow-manager -s -n` to preview changes
 - **Check for existing symlinks**: Run `ls -la ~` to identify existing dotfiles
 

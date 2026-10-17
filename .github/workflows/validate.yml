@@ -18,6 +18,9 @@ jobs:
       - name: Install GNU Stow
         run: sudo apt-get update && sudo apt-get install -y stow
 
+      - name: Test Stow backup and rollback behavior
+        run: python3 tests/test-stow-manager.py
+
       - name: Validate package structure
         run: |
           echo "🔍 Validating dotfiles structure..."
