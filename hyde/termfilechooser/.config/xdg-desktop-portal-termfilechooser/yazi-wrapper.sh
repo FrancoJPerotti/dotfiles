@@ -86,7 +86,9 @@ Notes:
 ' >"$path"
   set -- --chooser-file="$tmpfile" "$path"
 elif [ "$directory" = "1" ]; then
-  set -- --cwd-file="$out" "$path"
+  # Picker mode: `open` returns the selected directory instead of launching an opener.
+  # Enter/l still navigate; use o to confirm, or q to cancel.
+  set -- --chooser-file="$out" "$path"
 elif [ "$multiple" = "1" ]; then
   set -- --chooser-file="$out" "$path"
 else
