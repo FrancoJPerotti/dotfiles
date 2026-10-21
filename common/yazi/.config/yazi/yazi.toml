@@ -9,6 +9,16 @@ edit = [
 	{ run = 'nvim %s', block = true, for = "unix" },
 ]
 
+browser = [
+	{ run = 'vivaldi %s', orphan = true, for = "unix" },
+]
+
+[open]
+prepend_rules = [
+	{ mime = "text/html", use = "browser" },
+	{ url = "*.{html,htm}", use = "browser" },
+]
+
 [preview]
 max_width = 4000
 max_height = 4000
