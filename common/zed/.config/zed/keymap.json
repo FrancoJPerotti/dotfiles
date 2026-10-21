@@ -141,9 +141,7 @@
   {
     "context": "Editor && mode == full",
     "bindings": {
-      "shift-enter": "editor::Newline",
       "enter": "editor::Newline",
-      "ctrl-enter": "editor::NewlineAbove",
       "ctrl-shift-enter": "editor::NewlineBelow",
       "ctrl-k ctrl-z": "editor::ToggleSoftWrap",
       "ctrl-k z": "editor::ToggleSoftWrap",
@@ -153,8 +151,7 @@
       "ctrl->": "assistant::QuoteSelection",
       "ctrl-alt-e": "editor::SelectEnclosingSymbol",
       "ctrl-shift-backspace": "editor::GoToPreviousChange",
-      "ctrl-shift-alt-backspace": "editor::GoToNextChange",
-      "alt-enter": "editor::OpenSelectionsInMultibuffer"
+      "ctrl-shift-alt-backspace": "editor::GoToNextChange"
     }
   },
   {
@@ -676,7 +673,6 @@
     "bindings": {
       "alt-tab": "editor::AcceptEditPrediction",
       "alt-l": "editor::AcceptEditPrediction",
-      "tab": "editor::AcceptEditPrediction",
       "alt-right": "editor::AcceptNextWordEditPrediction"
     }
   },
