@@ -101,6 +101,48 @@ function y() {
   rm -f -- "$tmp"
 }
 
+# Copy the output of the last command to the clipboard (Kitty only).
+function cl() {
+  if [[ -z "${KITTY_WINDOW_ID:-}" ]]; then
+    print -u2 'cl: this command only works inside Kitty'
+    return 1
+  fi
+  if [[ -n "${ZELLIJ:-}" || -n "${TMUX:-}" ]]; then
+    print -u2 'cl: this command does not work inside tmux or zellij'
+    return 1
+  fi
+  if (( ! $+functions[_ksi_preexec] )); then
+    print -u2 'cl: Kitty shell integration is not active (open a new Kitty window)'
+    return 1
+  fi
+
+  local output
+  output="$(kitty @ get-text --match "id:${KITTY_WINDOW_ID}" --extent=last_non_empty_output 2>/dev/null)" || {
+    print -u2 'cl: could not read the terminal output'
+    return 1
+  }
+  if [[ -z "$output" ]]; then
+    print -u2 'cl: no output available to copy'
+    return 1
+  fi
+
+  local -a copy_cmd
+  if (( $+commands[wl-copy] )) && [[ -n "${WAYLAND_DISPLAY:-}" ]]; then
+    copy_cmd=(wl-copy)
+  elif (( $+commands[xclip] )); then
+    copy_cmd=(xclip -selection clipboard -in)
+  elif (( $+commands[xsel] )); then
+    copy_cmd=(xsel --clipboard --input)
+  else
+    copy_cmd=(kitty +kitten clipboard)
+  fi
+
+  if ! print -rn -- "$output"$'\n' | "${copy_cmd[@]}"; then
+    print -u2 'cl: failed to write to the clipboard'
+    return 1
+  fi
+}
+
 # --- NVM ---
 export NVM_DIR="$HOME/.nvm"
 [[ -s "$NVM_DIR/nvm.sh" ]] && . "$NVM_DIR/nvm.sh"
