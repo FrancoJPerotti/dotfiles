@@ -6,7 +6,7 @@ linemode = "permissions"
 
 [opener]
 edit = [
-	{ run = 'nvim "$@"', block = true, for = "unix" },
+	{ run = 'nvim %s', block = true, for = "unix" },
 ]
 
 [preview]
