@@ -428,11 +428,15 @@ function M:new(area)
 end
 
 function M:layout(area)
+	self._parent_area = area
+	local result_count = math.max(1, #(self._filtered_results or {}))
+	-- Outer padding (2), search (3), gap (1), and footer (1).
+	local height = math.min(result_count + 7, math.floor(area.h * 0.7))
 	local rows = ui.Layout()
 		:constraints({
-			ui.Constraint.Percentage(15),
-			ui.Constraint.Percentage(70),
-			ui.Constraint.Percentage(15),
+			ui.Constraint.Fill(1),
+			ui.Constraint.Length(height),
+			ui.Constraint.Fill(1),
 		})
 		:split(area)
 
@@ -582,6 +586,7 @@ function M:delete()
 end
 
 function M:reflow()
+	self:layout(self._parent_area)
 	return { self }
 end
 
